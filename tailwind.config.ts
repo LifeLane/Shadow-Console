@@ -11,8 +11,8 @@ export default {
     extend: {
       fontFamily: {
         body: ['Inter', 'sans-serif'],
-        headline: ['Inter', 'sans-serif'],
-        code: ['monospace'],
+        headline: ['Space Grotesk', 'sans-serif'],
+        code: ['Source Code Pro', 'monospace'],
       },
       colors: {
         background: 'hsl(var(--background))',
@@ -88,10 +88,25 @@ export default {
             height: '0',
           },
         },
+        'typewriter': {
+          '0%': { width: '0ch' },
+          '100%': { width: 'var(--typewriter-chars, 10ch)' },
+        },
+        'blink-caret': {
+          '0%, 100%': { borderColor: 'transparent' },
+          '50%': { borderColor: 'hsl(var(--accent))' },
+        },
+        'pulse-opacity': {
+          '0%, 100%': { opacity: '0.7' },
+          '50%': { opacity: '1' },
+        }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'typewriter': 'typewriter 2s steps(var(--typewriter-steps, 10)) forwards',
+        'blink-caret': 'blink-caret 1s step-end infinite',
+        'pulse-opacity': 'pulse-opacity 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
     },
   },
