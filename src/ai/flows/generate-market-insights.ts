@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -19,6 +20,7 @@ const MarketInsightsInputSchema = z.object({
   priceFeed: z.string().describe('Price data from Binance API'),
   sentimentNews: z.string().describe('Sentiment and news data from CoinDesk API'),
   walletTransaction: z.string().describe('Recent wallet action on asset from Polygon API'),
+  contextualNewsSnippets: z.array(z.string()).optional().describe('Array of relevant news snippets provided by the user that might affect market sentiment. Each string is a separate snippet.'),
 });
 export type MarketInsightsInput = z.infer<typeof MarketInsightsInputSchema>;
 
@@ -53,6 +55,12 @@ const marketInsightsPrompt = ai.definePrompt({
   Price Feed Data: {{{priceFeed}}}
   Sentiment & News Data: {{{sentimentNews}}}
   Recent Wallet Transaction: {{{walletTransaction}}}
+  {{#if contextualNewsSnippets}}
+  Additional Contextual News Snippets from User:
+  {{#each contextualNewsSnippets}}
+  - {{{this}}}
+  {{/each}}
+  {{/if}}
 
   Based on this information, provide a prediction, confidence score, entry range, stop loss, take profit, shadow score, and a brief thought process.
 

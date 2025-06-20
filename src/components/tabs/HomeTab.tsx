@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from 'react';
@@ -6,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { generateMarketInsights, MarketInsightsInput, MarketInsightsOutput } from '@/ai/flows/generate-market-insights';
 import { useToast } from '@/hooks/use-toast';
 import TypewriterText from '@/components/TypewriterText';
@@ -13,19 +15,25 @@ import PulsingText from '@/components/PulsingText';
 import { Loader2, BarChart, FileText, Lightbulb } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
-const initialFormState: Omit<MarketInsightsInput, 'priceFeed' | 'sentimentNews' | 'walletTransaction'> = {
+// Define the shape of the form state, explicitly including contextualNewsSnippets
+// and omitting fields that are mocked.
+type HomeFormState = Pick<MarketInsightsInput, 'target' | 'timeframe' | 'indicators' | 'risk' | 'contextualNewsSnippets'>;
+
+const initialFormState: HomeFormState = {
   target: 'BTCUSDT',
   timeframe: '15m',
   indicators: 'RSI, MACD, ATR',
   risk: 'Medium',
+  contextualNewsSnippets: [], // Initialize as empty array
 };
 
 const timeframes = ['1m', '5m', '15m', '30m', '1h', '4h', '1d', '1w'];
 const riskLevels = ['Low', 'Medium', 'High'];
 
 export default function HomeTab() {
-  const [formState, setFormState] = useState(initialFormState);
+  const [formState, setFormState] = useState<HomeFormState>(initialFormState);
   const [insights, setInsights] = useState<MarketInsightsOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -34,8 +42,17 @@ export default function HomeTab() {
     const { name, value } = e.target;
     setFormState(prevState => ({ ...prevState, [name]: value }));
   };
+  
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    if (name === 'contextualNewsSnippets') {
+      // Split by newline and filter out empty strings after trimming
+      const snippets = value.split('\\n').map(s => s.trim()).filter(s => s !== '');
+      setFormState(prevState => ({ ...prevState, contextualNewsSnippets: snippets }));
+    }
+  };
 
-  const handleSelectChange = (name: keyof typeof initialFormState) => (value: string) => {
+  const handleSelectChange = (name: keyof HomeFormState) => (value: string) => {
     setFormState(prevState => ({ ...prevState, [name]: value }));
   };
 
@@ -44,7 +61,6 @@ export default function HomeTab() {
     setIsLoading(true);
     setInsights(null);
 
-    // Mock data for external APIs as per the flow's requirements
     const mockApiData = {
       priceFeed: "Mock Price Data: BTC is currently trading at $25,350 with high volume.",
       sentimentNews: "Mock Sentiment: Recent news indicates positive market sentiment towards Bitcoin.",
@@ -52,7 +68,13 @@ export default function HomeTab() {
     };
 
     try {
-      const result = await generateMarketInsights({ ...formState, ...mockApiData });
+      const payload: MarketInsightsInput = {
+        ...formState,
+        ...mockApiData,
+        // Ensure contextualNewsSnippets is an array, even if empty
+        contextualNewsSnippets: formState.contextualNewsSnippets || [], 
+      };
+      const result = await generateMarketInsights(payload);
       setInsights(result);
     } catch (error) {
       console.error("Error generating insights:", error);
@@ -121,7 +143,7 @@ export default function HomeTab() {
                 placeholder="RSI, MACD, ATR"
               />
             </div>
-            <div>
+             <div>
               <Label htmlFor="risk" className="font-code text-sm">Risk Level</Label>
               <Select name="risk" value={formState.risk} onValueChange={handleSelectChange('risk')}>
                 <SelectTrigger id="risk" className="font-code mt-1 bg-card border-primary/50 focus:border-primary focus:ring-primary">
@@ -131,6 +153,18 @@ export default function HomeTab() {
                   {riskLevels.map(rl => <SelectItem key={rl} value={rl} className="font-code">{rl}</SelectItem>)}
                 </SelectContent>
               </Select>
+            </div>
+            <div>
+              <Label htmlFor="contextualNewsSnippets" className="font-code text-sm">Contextual News Snippets (one per line)</Label>
+              <Textarea
+                id="contextualNewsSnippets"
+                name="contextualNewsSnippets"
+                value={formState.contextualNewsSnippets?.join('\\n') || ''}
+                onChange={handleTextareaChange}
+                className="font-code mt-1 bg-card border-primary/50 focus:border-primary focus:ring-primary"
+                placeholder="e.g., Major exchange lists BTC product...\\nAnalyst predicts upward trend for ETH..."
+                rows={3}
+              />
             </div>
             <Button type="submit" disabled={isLoading} className="w-full font-code bg-primary hover:bg-primary/90 text-primary-foreground text-lg py-3">
               {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : '> EXECUTE'}
