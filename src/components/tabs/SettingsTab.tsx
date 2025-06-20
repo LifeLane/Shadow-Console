@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useTheme } from 'next-themes';
-import { Wallet, Bell, Palette, KeyRound, Sun, Moon, Eye, EyeOff, CheckCircle, XCircle, Settings as SettingsGear } from 'lucide-react';
+import { Wallet, Bell, Palette, KeyRound, Sun, Moon, Eye, EyeOff, CheckCircle, XCircle, Settings as SettingsGear, UserCircle, BarChartBig } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
@@ -19,17 +19,33 @@ export default function SettingsTab() {
   const [showApiKey, setShowApiKey] = useState(false);
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [connectedWalletName, setConnectedWalletName] = useState('');
-  const { toast } = useToast();
+  const [signalStrength, setSignalStrength] = useState(0);
+
 
   useEffect(() => {
     setMounted(true);
-    // Simulate checking existing connection status (e.g., from localStorage)
     const storedWallet = localStorage.getItem("connectedWalletName_simulated");
     if (storedWallet) {
         setIsWalletConnected(true);
         setConnectedWalletName(storedWallet);
+        setSignalStrength(Math.floor(Math.random() * 30) + 70); // Random strength 70-99
+    } else {
+        setSignalStrength(Math.floor(Math.random() * 50) + 20); // Lower strength if not connected 20-69
     }
   }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    const interval = setInterval(() => {
+        if (isWalletConnected) {
+            setSignalStrength(prev => Math.min(100, Math.max(0, prev + (Math.random() > 0.5 ? 1 : -1) * (Math.floor(Math.random()*3)) )));
+        } else {
+             setSignalStrength(prev => Math.min(100, Math.max(0, prev + (Math.random() > 0.5 ? 1 : -1) * (Math.floor(Math.random()*2)) )));
+        }
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [mounted, isWalletConnected]);
+
 
   if (!mounted) {
     return null; 
@@ -44,17 +60,18 @@ export default function SettingsTab() {
       setIsWalletConnected(false);
       setConnectedWalletName('');
       localStorage.removeItem("connectedWalletName_simulated");
-      toast({ title: "Wallet Disconnected", description: "Your wallet has been disconnected from Shadow Core (Simulated)." });
+      setSignalStrength(Math.floor(Math.random() * 50) + 20);
+      toast({ title: "Wallet Disconnected", description: "Your Neural ID has been decoupled from the Shadow Core (Simulated)." });
     } else {
-      // Simulate connecting to a generic wallet
       const simulatedAddress = `0x${Array(40).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('')}`;
       const shortAddress = `${simulatedAddress.substring(0,6)}...${simulatedAddress.substring(simulatedAddress.length - 4)}`;
-      const walletName = `Simulated Wallet (${shortAddress})`;
+      const walletName = `Shadow Agent LX7 (${shortAddress})`;
       
       setIsWalletConnected(true);
       setConnectedWalletName(walletName);
       localStorage.setItem("connectedWalletName_simulated", walletName);
-      toast({ title: "Wallet Connected!", description: `Successfully connected to ${walletName} (Simulated). Ready for Airdrop sync.` });
+      setSignalStrength(Math.floor(Math.random() * 30) + 70);
+      toast({ title: "Neural ID Synced!", description: `Successfully synced ${walletName} with Shadow Core. Signal strength calibrating.` });
     }
   };
   
@@ -69,17 +86,23 @@ export default function SettingsTab() {
     <div className="space-y-8">
       <Card className="glow-border-primary">
         <CardHeader>
-          <CardTitle className="font-headline text-3xl text-primary flex items-center"><SettingsGear className="w-8 h-8 mr-3" />Configuration Panel</CardTitle>
-          <CardDescription>Manage your agent preferences, connections, and interface settings.</CardDescription>
+          <div className="flex items-center space-x-3">
+             <SettingsGear className="w-8 h-8 mr-1 text-primary" />
+            <div>
+                <CardTitle className="font-headline text-3xl text-primary">Agent Configuration Panel</CardTitle>
+                <CardDescription>Manage your agent preferences, connections, and interface settings.</CardDescription>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Wallet Connection */}
+
+          {/* Neural ID Section */}
           <Card className="p-4 sm:p-6 border border-border rounded-lg shadow-sm glow-border-accent">
             <CardHeader className="p-0 pb-4">
-                <CardTitle className="text-xl font-semibold font-headline text-accent flex items-center"><Wallet className="w-6 h-6 mr-2" /> Wallet Synchronization</CardTitle>
-                <CardDescription className="text-sm text-muted-foreground">Connect your primary wallet (ETH, SOL, TON) to sync with the Shadow Core network for airdrop eligibility and mission rewards.</CardDescription>
+                <CardTitle className="text-xl font-semibold font-headline text-accent flex items-center"><UserCircle className="w-6 h-6 mr-2" /> Your Neural ID</CardTitle>
+                <CardDescription className="text-sm text-muted-foreground">Your unique identifier within the Shadow Core network. Sync for mission rewards and airdrop eligibility.</CardDescription>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="p-0 space-y-3">
                 <Button 
                 onClick={handleWalletConnection}
                 className={cn(
@@ -90,15 +113,19 @@ export default function SettingsTab() {
                 )}
                 >
                 {isWalletConnected ? <XCircle className="mr-2 h-5 w-5" /> : <Wallet className="mr-2 h-5 w-5" />}
-                {isWalletConnected ? 'Disconnect Wallet' : 'Connect Wallet (Simulated)'}
+                {isWalletConnected ? 'Decouple Neural ID' : 'Sync Neural ID (Simulated)'}
                 </Button>
                 {isWalletConnected ? (
-                    <p className="text-xs text-accent pt-3 flex items-center"><CheckCircle className="w-4 h-4 mr-1.5"/>Connected: {connectedWalletName}</p>
+                    <div className="text-xs text-accent pt-2 space-y-1">
+                        <p className="flex items-center"><CheckCircle className="w-4 h-4 mr-1.5"/>ID: {connectedWalletName}</p>
+                        <p className="flex items-center"><BarChartBig className="w-4 h-4 mr-1.5"/>Status: Synchronized • Signal Strength: {signalStrength}%</p>
+                    </div>
                 ) : (
-                    <p className="text-xs text-muted-foreground pt-3">Status: Not currently synced with Shadow Core network.</p>
+                    <p className="text-xs text-muted-foreground pt-2">Status: Neural ID not synced. Signal strength nominal ({signalStrength}%).</p>
                 )}
             </CardContent>
           </Card>
+
 
           {/* Theme Settings */}
           <Card className="p-4 sm:p-6 border border-border rounded-lg shadow-sm">
@@ -179,3 +206,5 @@ export default function SettingsTab() {
     </div>
   );
 }
+
+    

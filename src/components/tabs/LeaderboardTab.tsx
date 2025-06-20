@@ -5,7 +5,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Flame, Zap, Eye, Award as RankIcon } from 'lucide-react';
+import { Flame, Zap, Eye, Award as RankIcon, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface LeaderboardUser {
@@ -13,7 +13,7 @@ interface LeaderboardUser {
   rank: number;
   name: string;
   avatarUrl?: string;
-  accuracy: number; // Contribution Score
+  accuracy: number; // Contribution Score (Shadow XP)
   missionsCompleted: number; // Missions for Shadow Core
   airdropContribution: number; // Airdrop Points
   tags: string[];
@@ -32,8 +32,13 @@ export default function LeaderboardTab() {
     <div className="space-y-8">
       <Card className="glow-border-primary">
         <CardHeader>
-          <CardTitle className="font-headline text-3xl text-primary">Top Shadow Agents</CardTitle>
-          <CardDescription>Ranking of agents based on their contributions to the Shadow Core and mission success. Climb the ranks to earn greater airdrop rewards!</CardDescription>
+          <div className="flex items-center space-x-3">
+            <Trophy className="h-8 w-8 text-primary" />
+            <div>
+              <CardTitle className="font-headline text-3xl text-primary">Top Shadow Agents</CardTitle>
+              <CardDescription>Ranking of agents based on their Shadow XP, mission success, and contributions to the Shadow Core. Climb the ranks to earn greater airdrop rewards!</CardDescription>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {mockLeaderboardData.map((user, index) => (
@@ -54,9 +59,9 @@ export default function LeaderboardTab() {
                 </div>
                 <Avatar className={cn("h-12 w-12 sm:h-16 sm:w-16 border-2 shrink-0", index < 3 ? "border-accent" : "border-primary")}>
                   <AvatarImage 
-                    src={user.avatarUrl || `https://placehold.co/100x100.png?text=${user.name.charAt(0)}`} 
-                    alt={user.name}
+                    src={user.avatarUrl}
                     data-ai-hint="profile avatar" 
+                    alt={user.name}
                   />
                   <AvatarFallback className="text-lg sm:text-xl bg-muted text-foreground">{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
@@ -80,7 +85,7 @@ export default function LeaderboardTab() {
                   </div>
                 </div>
                 <div className="text-right space-y-1 text-xs sm:text-sm hidden md:block shrink-0">
-                  <p className="flex items-center justify-end text-muted-foreground"><Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 text-primary/80" /> Core Score: <span className="font-semibold ml-1 text-foreground">{user.accuracy}</span></p>
+                  <p className="flex items-center justify-end text-muted-foreground"><Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 text-primary/80" /> Shadow XP: <span className="font-semibold ml-1 text-foreground">{user.accuracy}</span></p>
                   <p className="flex items-center justify-end text-muted-foreground"><Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 text-orange-500" /> Missions: <span className="font-semibold ml-1 text-foreground">{user.missionsCompleted}</span></p>
                   <p className="flex items-center justify-end text-muted-foreground"><Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 text-yellow-500" /> Airdrop Pts: <span className="font-semibold ml-1 text-foreground">{user.airdropContribution}</span></p>
                 </div>
@@ -92,3 +97,5 @@ export default function LeaderboardTab() {
     </div>
   );
 }
+
+    
