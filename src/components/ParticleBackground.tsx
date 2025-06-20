@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Points, PointMaterial } from '@react-three/drei';
 import * as THREE from 'three';
@@ -64,7 +64,6 @@ function Particles({ count = 5000, mouse, color = '#888888' }: ParticleProps) {
       positionsAttribute.array[i3 + 2] =
         particle.zFactor + Math.cos((particle.t / 10) * particle.factor) + (Math.sin(particle.t * 3) * particle.factor) / 10;
       
-      // Add mouse influence if mouse ref is provided
       if (mouse && mouse.current) {
         positionsAttribute.array[i3 + 0] += particle.mx;
         positionsAttribute.array[i3 + 1] += particle.my;
@@ -78,7 +77,7 @@ function Particles({ count = 5000, mouse, color = '#888888' }: ParticleProps) {
       <PointMaterial
         transparent
         color={color}
-        size={0.015}
+        size={0.02} // Increased particle size
         sizeAttenuation={true}
         depthWrite={false}
         blending={THREE.AdditiveBlending}
@@ -88,32 +87,35 @@ function Particles({ count = 5000, mouse, color = '#888888' }: ParticleProps) {
 }
 
 export default function ParticleBackground() {
-  const [mousePos, setMousePos] = useState<[number, number]>([0,0]);
-  const mouseRef = useRef<[number, number]>(mousePos);
+  const mouseRef = useRef<[number, number]>([0,0]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
         const x = (event.clientX / window.innerWidth) * 2 - 1;
         const y = -(event.clientY / window.innerHeight) * 2 + 1;
-        mouseRef.current = [x * 10, y * 10]; // Scale mouse influence
+        mouseRef.current = [x * 10, y * 10]; 
     };
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
   
-  // Determine color based on theme
-  const [particleColor, setParticleColor] = useState('#888888'); // Default
-  React.useEffect(() => {
-    const isDarkMode = document.documentElement.classList.contains('dark');
-    // In dark mode, use primary color for particles (Neon Green), otherwise a muted color for light mode
-    // These HSL values are approximations from globals.css
-    setParticleColor(isDarkMode ? 'hsl(104 100% 60%)' : 'hsl(288 83% 70%)'); 
+  const [particleColor, setParticleColor] = useState('hsl(210 100% 60%)'); // Default to dark mode primary
+
+  useEffect(() => {
+    const updateParticleColor = () => {
+      const isDarkMode = document.documentElement.classList.contains('dark');
+      // Use new theme colors: Cyber Blue for both modes (adjusting lightness slightly for light mode if needed)
+      // Dark mode primary: hsl(210 100% 60%)
+      // Light mode primary: hsl(210 100% 55%)
+      setParticleColor(isDarkMode ? 'hsl(210 100% 60%)' : 'hsl(210 100% 55%)');
+    };
+
+    updateParticleColor(); // Set initial color
 
     const observer = new MutationObserver((mutationsList) => {
       for (const mutation of mutationsList) {
         if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-          const newIsDarkMode = (mutation.target as HTMLElement).classList.contains('dark');
-          setParticleColor(newIsDarkMode ? 'hsl(104 100% 60%)' : 'hsl(288 83% 70%)');
+          updateParticleColor();
         }
       }
     });
@@ -131,3 +133,5 @@ export default function ParticleBackground() {
     </div>
   );
 }
+
+  
