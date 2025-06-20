@@ -179,7 +179,7 @@ export default function MindTab() {
               type="submit" 
               disabled={isLoading} 
               className={cn(
-                "w-full font-code bg-gradient-to-r from-primary via-purple-600 to-pink-600 hover:from-primary/90 hover:via-purple-500 hover:to-pink-500 text-primary-foreground text-lg sm:text-xl py-3 sm:py-4 rounded-lg shadow-lg hover:shadow-primary/50 transition-all duration-300 transform",
+                "w-full font-code bg-gradient-to-r from-primary via-purple-600 to-pink-600 hover:from-primary/90 hover:via-purple-500 hover:to-pink-500 text-primary-foreground text-base py-3 sm:text-lg sm:py-3 px-4 rounded-lg shadow-lg hover:shadow-primary/50 transition-all duration-300 transform",
                 !isLoading && "hover:scale-105 animate-button-ripple-pulse",
                 isLoading && "cursor-wait"
               )}
@@ -240,12 +240,12 @@ export default function MindTab() {
         </Card>
       )}
 
-      <Tabs defaultValue="experimental-mode" className="w-full mt-8 sm:mt-12">
+      <Tabs defaultValue="experimental-mode" className="w-full mt-8">
         <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2 bg-transparent p-0">
-          <TabsTrigger value="experimental-mode" className="font-code py-2 sm:py-2.5 text-sm sm:text-base data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:glow-border-primary data-[state=active]:shadow-md">
+          <TabsTrigger value="experimental-mode" className="font-code py-2 sm:py-2.5 text-sm sm:text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:glow-border-primary data-[state=active]:shadow-md">
            <Lightbulb className="mr-1.5 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />Auto-Trade Sim
           </TabsTrigger>
-          <TabsTrigger value="data-sources" className="font-code py-2 sm:py-2.5 text-sm sm:text-base data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:glow-border-primary data-[state=active]:shadow-md">
+          <TabsTrigger value="data-sources" className="font-code py-2 sm:py-2.5 text-sm sm:text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:glow-border-primary data-[state=active]:shadow-md">
             <FileText className="mr-1.5 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5"/>Core Data Streams
           </TabsTrigger>
         </TabsList>
@@ -306,4 +306,3 @@ const OutputItem: React.FC<OutputItemProps> = ({ label, value, valueClassName })
     <p className={cn("text-base sm:text-xl font-semibold mt-1 truncate", valueClassName)}>{value}</p>
   </div>
 );
-
