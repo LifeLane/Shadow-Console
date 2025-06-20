@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -32,7 +33,8 @@ export default function AppLayout() {
   const [activeTab, setActiveTab] = useState<TabId>('home');
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-
+  const [isTabAnimating, setIsTabAnimating] = useState(false);
+  
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -40,7 +42,12 @@ export default function AppLayout() {
   const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || (() => null);
 
   const handleTabChange = (tabId: TabId) => {
-    setActiveTab(tabId);
+    if (tabId !== activeTab) {
+      setIsTabAnimating(true);
+      setActiveTab(tabId);
+      // Reset animation state after a short delay to allow exit animation
+      setTimeout(() => setIsTabAnimating(false), 300);
+    }
   };
   
   const toggleTheme = () => {
@@ -65,7 +72,12 @@ export default function AppLayout() {
 
       <main className="flex-grow pt-20 pb-24 overflow-y-auto">
         <div className="container mx-auto px-4 py-8">
-          <div className={cn("transition-opacity duration-300 ease-in-out", activeTab ? 'opacity-100' : 'opacity-0')}>
+          <div 
+            className={cn(
+              "transition-all duration-300 ease-out",
+              isTabAnimating ? 'tab-content-enter' : 'tab-content-enter-active'
+            )}
+          >
             <ActiveComponent />
           </div>
         </div>

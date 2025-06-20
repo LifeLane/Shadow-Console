@@ -15,7 +15,7 @@ interface Task {
   reward: { type: 'NFT' | 'Key' | 'XP_Boost'; name: string; icon: React.ElementType };
   isCompleted: boolean;
   actionLabel: string;
-  actionInProgress?: boolean; // For tasks like "Go to Console"
+  actionInProgress?: boolean;
 }
 
 const mockTasksData: Task[] = [
@@ -29,18 +29,14 @@ export default function TasksTab() {
   const [tasks, setTasks] = useState(mockTasksData);
 
   const handleTaskAction = (taskId: string) => {
-    // In a real app, this would navigate or trigger an API call.
-    // For now, let's toggle completion for non-actionInProgress tasks for demo purposes.
     setTasks(prevTasks => 
       prevTasks.map(task => {
         if (task.id === taskId && !task.actionInProgress && !task.isCompleted) {
-          return { ...task, isCompleted: true, actionLabel: "Claimed!" }; // Example: Update label on completion
+          return { ...task, isCompleted: true, actionLabel: "Claimed!" };
         }
         return task;
       })
     );
-    // For actionInProgress tasks, this function would typically navigate.
-    // For completed tasks, it might show reward details or navigate to where the reward is visible.
   };
 
   return (
@@ -55,11 +51,11 @@ export default function TasksTab() {
             <Card 
               key={task.id} 
               className={cn(
-                "overflow-hidden transition-all duration-300",
-                task.isCompleted ? "opacity-80 glow-border-accent" : "glow-border-primary"
+                "overflow-hidden transition-all duration-300 shadow-md hover:shadow-lg",
+                task.isCompleted ? "opacity-80 glow-border-accent hover:shadow-accent/40" : "glow-border-primary hover:shadow-primary/40"
               )}
             >
-              <CardContent className="p-6 flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 md:space-x-6 bg-card hover:bg-muted/30">
+              <CardContent className="p-6 flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 md:space-x-6 bg-card hover:bg-muted/30 transition-colors duration-200">
                 <div className="flex items-start space-x-4 flex-grow">
                   <div className="mt-1">
                     {task.isCompleted ? (
@@ -84,11 +80,11 @@ export default function TasksTab() {
                   onClick={() => handleTaskAction(task.id)}
                   variant={task.isCompleted ? "outline" : "default"} 
                   size="sm" 
-                  disabled={task.isCompleted && task.actionLabel === "Claimed!"} // Disable if claimed
+                  disabled={task.isCompleted && task.actionLabel === "Claimed!"}
                   className={cn(
-                    "font-code w-full md:w-auto shrink-0 transition-all", 
+                    "font-code w-full md:w-auto shrink-0 transition-all duration-300 transform hover:scale-105", 
                     task.isCompleted 
-                      ? "border-accent text-accent hover:bg-accent/10" 
+                      ? "border-accent text-accent hover:bg-accent/10 hover:text-accent" 
                       : "bg-primary text-primary-foreground hover:bg-primary/90",
                     task.isCompleted && task.actionLabel === "Claimed!" ? "cursor-not-allowed opacity-70" : ""
                   )}

@@ -155,7 +155,6 @@
   animation: pulse-glow-accent 2s infinite ease-in-out;
 }
 
-
 /* Typewriter effect */
 .typewriter-char {
   display: inline-block;
@@ -182,6 +181,14 @@
 
 .animate-blink-block-caret {
   animation: blink-block-caret 1s step-end infinite;
+}
+
+@keyframes pulse-opacity {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+.animate-pulse-opacity {
+  animation: pulse-opacity 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 .animate-spin-slow {

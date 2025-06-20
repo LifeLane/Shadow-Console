@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -8,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useTheme } from 'next-themes';
 import { Wallet, Bell, Palette, KeyRound, Sun, Moon, Eye, EyeOff } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function SettingsTab() {
   const { theme, setTheme } = useTheme();
@@ -20,7 +22,6 @@ export default function SettingsTab() {
   }, []);
 
   if (!mounted) {
-    // Avoid hydration mismatch
     return null; 
   }
 
@@ -40,8 +41,7 @@ export default function SettingsTab() {
           <div className="space-y-3 p-4 border border-border rounded-lg shadow-sm glow-border-accent">
             <h3 className="text-xl font-semibold font-headline text-accent flex items-center"><Wallet className="w-6 h-6 mr-2" /> Wallet Connection</h3>
             <p className="text-sm text-muted-foreground">Connect your preferred wallet (e.g., MetaMask, Phantom).</p>
-            <Button className="font-code bg-accent text-accent-foreground hover:bg-accent/90">Connect Wallet</Button>
-            {/* Placeholder for connected wallet info */}
+            <Button className="font-code bg-accent text-accent-foreground hover:bg-accent/90 transition-colors">Connect Wallet</Button>
             <p className="text-xs text-muted-foreground pt-2">Currently not connected.</p>
           </div>
 
@@ -52,12 +52,12 @@ export default function SettingsTab() {
               <Label htmlFor="theme-toggle" className="text-base">
                 {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
               </Label>
-              <Button onClick={toggleTheme} variant="outline" size="icon" className="border-primary text-primary hover:bg-primary/10">
+              <Button onClick={toggleTheme} variant="outline" size="icon" className="border-primary text-primary hover:bg-primary/10 transition-colors">
                 {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                 <span className="sr-only">Toggle theme</span>
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">Current edge glow color is based on active elements (Primary: Purple, Accent: Green).</p>
+            <p className="text-xs text-muted-foreground">Current edge glow color is based on active elements (Primary: Purple/Blue, Accent: Green).</p>
           </div>
 
           {/* Notification Preferences */}
@@ -101,7 +101,7 @@ export default function SettingsTab() {
                 </div>
               </div>
             </div>
-            <Button variant="outline" className="font-code border-primary text-primary hover:bg-primary/10">Save API Keys</Button>
+            <Button variant="outline" className="font-code border-primary text-primary hover:bg-primary/10 transition-colors">Save API Keys</Button>
             <p className="text-xs text-destructive pt-1">API keys are stored locally and used only for features you enable. Handle with care.</p>
           </div>
         </CardContent>

@@ -16,7 +16,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from '@/lib/utils';
 import { TradingViewWidget } from '@/components/TradingViewWidget';
 
-// This type now matches the MarketInsightsInput from the flow (client-facing)
 type HomeFormState = MarketInsightsInput;
 
 const initialFormState: HomeFormState = {
@@ -31,15 +30,15 @@ const riskLevels = ['Low', 'Medium', 'High'];
 const tradeModeToChartTimeframe = (tradeMode: string): string => {
   switch (tradeMode.toLowerCase()) {
     case 'scalping':
-      return '5m'; // TradingView uses '5' for 5 minutes
+      return '5m';
     case 'intraday':
-      return '1h'; // TradingView uses '60' for 1 hour
+      return '1h';
     case 'swing trading':
-      return '4h'; // TradingView uses '240' for 4 hours
+      return '4h';
     case 'position trading':
     case 'options':
     case 'futures':
-      return '1D'; // TradingView uses 'D' for Daily
+      return '1D';
     default:
       return '1D';
   }
@@ -72,8 +71,6 @@ export default function HomeTab() {
     setIsLoading(true);
     setInsights(null);
 
-    // The payload now only contains what the flow's MarketInsightsInput expects.
-    // The flow itself will call the services to get priceFeed, sentimentNews, etc.
     try {
       const payload: MarketInsightsInput = {
         target: formState.target,

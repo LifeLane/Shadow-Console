@@ -5,7 +5,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Flame, Zap, Eye, Award as RankIcon } from 'lucide-react'; // Added RankIcon
+import { Flame, Zap, Eye, Award as RankIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface LeaderboardUser {
@@ -40,8 +40,8 @@ export default function LeaderboardTab() {
             <Card 
               key={user.id} 
               className={cn(
-                "shadow-lg rounded-xl overflow-hidden transition-all duration-300", 
-                index < 3 ? 'glow-border-accent scale-[1.02]' : 'border-border'
+                "shadow-lg rounded-xl overflow-hidden transition-all duration-300 transform", 
+                index < 3 ? 'glow-border-accent scale-[1.02] hover:scale-[1.04]' : 'border-border hover:scale-[1.01] hover:shadow-primary/30'
               )}
             >
               <CardContent className={cn(
@@ -70,8 +70,8 @@ export default function LeaderboardTab() {
                         className={cn(
                           tag.includes('Oracle') ? 'bg-primary text-primary-foreground' : 'bg-accent text-accent-foreground', 
                           'font-code text-xs',
-                          index < 3 && tag.includes('Oracle') ? 'shadow-lg shadow-primary/50' : '',
-                          index < 3 && !tag.includes('Oracle') ? 'shadow-lg shadow-accent/50' : ''
+                          index < 3 && tag.includes('Oracle') ? 'shadow-md shadow-primary/50' : '',
+                          index < 3 && !tag.includes('Oracle') ? 'shadow-md shadow-accent/50' : ''
                         )}
                       >
                         {tag}

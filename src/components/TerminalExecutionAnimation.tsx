@@ -10,7 +10,6 @@ interface TerminalExecutionAnimationProps {
   target: string;
   tradeMode: string;
   risk: string;
-  // onAnimationComplete?: () => void; // Optional callback when all lines typed
 }
 
 const getLogLinesConfig = (target: string, tradeMode: string, risk: string) => [
@@ -28,21 +27,16 @@ const TerminalExecutionAnimation: React.FC<TerminalExecutionAnimationProps> = ({
   target,
   tradeMode,
   risk,
-  // onAnimationComplete
 }) => {
   const [completedLineIds, setCompletedLineIds] = useState<string[]>([]);
   const logLines = useMemo(() => getLogLinesConfig(target, tradeMode, risk), [target, tradeMode, risk]);
 
   useEffect(() => {
-    setCompletedLineIds([]); // Reset on prop change
+    setCompletedLineIds([]);
   }, [logLines]);
 
   const handleTypeComplete = (lineId: string) => {
     setCompletedLineIds(prev => [...prev, lineId]);
-    // const currentLineIndex = logLines.findIndex(line => line.id === lineId);
-    // if (currentLineIndex === logLines.length - 1 && onAnimationComplete) {
-    //   onAnimationComplete();
-    // }
   };
 
   return (
@@ -63,7 +57,7 @@ const TerminalExecutionAnimation: React.FC<TerminalExecutionAnimationProps> = ({
                 className="whitespace-pre-wrap break-words"
                 onComplete={() => handleTypeComplete(line.id)}
                 showCaret={!completedLineIds.includes(line.id)} 
-                caretClassName="bg-green-400 animate-blink-block-caret opacity-100" // Use new animation
+                caretClassName="bg-green-400 animate-blink-block-caret opacity-100"
               />
             </div>
           );

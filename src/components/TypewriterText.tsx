@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -55,7 +56,10 @@ const TypewriterText: React.FC<TypewriterTextProps> = ({
         </span>
       ))}
       {showCaret && !isComplete && (
-         <span className={cn("inline-block w-[1ch] h-[1.2em] ml-0.5 bg-accent animate-blink-caret", caretClassName)} style={{ animationDelay: `${currentIndex * (speed / 1000) + 0.1}s` }}></span>
+         <span className={cn(
+           "inline-block w-[1ch] h-[1.2em] ml-0.5",
+           caretClassName || "bg-accent animate-blink-caret" // Use provided caret class or default
+         )} style={{ animationDelay: `${currentIndex * (speed / 1000) + 0.1}s` }}></span>
       )}
     </Element>
   );
