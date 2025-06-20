@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +33,11 @@ export default function MindTab() {
   const [isAutoTradeEnabled, setIsAutoTradeEnabled] = useState(false);
   const { toast } = useToast();
   const [descriptionKey, setDescriptionKey] = useState(0); 
+  const [thoughtKey, setThoughtKey] = useState(0);
+
+  useEffect(() => {
+    setDescriptionKey(prev => prev + 1); // Trigger initial typewriter animations
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -55,6 +60,7 @@ export default function MindTab() {
     setIsLoading(true);
     setInsights(null);
     setDescriptionKey(prev => prev + 1); 
+    setThoughtKey(prev => prev + 1); // Reset thought animation specifically
 
     try {
       const payload: MarketInsightsInput = {
@@ -222,7 +228,7 @@ export default function MindTab() {
               <Label className="text-accent font-semibold text-base sm:text-lg">Oracle's Whisper (Core Logic):</Label>
               <div className="p-3 sm:p-4 mt-2 border border-accent/30 rounded-lg bg-card shadow-inner animate-pulse-glow-accent min-h-[60px]">
                  <TypewriterText 
-                    key={`thought-${descriptionKey}`}
+                    key={`thought-${thoughtKey}`}
                     text={`"${insights.thought}"`} 
                     className="text-card-foreground italic text-sm sm:text-base" 
                     speed={25}
@@ -243,7 +249,7 @@ export default function MindTab() {
             <FileText className="mr-1.5 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5"/>Core Data Streams
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="experimental-mode" className="mt-4 sm:mt-6">
+        <TabsContent value="experimental-mode" className="mt-8">
           <Card className="glow-border-primary shadow-xl p-4 sm:p-6">
             <CardHeader className="p-0 pb-3 sm:pb-4"><CardTitle className="font-headline text-primary text-lg sm:text-2xl">Experimental Auto-Trade Simulation</CardTitle></CardHeader>
             <CardContent className="p-0">
@@ -270,7 +276,7 @@ export default function MindTab() {
             </CardContent>
           </Card>
         </TabsContent>
-         <TabsContent value="data-sources" className="mt-4 sm:mt-6">
+         <TabsContent value="data-sources" className="mt-8">
           <Card className="glow-border-primary shadow-xl p-4 sm:p-6">
             <CardHeader className="p-0 pb-3 sm:pb-4"><CardTitle className="font-headline text-primary text-lg sm:text-2xl">Shadow Core: Data Streams</CardTitle></CardHeader>
             <CardContent className="p-0 space-y-2 text-sm sm:text-base">
