@@ -53,22 +53,22 @@
 
   .dark {
     --background: 255 6% 16%; /* Dark Gray */
-    --foreground: 0 0% 90%; /* Light Gray/Off-white for text */
+    --foreground: 0 0% 95%; /* Brighter default text for dark mode */
 
     --card: 255 6% 20%; 
-    --card-foreground: 0 0% 90%;
+    --card-foreground: 0 0% 95%; /* Use brighter foreground for card text */
 
     --popover: 255 6% 12%; 
-    --popover-foreground: 0 0% 90%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 104 100% 60%; /* Neon Green - User Request */
+    --primary: 104 100% 60%; /* Neon Green */
     --primary-foreground: 255 6% 10%; /* Dark color for text on Neon Green */
 
     --secondary: 255 6% 22%;
-    --secondary-foreground: 0 0% 90%;
+    --secondary-foreground: 0 0% 95%;
 
     --muted: 255 6% 22%;
-    --muted-foreground: 0 0% 63.9%;
+    --muted-foreground: 0 0% 70%; /* Lighter muted text for dark mode */
 
     --accent: 104 100% 60%; /* Neon Green - Same as Primary for Neon theme */
     --accent-foreground: 255 6% 10%; /* Dark color for text on Neon Green */
@@ -88,7 +88,7 @@
 
     /* Sidebar variables for dark mode */
     --sidebar-background: 255 6% 12%;
-    --sidebar-foreground: 0 0% 90%;
+    --sidebar-foreground: 0 0% 95%;
     --sidebar-primary: 104 100% 60%; /* Neon Green */
     --sidebar-primary-foreground: 255 6% 10%; 
     --sidebar-accent: 104 100% 60%; /* Neon Green */
