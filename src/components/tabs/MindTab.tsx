@@ -196,7 +196,7 @@ export default function MindTab() {
         <Card className="glow-border-accent shadow-2xl">
           <CardHeader className="border-b border-border p-4 sm:p-6">
              <div className="flex items-center space-x-2 sm:space-x-3">
-                <Lightbulb className="h-6 w-6 sm:h-8 sm:w-8 text-accent" />
+                <Lightbulb className="h-6 w-6 sm:h-8 sm:h-8 text-accent" />
                 <div>
                     <CardTitle className="font-headline text-xl sm:text-3xl text-accent">Shadow Core Output</CardTitle>
                      <TypewriterText 
@@ -224,7 +224,7 @@ export default function MindTab() {
                  <TypewriterText 
                     key={`thought-${descriptionKey}`}
                     text={`"${insights.thought}"`} 
-                    className="text-accent-foreground italic text-sm sm:text-base" 
+                    className="text-card-foreground italic text-sm sm:text-base" 
                     speed={25}
                     showCaret={false}
                   />
