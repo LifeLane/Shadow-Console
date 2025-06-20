@@ -11,10 +11,9 @@ import { generateMarketInsights, MarketInsightsInput, MarketInsightsOutput } fro
 import { useToast } from '@/hooks/use-toast';
 import TerminalExecutionAnimation from '@/components/TerminalExecutionAnimation';
 import TypewriterText from '@/components/TypewriterText';
-import { Loader2, BarChart, FileText, Lightbulb, TrendingUp, Zap, ShieldCheck, ShieldOff, Brain } from 'lucide-react';
+import { Loader2, BarChart, FileText, Lightbulb, TrendingUp, Zap, ShieldCheck, ShieldOff, Brain, AlertTriangle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from '@/lib/utils';
-import { TradingViewWidget } from '@/components/TradingViewWidget';
 
 type MindFormState = MarketInsightsInput;
 
@@ -27,30 +26,13 @@ const initialFormState: MindFormState = {
 const tradeModes = ['Scalping', 'Intraday', 'Swing Trading', 'Position Trading', 'Options', 'Futures'];
 const riskLevels = ['Low', 'Medium', 'High'];
 
-const tradeModeToChartTimeframe = (tradeMode: string): string => {
-  switch (tradeMode.toLowerCase()) {
-    case 'scalping':
-      return '5m';
-    case 'intraday':
-      return '1h';
-    case 'swing trading':
-      return '4h';
-    case 'position trading':
-    case 'options':
-    case 'futures':
-      return '1D';
-    default:
-      return '1D';
-  }
-};
-
 export default function MindTab() {
   const [formState, setFormState] = useState<MindFormState>(initialFormState);
   const [insights, setInsights] = useState<MarketInsightsOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isAutoTradeEnabled, setIsAutoTradeEnabled] = useState(false);
   const { toast } = useToast();
-  const [descriptionKey, setDescriptionKey] = useState(0); // For re-triggering typewriter
+  const [descriptionKey, setDescriptionKey] = useState(0); 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -72,7 +54,7 @@ export default function MindTab() {
     e.preventDefault();
     setIsLoading(true);
     setInsights(null);
-    setDescriptionKey(prev => prev + 1); // Re-trigger typewriter for descriptions
+    setDescriptionKey(prev => prev + 1); 
 
     try {
       const payload: MarketInsightsInput = {
@@ -112,14 +94,12 @@ export default function MindTab() {
   const getPredictionColor = (prediction?: string) => {
     if (!prediction) return 'text-foreground';
     switch (prediction.toUpperCase()) {
-      case 'BUY': return 'text-primary'; // Uses primary theme color (Neon Green in dark)
+      case 'BUY': return 'text-primary'; 
       case 'SELL': return 'text-destructive';
       case 'HOLD':
       default: return 'text-yellow-500'; 
     }
   };
-
-  const chartTimeframe = useMemo(() => tradeModeToChartTimeframe(formState.tradeMode), [formState.tradeMode]);
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -270,12 +250,12 @@ export default function MindTab() {
           <Card className="glow-border-primary shadow-xl neural-dot-grid">
             <CardHeader className="p-4 sm:p-6"><CardTitle className="font-headline text-primary text-lg sm:text-2xl relative z-10">Live Market Matrix</CardTitle></CardHeader>
             <CardContent className="p-2 sm:p-4 relative z-10">
-              <div className="mt-2 sm:mt-4 h-[300px] sm:h-[400px] md:h-[500px] rounded-md overflow-hidden border border-border">
-                <TradingViewWidget
-                  marketSymbol={formState.target || 'BTCUSDT'}
-                  timeframe={chartTimeframe}
-                  height="100%"
-                />
+              <div className="mt-2 sm:mt-4 h-[300px] sm:h-[400px] md:h-[500px] rounded-md border border-border flex items-center justify-center bg-background/50">
+                <div className="text-center text-muted-foreground p-4">
+                    <AlertTriangle className="w-12 h-12 mx-auto mb-3 text-primary/70" />
+                    <p className="font-headline text-lg text-primary">Live Chart Currently Unavailable</p>
+                    <p className="text-sm font-code mt-1">The integrated chart service is temporarily offline or under maintenance. Please check back later.</p>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -337,3 +317,4 @@ const OutputItem: React.FC<OutputItemProps> = ({ label, value, valueClassName })
     <p className={cn("text-base sm:text-xl font-semibold mt-1 truncate", valueClassName)}>{value}</p>
   </div>
 );
+
