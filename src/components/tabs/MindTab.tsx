@@ -107,10 +107,10 @@ export default function MindTab() {
   const getPredictionColor = (prediction?: string) => {
     if (!prediction) return 'text-foreground';
     switch (prediction.toUpperCase()) {
-      case 'BUY': return 'text-primary'; 
-      case 'SELL': return 'text-destructive';
+      case 'BUY': return 'text-green-400'; // Adjusted for new palette
+      case 'SELL': return 'text-red-400'; // Adjusted for new palette
       case 'HOLD':
-      default: return 'text-yellow-500'; 
+      default: return 'text-yellow-400'; // Adjusted for new palette
     }
   };
 
@@ -144,7 +144,7 @@ export default function MindTab() {
                       name="target" 
                       value={formState.target} 
                       onChange={handleInputChange} 
-                      className="font-code bg-card border-primary/30 focus:border-primary focus:ring-primary text-base sm:text-lg py-2 h-10 sm:h-auto flex-grow" 
+                      className="font-code text-base sm:text-lg py-2 h-10 sm:h-auto flex-grow" 
                       placeholder="e.g., BTCUSDT"
                     />
                     <span 
@@ -156,7 +156,7 @@ export default function MindTab() {
                 <div>
                   <Label htmlFor="tradeMode" className="font-code text-xs sm:text-sm text-muted-foreground">Select Trade Mode</Label>
                   <Select name="tradeMode" value={formState.tradeMode} onValueChange={handleSelectChange('tradeMode')}>
-                    <SelectTrigger id="tradeMode" className="font-code mt-1 bg-card border-primary/30 focus:border-primary focus:ring-primary text-base sm:text-lg py-2 h-10 sm:h-auto">
+                    <SelectTrigger id="tradeMode" className="font-code mt-1 text-base sm:text-lg py-2 h-10 sm:h-auto dark:bg-black/80 dark:border-primary/60 dark:text-primary dark:focus-visible:ring-primary bg-background border-primary/40 text-primary focus-visible:ring-primary">
                       <SelectValue placeholder="Select trade mode" />
                     </SelectTrigger>
                     <SelectContent>
@@ -196,7 +196,7 @@ export default function MindTab() {
                 type="submit" 
                 disabled={isLoading} 
                 className={cn(
-                  "w-full font-code bg-gradient-to-r from-primary via-purple-600 to-pink-600 hover:from-primary/90 hover:via-purple-500 hover:to-pink-500 text-primary-foreground text-base py-3 sm:text-lg sm:py-3 px-4 rounded-lg shadow-lg hover:shadow-primary/50 transition-all duration-300 transform",
+                  "w-full font-code bg-gradient-to-r from-primary via-purple-500 to-accent hover:from-primary/90 hover:via-purple-600 hover:to-accent/90 text-primary-foreground text-base py-3 sm:text-lg sm:py-3 px-4 rounded-lg shadow-lg hover:shadow-primary/50 transition-all duration-300 transform",
                   !isLoading && "hover:scale-105 animate-button-ripple-pulse",
                   isLoading && "cursor-wait"
                 )}
@@ -247,11 +247,11 @@ export default function MindTab() {
               </div>
               <div className="pt-2">
                 <Label className="text-accent font-semibold text-base sm:text-lg block text-center sm:text-left">Oracle's Whisper (Core Logic):</Label>
-                <div className="p-3 sm:p-4 mt-2 border border-accent/30 rounded-lg bg-card shadow-inner animate-pulse-glow-accent min-h-[60px]">
+                <div className="p-3 sm:p-4 mt-2 border border-accent/50 rounded-lg bg-black/70 shadow-inner animate-pulse-glow-accent min-h-[60px]">
                   <TypewriterText 
                       key={`thought-${thoughtKey}`}
                       text={`"${insights.thought}"`} 
-                      className="text-card-foreground italic text-sm sm:text-base text-center" 
+                      className="text-accent italic text-sm sm:text-base text-center" 
                       speed={25}
                       showCaret={false}
                     />
@@ -287,10 +287,10 @@ export default function MindTab() {
                     <Button 
                     onClick={toggleAutoTrade}
                     className={cn(
-                        "font-code py-2 px-4 sm:py-2.5 sm:px-6 text-sm sm:text-base transition-all duration-300 w-full max-w-xs", // Added max-w-xs for button
+                        "font-code py-2 px-4 sm:py-2.5 sm:px-6 text-sm sm:text-base transition-all duration-300 w-full max-w-xs", 
                         isAutoTradeEnabled 
                             ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground" 
-                            : "bg-accent hover:bg-accent/90 text-accent-foreground"
+                            : "bg-accent text-accent-foreground hover:bg-accent/90"
                     )}
                     >
                     {isAutoTradeEnabled ? <ShieldOff className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> : <ShieldCheck className="mr-2 h-4 w-4 sm:h-5 sm:h-5" />}
@@ -336,6 +336,3 @@ const OutputItem: React.FC<OutputItemProps> = ({ label, value, valueClassName })
     <p className={cn("text-base sm:text-xl font-semibold mt-1 truncate", valueClassName)}>{value}</p>
   </div>
 );
-
-
-    
