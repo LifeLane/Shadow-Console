@@ -23,7 +23,7 @@
     --muted: 0 0% 96.1%;
     --muted-foreground: 0 0% 45.1%;
 
-    --accent: 104 100% 60%; /* Bright Green */
+    --accent: 104 100% 60%; /* Neon Green */
     --accent-foreground: 255 6% 10%; /* Dark color for text on accent */
 
     --destructive: 0 84.2% 60.2%;
@@ -40,29 +40,29 @@
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
 
-    /* Sidebar variables - kept for shadcn/ui compatibility, might not be used directly */
+    /* Sidebar variables */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary: 288 83% 54%; /* Electric Purple */
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-accent: 104 100% 60%; /* Neon Green */
+    --sidebar-accent-foreground: 255 6% 10%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 288 83% 54%; /* Electric Purple */
   }
 
   .dark {
-    --background: 255 6% 16%; /* Dark Gray - User's Background */
+    --background: 255 6% 16%; /* Dark Gray */
     --foreground: 0 0% 90%; /* Light Gray/Off-white for text */
 
-    --card: 255 6% 20%; /* Slightly lighter than background for cards */
+    --card: 255 6% 20%; 
     --card-foreground: 0 0% 90%;
 
-    --popover: 255 6% 12%; /* Darker for popovers */
+    --popover: 255 6% 12%; 
     --popover-foreground: 0 0% 90%;
 
-    --primary: 220 85% 55%; /* Electra Blue */
-    --primary-foreground: 0 0% 98%; /* Light color for text on primary */
+    --primary: 104 100% 60%; /* Neon Green - User Request */
+    --primary-foreground: 255 6% 10%; /* Dark color for text on Neon Green */
 
     --secondary: 255 6% 22%;
     --secondary-foreground: 0 0% 90%;
@@ -70,15 +70,15 @@
     --muted: 255 6% 22%;
     --muted-foreground: 0 0% 63.9%;
 
-    --accent: 104 100% 60%; /* Bright Green */
-    --accent-foreground: 255 6% 10%; /* Dark color for text on accent */
+    --accent: 104 100% 60%; /* Neon Green - Same as Primary for Neon theme */
+    --accent-foreground: 255 6% 10%; /* Dark color for text on Neon Green */
 
     --destructive: 0 72.2% 50.6%;
     --destructive-foreground: 0 0% 98%;
 
     --border: 255 6% 25%;
     --input: 255 6% 22%;
-    --ring: 220 85% 55%; /* Primary color for rings - Electra Blue */
+    --ring: 104 100% 60%; /* Neon Green for rings */
     
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
@@ -89,12 +89,12 @@
     /* Sidebar variables for dark mode */
     --sidebar-background: 255 6% 12%;
     --sidebar-foreground: 0 0% 90%;
-    --sidebar-primary: 220 85% 55%; /* Electra Blue */
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 255 6% 20%;
-    --sidebar-accent-foreground: 0 0% 90%;
+    --sidebar-primary: 104 100% 60%; /* Neon Green */
+    --sidebar-primary-foreground: 255 6% 10%; 
+    --sidebar-accent: 104 100% 60%; /* Neon Green */
+    --sidebar-accent-foreground: 255 6% 10%;
     --sidebar-border: 255 6% 25%;
-    --sidebar-ring: 220 85% 55%; /* Electra Blue */
+    --sidebar-ring: 104 100% 60%; /* Neon Green */
   }
 }
 
@@ -169,12 +169,12 @@
 }
 
 /* Caret Animations */
-@keyframes blink-caret { /* Original, border-based */
+@keyframes blink-caret { 
   0%, 100% { border-color: transparent; }
-  50% { border-color: hsl(var(--accent)); } /* Blinks with accent color border */
+  50% { border-color: hsl(var(--accent)); } 
 }
 
-@keyframes blink-block-caret { /* New, background-based for terminal */
+@keyframes blink-block-caret { 
   0%, 100% { opacity: 0; }
   50% { opacity: 1; }
 }

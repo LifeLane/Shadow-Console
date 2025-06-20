@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Square, BadgeCheck, Send, Link2, Award, Gift, KeyRound, BookOpen, CircleDashed } from 'lucide-react';
+import { Square, BadgeCheck, Send, Link2, Award, Gift, KeyRound, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
@@ -69,7 +69,7 @@ export default function TasksTab() {
                   <div className="flex items-start space-x-4 flex-grow">
                     <div className="mt-1">
                       {task.isCompleted ? (
-                        <BadgeCheck className="w-7 h-7 text-green-500" />
+                        <BadgeCheck className="w-7 h-7 text-accent" />
                       ) : (
                         <Square className="w-7 h-7 text-primary/70" />
                       )}
@@ -109,5 +109,3 @@ export default function TasksTab() {
     </div>
   );
 }
-
-    

@@ -45,7 +45,6 @@ export default function AppLayout() {
     if (tabId !== activeTab) {
       setIsTabAnimating(true);
       setActiveTab(tabId);
-      // Reset animation state after a short delay to allow exit animation
       setTimeout(() => setIsTabAnimating(false), 300);
     }
   };
@@ -55,7 +54,7 @@ export default function AppLayout() {
   };
 
   if (!mounted) {
-    return null; // or a loading skeleton
+    return null; 
   }
 
   return (
@@ -92,17 +91,29 @@ export default function AppLayout() {
               onClick={() => handleTabChange(tab.id)}
               className={cn(
                 "flex flex-col items-center justify-center h-full px-2 text-xs group transition-all duration-300 ease-out transform hover:scale-105",
-                activeTab === tab.id ? 'text-primary scale-110' : 'text-muted-foreground hover:text-foreground'
+                activeTab === tab.id 
+                  ? 'text-primary scale-110' 
+                  : 'text-muted-foreground group-hover:text-primary' // Text changes to primary on hover
               )}
               aria-current={activeTab === tab.id ? 'page' : undefined}
             >
               <div className={cn(
                 "p-2 rounded-full transition-all duration-300 ease-out",
-                activeTab === tab.id ? 'bg-primary/10 glow-border-primary opacity-100' : 'opacity-70 group-hover:opacity-100'
+                activeTab === tab.id 
+                  ? 'bg-primary/10 glow-border-primary opacity-100' 
+                  : 'opacity-70 group-hover:opacity-100 group-hover:glow-border-primary' // Icon container gets glow on hover
               )}>
-                <tab.icon className={cn("h-6 w-6", activeTab === tab.id ? 'text-primary' : '')} />
+                <tab.icon className={cn(
+                    "h-6 w-6", 
+                    activeTab === tab.id ? 'text-primary' : 'group-hover:text-primary' // Icon changes to primary on hover
+                  )} 
+                />
               </div>
-              <span className={cn("mt-1 font-medium", activeTab === tab.id ? 'text-primary' : 'group-hover:text-foreground')}>
+              <span className={cn(
+                  "mt-1 font-medium", 
+                  activeTab === tab.id ? 'text-primary' : 'group-hover:text-primary' // Label changes to primary on hover
+                )}
+              >
                 {tab.label}
               </span>
             </Button>

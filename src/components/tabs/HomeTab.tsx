@@ -107,10 +107,10 @@ export default function HomeTab() {
   const getPredictionColor = (prediction?: string) => {
     if (!prediction) return 'text-foreground';
     switch (prediction.toUpperCase()) {
-      case 'BUY': return 'text-green-500';
-      case 'SELL': return 'text-red-500';
+      case 'BUY': return 'text-primary'; // Uses theme's primary color
+      case 'SELL': return 'text-destructive'; // Uses theme's destructive color
       case 'HOLD':
-      default: return 'text-yellow-500';
+      default: return 'text-yellow-500'; // Keep yellow for hold, or define a theme variable
     }
   };
 
@@ -255,8 +255,8 @@ export default function HomeTab() {
                 className={cn(
                     "font-code py-2.5 px-6 text-base transition-all duration-300",
                     isAutoTradeEnabled 
-                        ? "bg-red-600 hover:bg-red-700 text-white" 
-                        : "bg-green-500 hover:bg-green-600 text-white"
+                        ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground" 
+                        : "bg-accent hover:bg-accent/90 text-accent-foreground" // Use accent for enable
                 )}
                 >
                 {isAutoTradeEnabled ? <ShieldOff className="mr-2 h-5 w-5" /> : <ShieldCheck className="mr-2 h-5 w-5" />}
@@ -294,5 +294,3 @@ const OutputItem: React.FC<OutputItemProps> = ({ label, value, valueClassName })
     <p className={cn("text-xl font-semibold mt-1", valueClassName)}>{value}</p>
   </div>
 );
-
-    

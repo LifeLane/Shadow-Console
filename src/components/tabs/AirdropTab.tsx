@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, XCircle, Gift, WalletCards, History, ExternalLink, Copy, Link as LinkIcon, AlertTriangle } from 'lucide-react';
+import { CheckCircle, XCircle, Gift, WalletCards, History, ExternalLink, Copy, AlertTriangle } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -138,9 +138,9 @@ export default function AirdropTab() {
               </form>
             </Card>
           ) : (
-             <Card className="p-6 bg-green-500/10 border-green-500/50 shadow-md text-center">
-                <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
-                <h3 className="text-xl font-semibold text-green-400 font-headline">Wallet Submitted Successfully!</h3>
+             <Card className="p-6 bg-accent/10 border-accent/50 shadow-md text-center">
+                <CheckCircle className="w-12 h-12 text-accent mx-auto mb-3" />
+                <h3 className="text-xl font-semibold text-accent font-headline">Wallet Submitted Successfully!</h3>
                 <p className="text-muted-foreground">{selectedChain}: {walletAddress}</p>
             </Card>
           )}
@@ -153,9 +153,14 @@ export default function AirdropTab() {
 
           <div className="space-y-4">
             {eligibilityItems.map((item) => (
-              <Card key={item.id} className={cn("p-4 flex items-center justify-between transition-all duration-300", item.isEligible ? "bg-green-500/10 border-green-500/50 shadow-sm hover:shadow-green-500/20 hover:border-green-500" : "bg-red-500/10 border-red-500/50 shadow-sm hover:shadow-red-500/20 hover:border-red-500")}>
+              <Card key={item.id} className={cn(
+                "p-4 flex items-center justify-between transition-all duration-300", 
+                item.isEligible 
+                  ? "bg-accent/10 border-accent/50 shadow-sm hover:shadow-accent/20 hover:border-accent" 
+                  : "bg-destructive/10 border-destructive/50 shadow-sm hover:shadow-destructive/20 hover:border-destructive"
+                )}>
                 <div className="flex items-center">
-                  {item.isEligible ? <CheckCircle className="w-6 h-6 mr-3 text-green-500" /> : <XCircle className="w-6 h-6 mr-3 text-red-500" />}
+                  {item.isEligible ? <CheckCircle className="w-6 h-6 mr-3 text-accent" /> : <XCircle className="w-6 h-6 mr-3 text-destructive" />}
                   <div>
                     <p className="font-semibold text-foreground">{item.label}</p>
                     {item.details && <p className="text-xs text-muted-foreground">{item.details}</p>}
@@ -243,5 +248,3 @@ export default function AirdropTab() {
     </div>
   );
 }
-
-    

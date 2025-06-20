@@ -69,14 +69,16 @@ export default function SettingsTab() {
               onClick={handleWalletConnection}
               className={cn(
                 "font-code transition-colors",
-                isWalletConnected ? "bg-red-600 hover:bg-red-700 text-white" : "bg-accent text-accent-foreground hover:bg-accent/90"
+                isWalletConnected 
+                  ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground" 
+                  : "bg-accent text-accent-foreground hover:bg-accent/90"
               )}
             >
               {isWalletConnected ? <XCircle className="mr-2 h-5 w-5" /> : <Wallet className="mr-2 h-5 w-5" />}
               {isWalletConnected ? 'Disconnect Wallet' : 'Connect Wallet (Simulated)'}
             </Button>
             {isWalletConnected ? (
-                <p className="text-xs text-green-500 pt-2 flex items-center"><CheckCircle className="w-4 h-4 mr-1.5"/>Connected: {connectedWalletName}</p>
+                <p className="text-xs text-accent pt-2 flex items-center"><CheckCircle className="w-4 h-4 mr-1.5"/>Connected: {connectedWalletName}</p>
             ) : (
                 <p className="text-xs text-muted-foreground pt-2">Currently not connected.</p>
             )}
@@ -94,7 +96,7 @@ export default function SettingsTab() {
                 <span className="sr-only">Toggle theme</span>
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">Current edge glow color is based on active elements (Primary: Purple/Blue, Accent: Green).</p>
+            <p className="text-xs text-muted-foreground">Current edge glow color is based on active elements (Primary: Purple/Neon Green, Accent: Neon Green).</p>
           </div>
 
           {/* Notification Preferences */}
@@ -149,5 +151,3 @@ export default function SettingsTab() {
     </div>
   );
 }
-
-    
