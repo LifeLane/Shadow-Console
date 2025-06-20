@@ -11,7 +11,7 @@ import { generateMarketInsights, MarketInsightsInput, MarketInsightsOutput } fro
 import { useToast } from '@/hooks/use-toast';
 import TerminalExecutionAnimation from '@/components/TerminalExecutionAnimation';
 import TypewriterText from '@/components/TypewriterText';
-import { Loader2, FileText, Lightbulb, TrendingUp, Zap, ShieldCheck, Brain, Activity, Award, CheckCircle, PlayCircle } from 'lucide-react';
+import { Loader2, FileText, Lightbulb, TrendingUp, Zap, ShieldCheck, Brain, Activity, Award, CheckCircle, PlayCircle, BarChart2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -48,27 +48,53 @@ export default function MindTab() {
   const [simulationResult, setSimulationResult] = useState<MarketInsightsOutput | null>(null);
   const [rewardData, setRewardData] = useState<RewardData | null>(null);
   const [signalStatusMessage, setSignalStatusMessage] = useState<string>('');
+  const [simulatedMarketPrice, setSimulatedMarketPrice] = useState<string | null>(null);
+  const [simulatedMarketVolume, setSimulatedMarketVolume] = useState<string | null>(null);
   const { toast } = useToast();
   const [descriptionKey, setDescriptionKey] = useState(0);
   const [thoughtKey, setThoughtKey] = useState(0);
+  const [marketPriceIntervalId, setMarketPriceIntervalId] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setDescriptionKey(prev => prev + 1);
+    return () => { // Cleanup on unmount
+      if (marketPriceIntervalId) clearInterval(marketPriceIntervalId);
+    };
   }, []);
 
   useEffect(() => {
     if (coreState === 'tracking' && simulationResult) {
       let entryTimeoutId: NodeJS.Timeout;
       let outcomeTimeoutId: NodeJS.Timeout;
+      let priceUpdateInterval: NodeJS.Timeout;
 
       setSignalStatusMessage(`On Hold: Monitoring Entry at ${simulationResult.entryRange}`);
-      setDescriptionKey(prev => prev + 1); 
+      // Simulate initial market price based on entry range
+      const entryParts = simulationResult.entryRange.replace(/[^0-9.-]+/g," ").trim().split(" ");
+      const basePrice = entryParts.length > 0 ? parseFloat(entryParts[0]) : 50000;
+      setSimulatedMarketPrice(basePrice.toLocaleString(undefined, { style: 'currency', currency: 'USD' }));
+      setSimulatedMarketVolume((Math.random() * 1000 + 500).toFixed(2) + " BTC"); // Example volume
+
+      priceUpdateInterval = setInterval(() => {
+        setSimulatedMarketPrice(prevPrice => {
+          if (!prevPrice) return basePrice.toLocaleString(undefined, { style: 'currency', currency: 'USD' });
+          const currentNumericPrice = parseFloat(prevPrice.replace(/[^0-9.-]+/g,""));
+          const change = (Math.random() - 0.5) * (basePrice * 0.001); // Small random fluctuation
+          return (currentNumericPrice + change).toLocaleString(undefined, { style: 'currency', currency: 'USD' });
+        });
+        setSimulatedMarketVolume((Math.random() * 1000 + 500).toFixed(2) + ` ${formState.target.replace('USDT','')}`);
+      }, 3000);
+      setMarketPriceIntervalId(priceUpdateInterval);
+
+      setDescriptionKey(prev => prev + 1);
 
       entryTimeoutId = setTimeout(() => {
         setSignalStatusMessage(`Order Executed near ${simulationResult.entryRange}. Monitoring TP/SL.`);
         setDescriptionKey(prev => prev + 1);
 
         outcomeTimeoutId = setTimeout(() => {
+          if (priceUpdateInterval) clearInterval(priceUpdateInterval);
+          setMarketPriceIntervalId(null);
           const outcomes = ["Target Hit", "Stop Loss Triggered"];
           const randomOutcome = outcomes[Math.floor(Math.random() * outcomes.length)];
           let finalMessage = "";
@@ -81,7 +107,7 @@ export default function MindTab() {
             bsaiReward = Math.floor((simulationResult.confidence / 100) * (Math.random() * 500 + 500));
             xpReward = Math.floor(Math.random() * 50 + 50);
             if (simulationResult.confidence > 85) badgeReward = "Precision Analyst Badge";
-          } else { // Stop Loss Triggered
+          } else { 
             finalMessage = `Stop Loss Hit at ${simulationResult.stopLoss}!`;
             xpReward = Math.floor(Math.random() * 20 + 10);
           }
@@ -91,15 +117,20 @@ export default function MindTab() {
           setCoreState('resolved');
           setDescriptionKey(prev => prev + 1); 
 
-        }, 5000); 
-      }, 3000); 
+        }, 8000); // Increased delay for outcome
+      }, 4000); // Increased delay for entry
 
       return () => {
         clearTimeout(entryTimeoutId);
         clearTimeout(outcomeTimeoutId);
+        if (priceUpdateInterval) clearInterval(priceUpdateInterval);
+        setMarketPriceIntervalId(null);
       };
+    } else if (coreState !== 'tracking' && marketPriceIntervalId) {
+        clearInterval(marketPriceIntervalId);
+        setMarketPriceIntervalId(null);
     }
-  }, [coreState, simulationResult]);
+  }, [coreState, simulationResult, formState.target]);
 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -133,6 +164,8 @@ export default function MindTab() {
     setCoreState('simulating');
     setSimulationResult(null); 
     setRewardData(null);
+    setSimulatedMarketPrice(null);
+    setSimulatedMarketVolume(null);
     setDescriptionKey(prev => prev + 1);
     setThoughtKey(prev => prev + 1);
 
@@ -166,6 +199,10 @@ export default function MindTab() {
     setSimulationResult(null);
     setRewardData(null);
     setSignalStatusMessage('');
+    setSimulatedMarketPrice(null);
+    setSimulatedMarketVolume(null);
+    if (marketPriceIntervalId) clearInterval(marketPriceIntervalId);
+    setMarketPriceIntervalId(null);
     setDescriptionKey(prev => prev + 1);
     setThoughtKey(prev => prev + 1);
     toast({ title: "Shadow Core Reset", description: "Ready for new signal deployment." });
@@ -179,6 +216,27 @@ export default function MindTab() {
       case 'HOLD':
       default: return 'text-yellow-400';
     }
+  };
+
+  const renderMarketPulse = () => {
+    if (!currentSignalParams || (!simulatedMarketPrice && !simulatedMarketVolume)) return null;
+
+    return (
+      <motion.div key="market-pulse" {...cardVariants} className="mb-6 sm:mb-8">
+        <Card className="glow-border-primary shadow-xl">
+          <CardHeader className="p-4 sm:p-6 border-b border-border">
+            <CardTitle className="font-headline text-primary text-lg sm:text-2xl flex items-center">
+              <BarChart2 className="mr-2 h-5 w-5 sm:h-6 sm:w-6" />
+              Market Pulse: {currentSignalParams.target}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 font-code">
+            <OutputItem label="Simulated Current Price" value={simulatedMarketPrice || "Calculating..."} valueClassName="text-lg sm:text-xl" />
+            <OutputItem label="Simulated Volume" value={simulatedMarketVolume || "Calculating..."} valueClassName="text-lg sm:text-xl" />
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
   };
 
   const renderContent = () => {
@@ -257,7 +315,6 @@ export default function MindTab() {
                 </div>
                 <div>
                   <Label className="font-code text-xs sm:text-sm text-muted-foreground mb-2 block">Risk Protocol</Label>
-                  {/* Using ShadCN Tabs for Risk Selection */}
                   <div className="flex space-x-1 p-1 bg-muted rounded-md">
                     {riskLevels.map(level => (
                         <Button
@@ -297,7 +354,7 @@ export default function MindTab() {
             {currentSignalParams && (
               <TerminalExecutionAnimation
                 target={currentSignalParams.target}
-                tradeMode={currentSignalParams.timeframe}
+                tradeMode={currentSignalParams.timeframe} 
                 risk={currentSignalParams.risk}
               />
             )}
@@ -306,6 +363,7 @@ export default function MindTab() {
       case 'tracking':
         return (
           <motion.div key="tracking" {...cardVariants}>
+            {renderMarketPulse()}
             <Card className="glow-border-accent shadow-2xl">
               <CardHeader className="border-b border-border p-4 sm:p-6">
                 <div className="flex items-center space-x-2 sm:space-x-3">
@@ -361,6 +419,7 @@ export default function MindTab() {
       case 'resolved':
         return (
           <motion.div key="resolved" {...cardVariants}>
+            {renderMarketPulse()}
             <Card className="glow-border-primary shadow-2xl">
               <CardHeader className="border-b border-border p-4 sm:p-6">
                 <div className="flex items-center space-x-2 sm:space-x-3">
@@ -389,7 +448,11 @@ export default function MindTab() {
                     className="text-sm text-muted-foreground pt-2 text-center"
                     speed={25} showCaret={false}
                 />
-                <Button onClick={handleAcknowledgeReset} size="lg" className="font-code bg-accent text-accent-foreground hover:bg-accent/90 text-lg py-3 px-6 mt-4">
+                <Button 
+                  onClick={handleAcknowledgeReset} 
+                  size="lg" 
+                  className="font-code bg-accent text-accent-foreground hover:bg-accent/90 text-lg py-3 px-6 mt-4"
+                >
                  <CheckCircle className="mr-2 h-5 w-5" /> Acknowledge & Reset Core
                 </Button>
               </CardContent>
@@ -408,7 +471,15 @@ export default function MindTab() {
       </AnimatePresence>
 
       {(coreState !== 'dormant' && coreState !== 'activating') && (
-         <motion.div initial="initial" animate="animate" variants={cardVariants} className="mt-8">
+         <motion.div 
+            initial="initial" 
+            animate="animate" 
+            variants={cardVariants} 
+            className={cn(
+              "mt-6 sm:mt-8", 
+              (coreState === 'tracking' || coreState === 'resolved') ? 'mt-0' : '' // No top margin if MarketPulse is shown
+            )}
+          >
             <Card className="glow-border-primary shadow-xl p-4 sm:p-6">
             <CardHeader className="p-0 pb-3 sm:pb-4"><CardTitle className="font-headline text-primary text-lg sm:text-2xl flex items-center"><FileText className="mr-2 h-5 w-5"/>Core Data Streams</CardTitle></CardHeader>
             <CardContent className="p-0 text-sm sm:text-base">
