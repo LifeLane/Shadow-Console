@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from 'react';
@@ -49,7 +50,7 @@ export default function AirdropTab() {
 
           <div className="space-y-4">
             {eligibilityItems.map((item) => (
-              <Card key={item.id} className={cn("p-4 flex items-center justify-between", item.isEligible ? "bg-green-500/10 border-green-500/50" : "bg-red-500/10 border-red-500/50")}>
+              <Card key={item.id} className={cn("p-4 flex items-center justify-between transition-all", item.isEligible ? "bg-green-500/10 border-green-500/50 shadow-sm hover:shadow-green-500/20" : "bg-red-500/10 border-red-500/50 shadow-sm hover:shadow-red-500/20")}>
                 <div className="flex items-center">
                   {item.isEligible ? <CheckCircle className="w-6 h-6 mr-3 text-green-500" /> : <XCircle className="w-6 h-6 mr-3 text-red-500" />}
                   <div>
@@ -69,11 +70,13 @@ export default function AirdropTab() {
           <Button 
             disabled={!allEligible} 
             className={cn(
-              "w-full text-lg py-3 font-code",
-              allEligible ? "bg-accent text-accent-foreground hover:bg-accent/90 animate-pulse-glow-accent" : "bg-muted text-muted-foreground cursor-not-allowed"
+              "w-full text-lg py-3 font-code transition-all duration-300",
+              allEligible 
+                ? "bg-accent text-accent-foreground hover:bg-accent/90 animate-pulse-glow-accent shadow-lg hover:shadow-accent/70" 
+                : "bg-muted text-muted-foreground cursor-not-allowed"
             )}
           >
-            <WalletCards className="w-5 h-5 mr-2" /> {allEligible ? "Claim Airdrop" : "Complete All Criteria to Claim"}
+            <WalletCards className="w-5 h-5 mr-2" /> {allEligible ? "Claim Your BSAI Tokens!" : "Complete All Criteria to Claim"}
           </Button>
         </CardContent>
       </Card>
@@ -87,7 +90,7 @@ export default function AirdropTab() {
           {mockTransactions.length > 0 ? (
             <ul className="space-y-3">
               {mockTransactions.map(tx => (
-                <li key={tx.id} className="p-3 border border-border rounded-md flex justify-between items-center bg-card hover:bg-muted/20">
+                <li key={tx.id} className="p-3 border border-border rounded-md flex justify-between items-center bg-card hover:bg-muted/20 transition-colors">
                   <div>
                     <p className="font-semibold">{tx.type} - <span className="text-accent font-bold">{tx.amount}</span></p>
                     <p className="text-xs text-muted-foreground">{tx.date} - Status: {tx.status}</p>
