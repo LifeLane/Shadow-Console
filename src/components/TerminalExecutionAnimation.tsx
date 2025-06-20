@@ -18,8 +18,11 @@ const getLogLinesConfig = (target: string, tradeMode: string, risk: string) => [
   { id: 'trade_mode', text: `> Trade Matrix Protocol: [${tradeMode.toUpperCase()}]`, speed: 35, color: "text-cyan-400" },
   { id: 'risk_calibration', text: `> Risk Calibration Matrix: [${risk.toUpperCase()}] - Quantum parameters adjusting...`, speed: 30, color: risk.toLowerCase() === 'low' ? "text-green-400" : risk.toLowerCase() === 'medium' ? "text-yellow-400" : "text-red-400" },
   { id: 'data_ingest', text: `> Ingesting multi-terabyte arcane data streams (Binance, Polygon, CoinDesk)...`, speed: 50, color: "text-gray-400" },
-  { id: 'analyze_patterns', text: `> :: Analyzing fragmented liquidity patterns & cross-chain resonances...`, speed: 30, color: "text-purple-400" },
+  { id: 'liquidity_analysis', text: `> :: Analyzing fragmented liquidity patterns & cross-chain resonances...`, speed: 30, color: "text-purple-400" },
+  { id: 'sentiment_scan', text: `> :: Scanning Noosphere for emergent sentiment clusters...`, speed: 35, color: "text-teal-400" },
   { id: 'oracle_sync', text: `> :: Synchronizing with the Chronos Oracle... aligning temporal echoes...`, speed: 40, color: "text-purple-300" },
+  { id: 'quantum_sim', text: `> :: Executing quantum entanglement simulation for predictive accuracy...`, speed: 30, color: "text-indigo-400" },
+  { id: 'neural_filter', text: `> :: Filtering through neural net probability filters...`, speed: 35, color: "text-pink-400" },
   { id: 'predict_vector', text: `> :: Computing predictive vector for ${target.toUpperCase()}... Standby for Shadow Insight...`, speed: 35, color: "text-orange-400" },
 ];
 

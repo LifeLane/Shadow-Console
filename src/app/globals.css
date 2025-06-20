@@ -6,13 +6,13 @@
 @layer base {
   :root {
     --background: 0 0% 100%; /* Light mode background - Default White */
-    --foreground: 255 6% 10%; /* Light mode foreground - Dark Gray */
+    --foreground: 255 6% 13%; /* Darker for better contrast */
 
     --card: 0 0% 100%;
-    --card-foreground: 255 6% 10%;
+    --card-foreground: 255 6% 13%; /* Darker for better contrast */
 
     --popover: 0 0% 100%;
-    --popover-foreground: 255 6% 10%;
+    --popover-foreground: 255 6% 13%; /* Darker for better contrast */
 
     --primary: 288 83% 54%; /* Electric Purple */
     --primary-foreground: 0 0% 98%; /* Light color for text on primary */
@@ -21,7 +21,7 @@
     --secondary-foreground: 255 6% 10%;
 
     --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
+    --muted-foreground: 0 0% 50%; /* Slightly darker muted */
 
     --accent: 104 100% 60%; /* Neon Green */
     --accent-foreground: 255 6% 10%; /* Dark color for text on accent */
@@ -68,7 +68,7 @@
     --secondary-foreground: 0 0% 95%;
 
     --muted: 255 6% 22%;
-    --muted-foreground: 0 0% 70%; /* Lighter muted text for dark mode */
+    --muted-foreground: 0 0% 75%; /* Lighter muted text for dark mode */
 
     --accent: 104 100% 60%; /* Neon Green - Same as Primary for Neon theme */
     --accent-foreground: 255 6% 10%; /* Dark color for text on Neon Green */
@@ -145,10 +145,6 @@
       font-size: theme('fontSize.base'); /* Slightly larger for sm+ */
     }
   }
-  /* Removed redefinition of .text-xs to prevent circular dependency.
-     Use Tailwind utility classes like .text-[0.65rem] sm:text-xs directly in HTML or
-     style specific semantic elements like 'small' if needed.
-  */
 }
 
 
@@ -202,6 +198,20 @@
 .animate-pulse-glow-accent {
   animation: pulse-glow-accent 2s infinite ease-in-out;
 }
+
+@keyframes pulse-glow-destructive {
+  0%, 100% {
+    box-shadow: 0 0 5px 1px hsl(var(--destructive)/0.6), 0 0 8px 2px hsl(var(--destructive)/0.4);
+  }
+  50% {
+    box-shadow: 0 0 10px 2px hsl(var(--destructive)/0.8), 0 0 15px 4px hsl(var(--destructive)/0.6);
+  }
+}
+
+.animate-pulse-glow-destructive {
+  animation: pulse-glow-destructive 1.5s infinite ease-in-out;
+}
+
 
 /* Typewriter effect */
 .typewriter-char {

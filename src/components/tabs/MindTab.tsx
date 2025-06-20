@@ -130,14 +130,20 @@ export default function MindTab() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-end">
               <div>
                 <Label htmlFor="target" className="font-code text-xs sm:text-sm text-muted-foreground">Target Market (e.g., BTCUSDT)</Label>
-                <Input 
-                  id="target" 
-                  name="target" 
-                  value={formState.target} 
-                  onChange={handleInputChange} 
-                  className="font-code mt-1 bg-card border-primary/30 focus:border-primary focus:ring-primary text-base sm:text-lg py-2 h-10 sm:h-auto" 
-                  placeholder="e.g., BTCUSDT"
-                />
+                <div className="flex items-center mt-1">
+                  <Input 
+                    id="target" 
+                    name="target" 
+                    value={formState.target} 
+                    onChange={handleInputChange} 
+                    className="font-code bg-card border-primary/30 focus:border-primary focus:ring-primary text-base sm:text-lg py-2 h-10 sm:h-auto flex-grow" 
+                    placeholder="e.g., BTCUSDT"
+                  />
+                  <span 
+                    className="ml-2 w-2 h-[1em] bg-accent animate-blink-block-caret self-center" // Adjusted height to better match text line
+                    aria-hidden="true"
+                  ></span>
+                </div>
               </div>
               <div>
                 <Label htmlFor="tradeMode" className="font-code text-xs sm:text-sm text-muted-foreground">Select Trade Mode</Label>
@@ -162,7 +168,8 @@ export default function MindTab() {
                       value={level} 
                       className={cn(
                         "font-code text-sm sm:text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md py-2 sm:py-2.5 transition-all",
-                        formState.risk === level && "risk-tab-active-glow" 
+                        formState.risk === level && level !== 'High' && "risk-tab-active-glow",
+                        formState.risk === level && level === 'High' && "animate-pulse-glow-destructive"
                       )}
                     >
                       {level === 'Low' && <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2 opacity-70" />}
@@ -306,3 +313,4 @@ const OutputItem: React.FC<OutputItemProps> = ({ label, value, valueClassName })
     <p className={cn("text-base sm:text-xl font-semibold mt-1 truncate", valueClassName)}>{value}</p>
   </div>
 );
+
