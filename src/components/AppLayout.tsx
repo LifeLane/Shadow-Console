@@ -12,6 +12,7 @@ import SettingsTab from '@/components/tabs/SettingsTab';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useTheme } from 'next-themes';
+import { motion, AnimatePresence } from 'framer-motion'; // Import framer-motion
 
 type TabId = 'mind' | 'agents' | 'airdrop' | 'missions' | 'streams' | 'settings';
 
@@ -32,11 +33,17 @@ const tabs: Tab[] = [
   { id: 'settings', label: 'Settings', icon: SettingsIcon, component: SettingsTab, description: "Wallets, APIs, theme" },
 ];
 
+const pageTransitionVariants = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -20 },
+  transition: { duration: 0.3 }
+};
+
 export default function AppLayout() {
   const [activeTab, setActiveTab] = useState<TabId>('mind');
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const [isTabAnimating, setIsTabAnimating] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -46,9 +53,7 @@ export default function AppLayout() {
 
   const handleTabChange = (tabId: TabId) => {
     if (tabId !== activeTab) {
-      setIsTabAnimating(true);
       setActiveTab(tabId);
-      setTimeout(() => setIsTabAnimating(false), 300);
     }
   };
 
@@ -61,7 +66,7 @@ export default function AppLayout() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground font-body">
+    <div className="flex flex-col min-h-screen bg-background/80 text-foreground font-body backdrop-blur-sm"> {/* Added backdrop-blur-sm for particle visibility */}
       <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-3 sm:p-4 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="flex items-center">
           <Sparkles className="h-7 w-7 sm:h-8 sm:w-8 mr-2 text-primary" />
@@ -72,16 +77,20 @@ export default function AppLayout() {
         </Button>
       </header>
 
-      <main className="flex-grow pt-20 pb-24 overflow-y-auto"> {/* Ensure padding for fixed header/footer */}
+      <main className="flex-grow pt-20 pb-24 overflow-y-auto">
         <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
-          <div
-            className={cn(
-              "transition-all duration-300 ease-out",
-              isTabAnimating ? 'tab-content-enter' : 'tab-content-enter-active'
-            )}
-          >
-            <ActiveComponent />
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab} // Key helps AnimatePresence detect component changes
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              variants={pageTransitionVariants}
+              transition={pageTransitionVariants.transition}
+            >
+              <ActiveComponent />
+            </motion.div>
+          </AnimatePresence>
         </div>
       </main>
 
