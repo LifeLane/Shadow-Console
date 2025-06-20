@@ -12,7 +12,7 @@ interface ParticleProps {
   color?: string;
 }
 
-function Particles({ count = 5000, mouse, color = '#888888' }: ParticleProps) {
+function Particles({ count = 5000, mouse, color = '#00ffff' }: ParticleProps) { // Default to neon cyan
   const pointsRef = useRef<THREE.Points>(null!);
 
   const particles = useMemo(() => {
@@ -77,7 +77,7 @@ function Particles({ count = 5000, mouse, color = '#888888' }: ParticleProps) {
       <PointMaterial
         transparent
         color={color}
-        size={0.02} // Increased particle size
+        size={0.02} 
         sizeAttenuation={true}
         depthWrite={false}
         blending={THREE.AdditiveBlending}
@@ -99,18 +99,26 @@ export default function ParticleBackground() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
   
-  const [particleColor, setParticleColor] = useState('hsl(210 100% 60%)'); // Default to dark mode primary
+  const [particleColor, setParticleColor] = useState('hsl(180 100% 50%)'); // Default to dark mode primary (Neon Cyan)
 
   useEffect(() => {
     const updateParticleColor = () => {
-      const isDarkMode = document.documentElement.classList.contains('dark');
-      // Use new theme colors: Cyber Blue for both modes (adjusting lightness slightly for light mode if needed)
-      // Dark mode primary: hsl(210 100% 60%)
-      // Light mode primary: hsl(210 100% 55%)
-      setParticleColor(isDarkMode ? 'hsl(210 100% 60%)' : 'hsl(210 100% 55%)');
+      const computedStyle = getComputedStyle(document.documentElement);
+      const primaryColor = computedStyle.getPropertyValue('--primary').trim();
+      // Convert HSL string "H S% L%" to "hsl(H S% L%)" for THREE.Color
+      if (primaryColor) {
+         // If primaryColor is like "180 100% 50%", convert to "hsl(180, 100%, 50%)"
+        const parts = primaryColor.split(" ");
+        if (parts.length === 3) {
+          setParticleColor(`hsl(${parts[0]}, ${parts[1]}, ${parts[2]})`);
+        } else {
+          // Fallback if parsing fails, though CSS variables should be in the H S L format
+          setParticleColor('hsl(180 100% 50%)'); 
+        }
+      }
     };
 
-    updateParticleColor(); // Set initial color
+    updateParticleColor(); 
 
     const observer = new MutationObserver((mutationsList) => {
       for (const mutation of mutationsList) {
@@ -119,6 +127,9 @@ export default function ParticleBackground() {
         }
       }
     });
+    
+    // Also listen for style changes if you directly manipulate --primary via JS
+    // For now, class change on <html> (for dark/light theme) is the main trigger
     observer.observe(document.documentElement, { attributes: true });
     return () => observer.disconnect();
   }, []);
@@ -133,5 +144,3 @@ export default function ParticleBackground() {
     </div>
   );
 }
-
-  
