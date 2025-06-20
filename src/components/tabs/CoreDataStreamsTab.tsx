@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Rss, MessageSquare, Users, Link as LinkIcon, AlertTriangle } from 'lucide-react';
 import TypewriterText from '@/components/TypewriterText';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
 
 interface StreamItem {
   id: string;
@@ -32,13 +33,53 @@ const generateRandomTimestamp = () => {
   return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
+interface StreamDescriptionItem {
+  title: string;
+  description: string;
+  icon: React.ElementType;
+  colorClass: string;
+}
+
+const streamDescriptions: StreamDescriptionItem[] = [
+  { 
+    title: "Market News Aggregator", 
+    description: "Key headlines impacting crypto markets.", 
+    icon: Rss, 
+    colorClass: "text-blue-400" 
+  },
+  { 
+    title: "Shadow Core AI (Insights)", 
+    description: "Direct observations and interpretations from the AI.", 
+    icon: MessageSquare, 
+    colorClass: "text-purple-400" 
+  },
+  { 
+    title: "Whale Alert System", 
+    description: "Significant token movements by large holders.", 
+    icon: Users, 
+    colorClass: "text-orange-400" 
+  },
+  { 
+    title: "Shadow Core AI (LINK Analysis)", 
+    description: "Connections and patterns identified between wallets or entities.", 
+    icon: LinkIcon, 
+    colorClass: "text-purple-400" 
+  },
+  { 
+    title: "Anomaly Detection", 
+    description: "Unusual market activities flagged by the system.", 
+    icon: AlertTriangle, 
+    colorClass: "text-red-400" 
+  },
+];
+
+
 export default function CoreDataStreamsTab() {
   const [streamItems, setStreamItems] = useState<StreamItem[]>([]);
   const [descriptionKey, setDescriptionKey] = useState(0); 
 
   useEffect(() => {
     setDescriptionKey(prev => prev + 1);
-    // Initial load of some items
     const initialItems = mockStreamData.slice(0, 3).map((item, index) => ({
       ...item,
       id: `stream-${Date.now()}-${index}`,
@@ -46,7 +87,6 @@ export default function CoreDataStreamsTab() {
     }));
     setStreamItems(initialItems);
 
-    // Simulate new items arriving
     const intervalId = setInterval(() => {
       setStreamItems(prevItems => {
         const newItemIndex = Math.floor(Math.random() * mockStreamData.length);
@@ -56,9 +96,9 @@ export default function CoreDataStreamsTab() {
           timestamp: generateRandomTimestamp(),
         };
         const updatedItems = [newItem, ...prevItems];
-        return updatedItems.slice(0, 20); // Keep a max of 20 items
+        return updatedItems.slice(0, 20); 
       });
-    }, 5000); // Add a new item every 5 seconds
+    }, 5000); 
 
     return () => clearInterval(intervalId);
   }, []);
@@ -110,12 +150,23 @@ export default function CoreDataStreamsTab() {
         <CardHeader className="p-4 sm:p-6">
             <CardTitle className="font-headline text-lg sm:text-xl text-accent">Understanding the Streams</CardTitle>
         </CardHeader>
-        <CardContent className="p-4 sm:p-6 text-xs sm:text-sm text-muted-foreground space-y-1.5 sm:space-y-2">
-            <TypewriterText key={`desc-streamtype-1-${descriptionKey}`} text="Market News Aggregator: Key headlines impacting crypto markets." speed={10} showCaret={false}><strong className="text-foreground">Market News Aggregator:</strong> Key headlines impacting crypto markets.</TypewriterText>
-            <TypewriterText key={`desc-streamtype-2-${descriptionKey}`} text="Shadow Core AI (Insights): Direct observations and interpretations from the AI." speed={10} showCaret={false}><strong className="text-foreground">Shadow Core AI (Insights):</strong> Direct observations and interpretations from the AI.</TypewriterText>
-            <TypewriterText key={`desc-streamtype-3-${descriptionKey}`} text="Whale Alert System: Significant token movements by large holders." speed={10} showCaret={false}><strong className="text-foreground">Whale Alert System:</strong> Significant token movements by large holders.</TypewriterText>
-            <TypewriterText key={`desc-streamtype-4-${descriptionKey}`} text="Shadow Core AI (LINK Analysis): Connections and patterns identified between wallets or entities." speed={10} showCaret={false}><strong className="text-foreground">Shadow Core AI (LINK Analysis):</strong> Connections and patterns identified between wallets or entities.</TypewriterText>
-            <TypewriterText key={`desc-streamtype-5-${descriptionKey}`} text="Anomaly Detection: Unusual market activities flagged by the system." speed={10} showCaret={false}><strong className="text-foreground">Anomaly Detection:</strong> Unusual market activities flagged by the system.</TypewriterText>
+        <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4">
+          {streamDescriptions.map((item, index) => {
+            const ItemIcon = item.icon;
+            return (
+              <div key={index} className="flex items-start space-x-2 sm:space-x-3">
+                <ItemIcon className={cn("w-5 h-5 sm:w-6 sm:h-6 mt-1 shrink-0", item.colorClass)} />
+                <div>
+                  <p className={cn("font-semibold font-code text-sm sm:text-base", item.colorClass)}>
+                    {item.title}:
+                  </p>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
         </CardContent>
       </Card>
     </div>
