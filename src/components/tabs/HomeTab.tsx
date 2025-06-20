@@ -16,7 +16,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from '@/lib/utils';
 import { TradingViewWidget } from '@/components/TradingViewWidget';
 
-type HomeFormState = Pick<MarketInsightsInput, 'target' | 'tradeMode' | 'risk'>;
+// This type now matches the MarketInsightsInput from the flow (client-facing)
+type HomeFormState = MarketInsightsInput;
 
 const initialFormState: HomeFormState = {
   target: 'BTCUSDT',
@@ -30,17 +31,15 @@ const riskLevels = ['Low', 'Medium', 'High'];
 const tradeModeToChartTimeframe = (tradeMode: string): string => {
   switch (tradeMode.toLowerCase()) {
     case 'scalping':
-      return '5m';
+      return '5m'; // TradingView uses '5' for 5 minutes
     case 'intraday':
-      return '1h';
+      return '1h'; // TradingView uses '60' for 1 hour
     case 'swing trading':
-      return '4h';
+      return '4h'; // TradingView uses '240' for 4 hours
     case 'position trading':
-      return '1D';
     case 'options':
-      return '1D'; // Options often relate to daily/weekly views
     case 'futures':
-      return '1D'; // Futures can vary, 1D is a common overview
+      return '1D'; // TradingView uses 'D' for Daily
     default:
       return '1D';
   }
@@ -73,24 +72,22 @@ export default function HomeTab() {
     setIsLoading(true);
     setInsights(null);
 
-    const mockApiData = {
-      priceFeed: "Mock Price Data: BTC is currently trading around its recent average with moderate volume.",
-      sentimentNews: "Mock Sentiment: Neutral to slightly positive sentiment observed in recent market chatter.",
-      walletTransaction: "Mock Wallet Action: No significant large wallet movements detected recently.",
-    };
-
+    // The payload now only contains what the flow's MarketInsightsInput expects.
+    // The flow itself will call the services to get priceFeed, sentimentNews, etc.
     try {
       const payload: MarketInsightsInput = {
-        ...formState,
-        ...mockApiData,
+        target: formState.target,
+        tradeMode: formState.tradeMode,
+        risk: formState.risk,
       };
+      console.log("Submitting to generateMarketInsights:", payload);
       const result = await generateMarketInsights(payload);
       setInsights(result);
     } catch (error) {
       console.error("Error generating insights:", error);
       toast({
-        title: "Error",
-        description: "Failed to generate market insights. Please try again.",
+        title: "Error Generating Insights",
+        description: error instanceof Error ? error.message : "Failed to generate market insights. Please check console and try again.",
         variant: "destructive",
       });
     } finally {
@@ -161,7 +158,7 @@ export default function HomeTab() {
                     >
                       {level === 'Low' && <AlertTriangle className="w-4 h-4 mr-2 opacity-70" />}
                       {level === 'Medium' && <TrendingUp className="w-4 h-4 mr-2 opacity-70" />}
-                      {level === 'High' && <Loader2 className="w-4 h-4 mr-2 opacity-70 animate-spin-slow" />} {/* Or a more risk-appropriate icon */}
+                      {level === 'High' && <Loader2 className="w-4 h-4 mr-2 opacity-70 animate-spin-slow" />}
                       {level}
                     </TabsTrigger>
                   ))}
@@ -252,10 +249,10 @@ export default function HomeTab() {
           <Card className="glow-border-primary shadow-xl">
             <CardHeader><CardTitle className="font-headline text-primary text-2xl">Data Sources Used</CardTitle></CardHeader>
             <CardContent className="space-y-3 text-base">
-              <p><span className="font-semibold text-primary">Price Feed & Volume:</span> Binance API (Simulated)</p>
-              <p><span className="font-semibold text-primary">Sentiment/News:</span> CoinDesk API (Simulated)</p>
+              <p><span className="font-semibold text-primary">Price Feed & Volume:</span> Binance API (Live)</p>
+              <p><span className="font-semibold text-primary">Sentiment/News:</span> CoinDesk API (Conceptual - BPI for BTC, placeholder for others)</p>
               <p><span className="font-semibold text-primary">AI Thought Generation:</span> Gemini Pro API</p>
-              <p><span className="font-semibold text-primary">Wallet Activity:</span> Polygon API (Simulated)</p>
+              <p><span className="font-semibold text-primary">Wallet Activity:</span> PolygonScan API (Live - USDT/WBTC on Polygon)</p>
             </CardContent>
           </Card>
         </TabsContent>
