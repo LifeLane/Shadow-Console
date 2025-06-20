@@ -23,9 +23,9 @@ interface Tab {
 
 const tabs: Tab[] = [
   { id: 'home', label: "Shadow's Mind", icon: Home, component: HomeTab },
-  { id: 'leaderboard', label: 'Leaderboard', icon: Trophy, component: LeaderboardTab },
-  { id: 'airdrop', label: 'Airdrop', icon: Gift, component: AirdropTab },
-  { id: 'tasks', label: 'Tasks', icon: ListChecks, component: TasksTab },
+  { id: 'leaderboard', label: 'Top Agents', icon: Trophy, component: LeaderboardTab },
+  { id: 'airdrop', label: 'Airdrop Hub', icon: Gift, component: AirdropTab },
+  { id: 'tasks', label: 'Missions', icon: ListChecks, component: TasksTab },
   { id: 'settings', label: 'Settings', icon: SettingsIcon, component: SettingsTab },
 ];
 
@@ -45,7 +45,7 @@ export default function AppLayout() {
     if (tabId !== activeTab) {
       setIsTabAnimating(true);
       setActiveTab(tabId);
-      setTimeout(() => setIsTabAnimating(false), 300);
+      setTimeout(() => setIsTabAnimating(false), 300); // Duration of the animation
     }
   };
 
@@ -69,7 +69,7 @@ export default function AppLayout() {
         </Button>
       </header>
 
-      <main className="flex-grow pt-20 pb-24 overflow-y-auto">
+      <main className="flex-grow pt-20 pb-24 overflow-y-auto"> {/* Added pb-24 for bottom nav space */}
         <div className="container mx-auto px-4 py-8">
           <div
             className={cn(
@@ -87,13 +87,13 @@ export default function AppLayout() {
           {tabs.map((tab) => (
             <Button
               key={tab.id}
-              variant="ghost" // On hover: bg-accent, text-accent-foreground (handles text color correctly)
+              variant="ghost"
               onClick={() => handleTabChange(tab.id)}
               className={cn(
                 "flex flex-col items-center justify-center h-full px-2 text-xs group transition-all duration-300 ease-out transform hover:scale-105",
                 activeTab === tab.id
-                  ? 'text-primary scale-110' // Active state: text is primary
-                  : 'text-muted-foreground'   // Non-active: initial text is muted. Hover color is handled by variant="ghost"
+                  ? 'text-primary scale-110' 
+                  : 'text-muted-foreground' 
               )}
               aria-current={activeTab === tab.id ? 'page' : undefined}
             >
@@ -101,17 +101,17 @@ export default function AppLayout() {
                 "p-2 rounded-full transition-all duration-300 ease-out",
                 activeTab === tab.id
                   ? 'bg-primary/10 glow-border-primary opacity-100'
-                  : 'opacity-70 group-hover:opacity-100 group-hover:glow-border-primary' // Icon container gets glow on hover
+                  : 'opacity-70 group-hover:opacity-100 group-hover:glow-border-primary'
               )}>
                 <tab.icon className={cn(
                     "h-6 w-6",
-                     activeTab === tab.id ? 'text-primary' : '' // Active icon text primary, non-active inherits from Button
+                     activeTab === tab.id ? 'text-primary' : '' 
                   )}
                 />
               </div>
               <span className={cn(
                   "mt-1 font-medium",
-                  activeTab === tab.id ? 'text-primary' : '' // Active label text primary, non-active inherits from Button
+                  activeTab === tab.id ? 'text-primary' : ''
                 )}
               >
                 {tab.label}
