@@ -48,7 +48,7 @@ export default function AppLayout() {
     if (tabId !== activeTab) {
       setIsTabAnimating(true);
       setActiveTab(tabId);
-      setTimeout(() => setIsTabAnimating(false), 300); 
+      setTimeout(() => setIsTabAnimating(false), 300);
     }
   };
 
@@ -95,27 +95,27 @@ export default function AppLayout() {
               className={cn(
                 "flex flex-col items-center justify-center h-full px-0.5 sm:px-1 text-[0.6rem] sm:text-xs group transition-all duration-300 ease-out transform hover:scale-105 w-full rounded-none",
                 activeTab === tab.id
-                  ? 'text-primary scale-110' 
-                  : 'text-muted-foreground' // Base color for inactive tabs
+                  ? 'text-primary scale-110'
+                  : 'text-muted-foreground'
               )}
               aria-current={activeTab === tab.id ? 'page' : undefined}
               title={tab.label}
             >
               <div className={cn(
                 "p-1.5 sm:p-2 rounded-full transition-all duration-300 ease-out",
-                 activeTab === tab.id 
-                    ? 'bg-primary/10 glow-border-primary animate-pulse-glow-primary opacity-100' 
-                    : 'opacity-70 group-hover:opacity-100 group-hover:bg-accent group-hover:glow-border-primary' // Hover for icon container
+                 activeTab === tab.id
+                    ? 'bg-primary/10 glow-border-primary animate-pulse-glow-primary opacity-100'
+                    : 'opacity-70 group-hover:opacity-100 group-hover:bg-accent group-hover:glow-border-primary'
               )}>
                 <tab.icon className={cn(
                     "h-4 w-4 sm:h-5 sm:w-6",
-                     activeTab === tab.id ? 'text-primary' : 'text-muted-foreground group-hover:text-primary' // Icon: muted default, primary on hover
+                     activeTab === tab.id ? 'text-primary' : 'text-muted-foreground group-hover:text-accent-foreground'
                   )}
                 />
               </div>
               <span className={cn(
-                  "mt-0.5 sm:mt-1 font-medium truncate max-w-[50px] sm:max-w-none hidden sm:inline-block", // Hide label on mobile, show on sm+
-                  activeTab === tab.id ? 'text-primary' : 'text-muted-foreground group-hover:text-primary' // Label: muted default, primary on hover
+                  "mt-0.5 sm:mt-1 font-medium truncate max-w-[50px] sm:max-w-none hidden sm:inline-block",
+                  activeTab === tab.id ? 'text-primary' : 'text-muted-foreground group-hover:text-accent-foreground'
                 )}
               >
                 {tab.label}
