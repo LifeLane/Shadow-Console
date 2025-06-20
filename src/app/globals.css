@@ -61,7 +61,7 @@
     --popover: 255 6% 12%; /* Darker for popovers */
     --popover-foreground: 0 0% 90%;
 
-    --primary: 288 83% 54%; /* Electric Purple */
+    --primary: 220 85% 55%; /* Electra Blue */
     --primary-foreground: 0 0% 98%; /* Light color for text on primary */
 
     --secondary: 255 6% 22%;
@@ -78,7 +78,7 @@
 
     --border: 255 6% 25%;
     --input: 255 6% 22%;
-    --ring: 288 83% 54%; /* Primary color for rings */
+    --ring: 220 85% 55%; /* Primary color for rings - Electra Blue */
     
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
@@ -89,12 +89,12 @@
     /* Sidebar variables for dark mode */
     --sidebar-background: 255 6% 12%;
     --sidebar-foreground: 0 0% 90%;
-    --sidebar-primary: 288 83% 54%;
+    --sidebar-primary: 220 85% 55%; /* Electra Blue */
     --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 255 6% 20%;
     --sidebar-accent-foreground: 0 0% 90%;
     --sidebar-border: 255 6% 25%;
-    --sidebar-ring: 288 83% 54%;
+    --sidebar-ring: 220 85% 55%; /* Electra Blue */
   }
 }
 
