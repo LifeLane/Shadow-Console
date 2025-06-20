@@ -34,11 +34,11 @@ export default function AppLayout() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [isTabAnimating, setIsTabAnimating] = useState(false);
-  
+
   useEffect(() => {
     setMounted(true);
   }, []);
-  
+
   const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || (() => null);
 
   const handleTabChange = (tabId: TabId) => {
@@ -48,13 +48,13 @@ export default function AppLayout() {
       setTimeout(() => setIsTabAnimating(false), 300);
     }
   };
-  
+
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
   if (!mounted) {
-    return null; 
+    return null;
   }
 
   return (
@@ -71,7 +71,7 @@ export default function AppLayout() {
 
       <main className="flex-grow pt-20 pb-24 overflow-y-auto">
         <div className="container mx-auto px-4 py-8">
-          <div 
+          <div
             className={cn(
               "transition-all duration-300 ease-out",
               isTabAnimating ? 'tab-content-enter' : 'tab-content-enter-active'
@@ -87,31 +87,31 @@ export default function AppLayout() {
           {tabs.map((tab) => (
             <Button
               key={tab.id}
-              variant="ghost"
+              variant="ghost" // On hover: bg-accent, text-accent-foreground (handles text color correctly)
               onClick={() => handleTabChange(tab.id)}
               className={cn(
                 "flex flex-col items-center justify-center h-full px-2 text-xs group transition-all duration-300 ease-out transform hover:scale-105",
-                activeTab === tab.id 
-                  ? 'text-primary scale-110' 
-                  : 'text-muted-foreground group-hover:text-primary' // Text changes to primary on hover
+                activeTab === tab.id
+                  ? 'text-primary scale-110' // Active state: text is primary
+                  : 'text-muted-foreground'   // Non-active: initial text is muted. Hover color is handled by variant="ghost"
               )}
               aria-current={activeTab === tab.id ? 'page' : undefined}
             >
               <div className={cn(
                 "p-2 rounded-full transition-all duration-300 ease-out",
-                activeTab === tab.id 
-                  ? 'bg-primary/10 glow-border-primary opacity-100' 
+                activeTab === tab.id
+                  ? 'bg-primary/10 glow-border-primary opacity-100'
                   : 'opacity-70 group-hover:opacity-100 group-hover:glow-border-primary' // Icon container gets glow on hover
               )}>
                 <tab.icon className={cn(
-                    "h-6 w-6", 
-                    activeTab === tab.id ? 'text-primary' : 'group-hover:text-primary' // Icon changes to primary on hover
-                  )} 
+                    "h-6 w-6",
+                     activeTab === tab.id ? 'text-primary' : '' // Active icon text primary, non-active inherits from Button
+                  )}
                 />
               </div>
               <span className={cn(
-                  "mt-1 font-medium", 
-                  activeTab === tab.id ? 'text-primary' : 'group-hover:text-primary' // Label changes to primary on hover
+                  "mt-1 font-medium",
+                  activeTab === tab.id ? 'text-primary' : '' // Active label text primary, non-active inherits from Button
                 )}
               >
                 {tab.label}
