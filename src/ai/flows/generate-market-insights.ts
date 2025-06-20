@@ -14,13 +14,11 @@ import {z} from 'genkit';
 
 const MarketInsightsInputSchema = z.object({
   target: z.string().describe('The target market (e.g., BTCUSDT).'),
-  timeframe: z.string().describe('The timeframe for analysis (e.g., 15m).'),
-  indicators: z.string().describe('The indicators to consider (e.g., RSI, MACD, ATR).'),
+  tradeMode: z.string().describe('The selected trading mode (e.g., Scalping, Intraday, Options, Futures).'),
   risk: z.string().describe('The risk level (e.g., Low, Medium, High).'),
   priceFeed: z.string().describe('Price data from Binance API'),
   sentimentNews: z.string().describe('Sentiment and news data from CoinDesk API'),
   walletTransaction: z.string().describe('Recent wallet action on asset from Polygon API'),
-  contextualNewsSnippets: z.array(z.string()).optional().describe('Array of relevant news snippets provided by the user that might affect market sentiment. Each string is a separate snippet.'),
 });
 export type MarketInsightsInput = z.infer<typeof MarketInsightsInputSchema>;
 
@@ -48,19 +46,12 @@ const marketInsightsPrompt = ai.definePrompt({
   Analyze the following market data to generate a trading signal.
 
   Target Market: {{{target}}}
-  Timeframe: {{{timeframe}}}
-  Indicators: {{{indicators}}}
+  Trading Mode: {{{tradeMode}}}
   Risk Level: {{{risk}}}
 
   Price Feed Data: {{{priceFeed}}}
   Sentiment & News Data: {{{sentimentNews}}}
   Recent Wallet Transaction: {{{walletTransaction}}}
-  {{#if contextualNewsSnippets}}
-  Additional Contextual News Snippets from User:
-  {{#each contextualNewsSnippets}}
-  - {{{this}}}
-  {{/each}}
-  {{/if}}
 
   Based on this information, provide a prediction, confidence score, entry range, stop loss, take profit, shadow score, and a brief thought process.
 

@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -166,4 +167,23 @@
   to {
     opacity: 1;
   }
+}
+
+/* Caret Animations */
+@keyframes blink-caret { /* Original, border-based */
+  0%, 100% { border-color: transparent; }
+  50% { border-color: hsl(var(--accent)); } /* Blinks with accent color border */
+}
+
+@keyframes blink-block-caret { /* New, background-based for terminal */
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+.animate-blink-block-caret {
+  animation: blink-block-caret 1s step-end infinite;
+}
+
+.animate-spin-slow {
+  animation: spin 2s linear infinite;
 }

@@ -1,36 +1,50 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { generateMarketInsights, MarketInsightsInput, MarketInsightsOutput } from '@/ai/flows/generate-market-insights';
 import { useToast } from '@/hooks/use-toast';
-import TypewriterText from '@/components/TypewriterText';
 import PulsingText from '@/components/PulsingText';
-import { Loader2, BarChart, FileText, Lightbulb } from 'lucide-react';
+import TerminalExecutionAnimation from '@/components/TerminalExecutionAnimation';
+import { Loader2, BarChart, FileText, Lightbulb, Settings2, AlertTriangle, TrendingUp } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from '@/lib/utils';
-import { TradingViewWidget } from '@/components/TradingViewWidget'; // Added import
+import { TradingViewWidget } from '@/components/TradingViewWidget';
 
-// Define the shape of the form state, explicitly including contextualNewsSnippets
-// and omitting fields that are mocked.
-type HomeFormState = Pick<MarketInsightsInput, 'target' | 'timeframe' | 'indicators' | 'risk' | 'contextualNewsSnippets'>;
+type HomeFormState = Pick<MarketInsightsInput, 'target' | 'tradeMode' | 'risk'>;
 
 const initialFormState: HomeFormState = {
   target: 'BTCUSDT',
-  timeframe: '15m',
-  indicators: 'RSI, MACD, ATR',
+  tradeMode: 'Intraday',
   risk: 'Medium',
-  contextualNewsSnippets: [], // Initialize as empty array
 };
 
-const timeframes = ['1m', '5m', '15m', '30m', '1h', '4h', '1d', '1w'];
+const tradeModes = ['Scalping', 'Intraday', 'Swing Trading', 'Position Trading', 'Options', 'Futures'];
 const riskLevels = ['Low', 'Medium', 'High'];
+
+const tradeModeToChartTimeframe = (tradeMode: string): string => {
+  switch (tradeMode.toLowerCase()) {
+    case 'scalping':
+      return '5m';
+    case 'intraday':
+      return '1h';
+    case 'swing trading':
+      return '4h';
+    case 'position trading':
+      return '1D';
+    case 'options':
+      return '1D'; // Options often relate to daily/weekly views
+    case 'futures':
+      return '1D'; // Futures can vary, 1D is a common overview
+    default:
+      return '1D';
+  }
+};
 
 export default function HomeTab() {
   const [formState, setFormState] = useState<HomeFormState>(initialFormState);
@@ -40,20 +54,18 @@ export default function HomeTab() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormState(prevState => ({ ...prevState, [name]: value }));
+    setFormState(prevState => ({ ...prevState, [name]: value.toUpperCase() }));
   };
   
-  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    if (name === 'contextualNewsSnippets') {
-      // Split by newline and filter out empty strings after trimming
-      const snippets = value.split('\\n').map(s => s.trim()).filter(s => s !== '');
-      setFormState(prevState => ({ ...prevState, contextualNewsSnippets: snippets }));
+  const handleSelectChange = (name: keyof HomeFormState) => (value: string) => {
+    setFormState(prevState => ({ ...prevState, [name]: value }));
+     if (name === 'target') {
+        setFormState(prevState => ({ ...prevState, target: value.toUpperCase() }));
     }
   };
 
-  const handleSelectChange = (name: keyof HomeFormState) => (value: string) => {
-    setFormState(prevState => ({ ...prevState, [name]: value }));
+  const handleRiskTabChange = (value: string) => {
+    setFormState(prevState => ({ ...prevState, risk: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -62,17 +74,15 @@ export default function HomeTab() {
     setInsights(null);
 
     const mockApiData = {
-      priceFeed: "Mock Price Data: BTC is currently trading at $25,350 with high volume.",
-      sentimentNews: "Mock Sentiment: Recent news indicates positive market sentiment towards Bitcoin.",
-      walletTransaction: "Mock Wallet Action: Large BTC accumulation detected in whale wallets.",
+      priceFeed: "Mock Price Data: BTC is currently trading around its recent average with moderate volume.",
+      sentimentNews: "Mock Sentiment: Neutral to slightly positive sentiment observed in recent market chatter.",
+      walletTransaction: "Mock Wallet Action: No significant large wallet movements detected recently.",
     };
 
     try {
       const payload: MarketInsightsInput = {
         ...formState,
         ...mockApiData,
-        // Ensure contextualNewsSnippets is an array, even if empty
-        contextualNewsSnippets: formState.contextualNewsSnippets || [], 
       };
       const result = await generateMarketInsights(payload);
       setInsights(result);
@@ -98,96 +108,94 @@ export default function HomeTab() {
     }
   };
 
+  const chartTimeframe = useMemo(() => tradeModeToChartTimeframe(formState.tradeMode), [formState.tradeMode]);
 
   return (
     <div className="space-y-8">
-      <Card className="glow-border-primary">
-        <CardHeader>
-          <CardTitle className="font-headline text-2xl text-primary">Market Command Console</CardTitle>
-          <CardDescription>Input parameters to get Shadow's insights.</CardDescription>
+      <Card className="glow-border-primary shadow-2xl">
+        <CardHeader className="border-b border-border">
+          <div className="flex items-center space-x-3">
+            <Settings2 className="h-8 w-8 text-primary" />
+            <div>
+              <CardTitle className="font-headline text-3xl text-primary">Market Command Console</CardTitle>
+              <CardDescription className="font-code text-sm">Configure parameters for Shadow's analysis.</CardDescription>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
               <div>
-                <Label htmlFor="target" className="font-code text-sm">Target Market (e.g., BTCUSDT)</Label>
+                <Label htmlFor="target" className="font-code text-sm text-muted-foreground">Target Market</Label>
                 <Input 
                   id="target" 
                   name="target" 
                   value={formState.target} 
                   onChange={handleInputChange} 
-                  className="font-code mt-1 bg-card border-primary/50 focus:border-primary focus:ring-primary" 
-                  placeholder="BTCUSDT"
+                  className="font-code mt-1 bg-card border-primary/30 focus:border-primary focus:ring-primary text-lg py-2.5" 
+                  placeholder="e.g., BTCUSDT"
                 />
               </div>
               <div>
-                <Label htmlFor="timeframe" className="font-code text-sm">Timeframe</Label>
-                 <Select name="timeframe" value={formState.timeframe} onValueChange={handleSelectChange('timeframe')}>
-                  <SelectTrigger id="timeframe" className="font-code mt-1 bg-card border-primary/50 focus:border-primary focus:ring-primary">
-                    <SelectValue placeholder="Select timeframe" />
+                <Label htmlFor="tradeMode" className="font-code text-sm text-muted-foreground">Trade Mode</Label>
+                 <Select name="tradeMode" value={formState.tradeMode} onValueChange={handleSelectChange('tradeMode')}>
+                  <SelectTrigger id="tradeMode" className="font-code mt-1 bg-card border-primary/30 focus:border-primary focus:ring-primary text-lg py-2.5 h-auto">
+                    <SelectValue placeholder="Select trade mode" />
                   </SelectTrigger>
                   <SelectContent>
-                    {timeframes.map(tf => <SelectItem key={tf} value={tf} className="font-code">{tf}</SelectItem>)}
+                    {tradeModes.map(mode => <SelectItem key={mode} value={mode} className="font-code">{mode}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
             </div>
+            
             <div>
-              <Label htmlFor="indicators" className="font-code text-sm">Indicators (comma-separated)</Label>
-              <Input 
-                id="indicators" 
-                name="indicators" 
-                value={formState.indicators} 
-                onChange={handleInputChange} 
-                className="font-code mt-1 bg-card border-primary/50 focus:border-primary focus:ring-primary" 
-                placeholder="RSI, MACD, ATR"
-              />
+              <Label className="font-code text-sm text-muted-foreground mb-2 block">Risk Tolerance</Label>
+              <Tabs value={formState.risk} onValueChange={handleRiskTabChange} className="w-full">
+                <TabsList className="grid w-full grid-cols-3 bg-primary/5 border-primary/20 border">
+                  {riskLevels.map(level => (
+                    <TabsTrigger 
+                      key={level} 
+                      value={level} 
+                      className="font-code text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md py-2.5"
+                    >
+                      {level === 'Low' && <AlertTriangle className="w-4 h-4 mr-2 opacity-70" />}
+                      {level === 'Medium' && <TrendingUp className="w-4 h-4 mr-2 opacity-70" />}
+                      {level === 'High' && <Loader2 className="w-4 h-4 mr-2 opacity-70 animate-spin-slow" />} {/* Or a more risk-appropriate icon */}
+                      {level}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
             </div>
-             <div>
-              <Label htmlFor="risk" className="font-code text-sm">Risk Level</Label>
-              <Select name="risk" value={formState.risk} onValueChange={handleSelectChange('risk')}>
-                <SelectTrigger id="risk" className="font-code mt-1 bg-card border-primary/50 focus:border-primary focus:ring-primary">
-                  <SelectValue placeholder="Select risk level" />
-                </SelectTrigger>
-                <SelectContent>
-                  {riskLevels.map(rl => <SelectItem key={rl} value={rl} className="font-code">{rl}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="contextualNewsSnippets" className="font-code text-sm">Contextual News Snippets (one per line)</Label>
-              <Textarea
-                id="contextualNewsSnippets"
-                name="contextualNewsSnippets"
-                value={formState.contextualNewsSnippets?.join('\\n') || ''}
-                onChange={handleTextareaChange}
-                className="font-code mt-1 bg-card border-primary/50 focus:border-primary focus:ring-primary"
-                placeholder="e.g., Major exchange lists BTC product...\\nAnalyst predicts upward trend for ETH..."
-                rows={3}
-              />
-            </div>
-            <Button type="submit" disabled={isLoading} className="w-full font-code bg-primary hover:bg-primary/90 text-primary-foreground text-lg py-3">
-              {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : '> EXECUTE'}
+
+            <Button type="submit" disabled={isLoading} className="w-full font-code bg-gradient-to-r from-primary via-purple-600 to-pink-600 hover:from-primary/90 hover:via-purple-500 hover:to-pink-500 text-primary-foreground text-xl py-4 rounded-lg shadow-lg hover:shadow-primary/50 transition-all duration-300 transform hover:scale-105">
+              {isLoading ? <Loader2 className="mr-2 h-6 w-6 animate-spin" /> : '> ENGAGE SHADOW PROTOCOL'}
             </Button>
           </form>
         </CardContent>
       </Card>
 
       {isLoading && (
-        <Card className="glow-border-accent">
-          <CardContent className="p-6 text-center">
-            <Loader2 className="mx-auto h-12 w-12 animate-spin text-accent mb-4" />
-            <p className="text-accent font-code">Shadow is thinking...</p>
-          </CardContent>
-        </Card>
+        <TerminalExecutionAnimation 
+          target={formState.target}
+          tradeMode={formState.tradeMode}
+          risk={formState.risk}
+        />
       )}
 
-      {insights && (
-        <Card className="glow-border-accent">
-          <CardHeader>
-            <CardTitle className="font-headline text-2xl text-accent">Shadow's Output</CardTitle>
+      {insights && !isLoading && (
+        <Card className="glow-border-accent shadow-2xl">
+          <CardHeader className="border-b border-border">
+             <div className="flex items-center space-x-3">
+                <Lightbulb className="h-8 w-8 text-accent" />
+                <div>
+                    <CardTitle className="font-headline text-3xl text-accent">Shadow's Output</CardTitle>
+                    <CardDescription className="font-code text-sm">Analysis complete. Review the generated insights.</CardDescription>
+                </div>
+            </div>
           </CardHeader>
-          <CardContent className="space-y-4 font-code text-sm md:text-base">
+          <CardContent className="pt-6 space-y-6 font-code text-sm md:text-base">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <OutputItem label="Prediction" value={insights.prediction} valueClassName={getPredictionColor(insights.prediction)} />
               <OutputItem label="Confidence" value={`${insights.confidence}%`} />
@@ -197,53 +205,53 @@ export default function HomeTab() {
               <OutputItem label="Take Profit" value={insights.takeProfit} />
             </div>
             <div className="pt-2">
-              <Label className="text-accent font-semibold">Current Thought:</Label>
-              <div className="p-3 mt-1 border border-accent/50 rounded-md bg-card animate-pulse-glow-accent">
-                <PulsingText text={`"${insights.thought}"`} className="text-accent-foreground italic" />
+              <Label className="text-accent font-semibold text-lg">Oracle's Whisper:</Label>
+              <div className="p-4 mt-2 border border-accent/30 rounded-lg bg-card shadow-inner animate-pulse-glow-accent">
+                <PulsingText text={`"${insights.thought}"`} className="text-accent-foreground italic text-base" />
               </div>
             </div>
           </CardContent>
         </Card>
       )}
 
-      <Tabs defaultValue="live-chart" className="w-full">
+      <Tabs defaultValue="live-chart" className="w-full mt-12">
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 gap-2 bg-transparent p-0">
-          <TabsTrigger value="live-chart" className="font-code data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:glow-border-primary">
-            <BarChart className="mr-2 h-4 w-4"/>Live Chart
+          <TabsTrigger value="live-chart" className="font-code py-2.5 text-base data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:glow-border-primary data-[state=active]:shadow-md">
+            <BarChart className="mr-2 h-5 w-5"/>Live Chart
           </TabsTrigger>
-          <TabsTrigger value="experimental-mode" className="font-code data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:glow-border-primary">
-           <Lightbulb className="mr-2 h-4 w-4" />Experimental
+          <TabsTrigger value="experimental-mode" className="font-code py-2.5 text-base data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:glow-border-primary data-[state=active]:shadow-md">
+           <Lightbulb className="mr-2 h-5 w-5" />Experimental
           </TabsTrigger>
-          <TabsTrigger value="data-sources" className="font-code data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:glow-border-primary">
-            <FileText className="mr-2 h-4 w-4"/>Data Sources
+          <TabsTrigger value="data-sources" className="font-code py-2.5 text-base data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:glow-border-primary data-[state=active]:shadow-md">
+            <FileText className="mr-2 h-5 w-5"/>Data Sources
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="live-chart">
-          <Card className="mt-4 glow-border-primary">
-            <CardHeader><CardTitle className="font-headline text-primary">Live Chart View</CardTitle></CardHeader>
+        <TabsContent value="live-chart" className="mt-6">
+          <Card className="glow-border-primary shadow-xl">
+            <CardHeader><CardTitle className="font-headline text-primary text-2xl">Live Chart View</CardTitle></CardHeader>
             <CardContent>
-              <div className="mt-4 h-[400px] md:h-[500px] rounded-md overflow-hidden">
+              <div className="mt-4 h-[400px] md:h-[500px] rounded-md overflow-hidden border border-border">
                 <TradingViewWidget
                   marketSymbol={formState.target || 'BTCUSDT'}
-                  timeframe={formState.timeframe || '15m'}
+                  timeframe={chartTimeframe}
                 />
               </div>
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="experimental-mode">
-          <Card className="mt-4 glow-border-primary">
-            <CardHeader><CardTitle className="font-headline text-primary">Experimental Mode</CardTitle></CardHeader>
+        <TabsContent value="experimental-mode" className="mt-6">
+          <Card className="glow-border-primary shadow-xl">
+            <CardHeader><CardTitle className="font-headline text-primary text-2xl">Experimental Mode</CardTitle></CardHeader>
             <CardContent>
               <p className="text-muted-foreground">Enable Shadow auto-trade suggestions (simulated environment).</p>
-              <Button className="mt-4 font-code bg-primary/80 hover:bg-primary text-primary-foreground">Enable Auto-Trade (Simulated)</Button>
+              <Button className="mt-4 font-code bg-primary/80 hover:bg-primary text-primary-foreground py-2.5 px-6 text-base">Enable Auto-Trade (Simulated)</Button>
             </CardContent>
           </Card>
         </TabsContent>
-         <TabsContent value="data-sources">
-          <Card className="mt-4 glow-border-primary">
-            <CardHeader><CardTitle className="font-headline text-primary">Data Sources Used</CardTitle></CardHeader>
-            <CardContent className="space-y-2">
+         <TabsContent value="data-sources" className="mt-6">
+          <Card className="glow-border-primary shadow-xl">
+            <CardHeader><CardTitle className="font-headline text-primary text-2xl">Data Sources Used</CardTitle></CardHeader>
+            <CardContent className="space-y-3 text-base">
               <p><span className="font-semibold text-primary">Price Feed & Volume:</span> Binance API (Simulated)</p>
               <p><span className="font-semibold text-primary">Sentiment/News:</span> CoinDesk API (Simulated)</p>
               <p><span className="font-semibold text-primary">AI Thought Generation:</span> Gemini Pro API</p>
@@ -264,9 +272,8 @@ interface OutputItemProps {
 }
 
 const OutputItem: React.FC<OutputItemProps> = ({ label, value, valueClassName }) => (
-  <div className="p-3 border border-border rounded-md bg-card shadow-sm">
-    <p className="text-xs text-muted-foreground">{label}</p>
-    <p className={cn("text-lg font-semibold", valueClassName)}>{value}</p>
+  <div className="p-4 border border-border rounded-lg bg-card shadow-md hover:shadow-lg transition-shadow">
+    <p className="text-xs text-muted-foreground uppercase tracking-wider">{label}</p>
+    <p className={cn("text-xl font-semibold mt-1", valueClassName)}>{value}</p>
   </div>
 );
-
