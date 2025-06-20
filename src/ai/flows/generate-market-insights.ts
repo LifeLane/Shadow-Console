@@ -19,7 +19,7 @@ import * as polygonService from '@/services/polygonService';
 // Schema for input from the client
 const MarketInsightsInputSchema = z.object({
   target: z.string().describe('The target market (e.g., BTCUSDT).'),
-  tradeMode: z.string().describe('The selected trading mode (e.g., Scalping, Intraday, Options, Futures).'),
+  timeframe: z.string().describe('The selected chart timeframe (e.g., 5m, 1h, 1d).'),
   risk: z.string().describe('The risk level (e.g., Low, Medium, High).'),
 });
 export type MarketInsightsInput = z.infer<typeof MarketInsightsInputSchema>;
@@ -55,7 +55,7 @@ const marketInsightsPrompt = ai.definePrompt({
   Analyze the following market data to generate a trading signal.
 
   Target Market: {{{target}}}
-  Trading Mode: {{{tradeMode}}}
+  Timeframe: {{{timeframe}}}
   Risk Level: {{{risk}}}
 
   Price Feed Data (from Binance): {{{priceFeed}}}
@@ -88,12 +88,8 @@ const generateMarketInsightsFlow = ai.defineFlow(
   async (clientInput: MarketInsightsInput) => {
     console.log('Received client input for flow:', clientInput);
 
-    // Determine kline interval based on trade mode for Binance price feed
-    let klineInterval = '1h'; // Default
-    if (clientInput.tradeMode.toLowerCase() === 'scalping') klineInterval = '5m';
-    else if (clientInput.tradeMode.toLowerCase() === 'intraday') klineInterval = '1h';
-    else if (['swing trading', 'options', 'futures', 'position trading'].includes(clientInput.tradeMode.toLowerCase())) klineInterval = '1d';
-
+    // Use timeframe directly as klineInterval
+    const klineInterval = clientInput.timeframe;
 
     // Fetch data from external services
     const priceFeedData = await binanceService.fetchPriceData(clientInput.target, klineInterval);

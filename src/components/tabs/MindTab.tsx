@@ -29,11 +29,11 @@ interface RewardData {
 
 const initialFormState: MarketInsightsInput = {
   target: 'BTCUSDT',
-  tradeMode: '1h', // Changed to represent timeframe
+  timeframe: '1h', // Changed from tradeMode
   risk: 'Medium',
 };
 
-const timeframes = ['5m', '15m', '1h', '4h', '1d']; // More typical timeframe selections
+const timeframes = ['5m', '15m', '1h', '4h', '1d'];
 const riskLevels = ['Low', 'Medium', 'High'];
 
 const cardVariants = {
@@ -48,7 +48,7 @@ export default function MindTab() {
   const [currentSignalParams, setCurrentSignalParams] = useState<CurrentSignalParams | null>(null);
   const [simulationResult, setSimulationResult] = useState<MarketInsightsOutput | null>(null);
   const [rewardData, setRewardData] = useState<RewardData | null>(null);
-  const [trackingPulse, setTrackingPulse] = useState(78); // Simulated pulse strength
+  const [signalStatusMessage, setSignalStatusMessage] = useState<string>('');
   const { toast } = useToast();
   const [descriptionKey, setDescriptionKey] = useState(0);
   const [thoughtKey, setThoughtKey] = useState(0);
@@ -58,17 +58,50 @@ export default function MindTab() {
   }, []);
 
   useEffect(() => {
-    let pulseInterval: NodeJS.Timeout;
-    if (coreState === 'tracking') {
-      pulseInterval = setInterval(() => {
-        setTrackingPulse(prev => {
-          const change = Math.floor(Math.random() * 5) - 2; // -2 to +2
-          return Math.max(60, Math.min(95, prev + change));
-        });
-      }, 2000);
+    if (coreState === 'tracking' && simulationResult) {
+      let entryTimeoutId: NodeJS.Timeout;
+      let outcomeTimeoutId: NodeJS.Timeout;
+
+      setSignalStatusMessage(`On Hold: Monitoring Entry at ${simulationResult.entryRange}`);
+      setDescriptionKey(prev => prev + 1); 
+
+      entryTimeoutId = setTimeout(() => {
+        setSignalStatusMessage(`Order Executed near ${simulationResult.entryRange}. Monitoring TP/SL.`);
+        setDescriptionKey(prev => prev + 1);
+
+        outcomeTimeoutId = setTimeout(() => {
+          const outcomes = ["Target Hit", "Stop Loss Triggered"];
+          const randomOutcome = outcomes[Math.floor(Math.random() * outcomes.length)];
+          let finalMessage = "";
+          let bsaiReward = 0;
+          let xpReward = 0;
+          let badgeReward: string | undefined = undefined;
+
+          if (randomOutcome === "Target Hit") {
+            finalMessage = `Take Profit Hit at ${simulationResult.takeProfit}!`;
+            bsaiReward = Math.floor((simulationResult.confidence / 100) * (Math.random() * 500 + 500));
+            xpReward = Math.floor(Math.random() * 50 + 50);
+            if (simulationResult.confidence > 85) badgeReward = "Precision Analyst Badge";
+          } else { // Stop Loss Triggered
+            finalMessage = `Stop Loss Hit at ${simulationResult.stopLoss}!`;
+            xpReward = Math.floor(Math.random() * 20 + 10);
+          }
+          
+          setSignalStatusMessage(finalMessage); // Keep this for the reward screen if needed
+          setRewardData({ outcome: randomOutcome, bsai: bsaiReward, xp: xpReward, badge: badgeReward });
+          setCoreState('resolved');
+          setDescriptionKey(prev => prev + 1); 
+
+        }, 5000); // 5 seconds after entry for outcome
+      }, 3000); // 3 seconds for entry
+
+      return () => {
+        clearTimeout(entryTimeoutId);
+        clearTimeout(outcomeTimeoutId);
+      };
     }
-    return () => clearInterval(pulseInterval);
-  }, [coreState]);
+  }, [coreState, simulationResult]);
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -90,7 +123,7 @@ export default function MindTab() {
     setTimeout(() => {
       setCoreState('idle');
       toast({ title: "Shadow Core Active!", description: "Awaiting your command. Your thoughts feed the Mind." });
-    }, 2500); // Simulated activation time
+    }, 2500); 
   };
 
   const handleSubmitSignal = async (e: React.FormEvent) => {
@@ -99,15 +132,20 @@ export default function MindTab() {
 
     setCurrentSignalParams(formState);
     setCoreState('simulating');
-    setSimulationResult(null); // Clear previous results
+    setSimulationResult(null); 
     setRewardData(null);
     setDescriptionKey(prev => prev + 1);
     setThoughtKey(prev => prev + 1);
 
     try {
-      const result = await generateMarketInsights(formState);
+      // Ensure timeframe is passed correctly
+      const payload: MarketInsightsInput = {
+        target: formState.target,
+        timeframe: formState.timeframe, // Use the renamed state
+        risk: formState.risk,
+      };
+      const result = await generateMarketInsights(payload);
       setSimulationResult(result);
-      // insights for Oracle's Whisper are implicitly set by simulationResult
       setCoreState('tracking');
       toast({
         title: "Signal Deployed to ShadowNet!",
@@ -120,34 +158,8 @@ export default function MindTab() {
         description: error instanceof Error ? error.message : "Failed to deploy signal. Please check console.",
         variant: "destructive",
       });
-      setCoreState('idle'); // Revert to idle on error
+      setCoreState('idle'); 
     }
-  };
-
-  const handleSimulateOutcome = () => {
-    if (!simulationResult) return;
-    const outcomes = ["Target Hit", "Stop Loss Triggered", "Neutral (Time Expired)"];
-    const randomOutcome = outcomes[Math.floor(Math.random() * outcomes.length)];
-    let bsaiReward = 0;
-    let xpReward = 0;
-    let badgeReward: string | undefined = undefined;
-
-    if (randomOutcome === "Target Hit") {
-      bsaiReward = Math.floor((simulationResult.confidence / 100) * (Math.random() * 500 + 500)); // Confidence based
-      xpReward = Math.floor(Math.random() * 50 + 50);
-      if (simulationResult.confidence > 85) {
-        badgeReward = "Precision Analyst Badge";
-      }
-    } else if (randomOutcome === "Stop Loss Triggered") {
-      xpReward = Math.floor(Math.random() * 20 + 10); // Minimal XP
-    } else { // Neutral
-      xpReward = Math.floor(Math.random() * 30 + 20); // Partial XP
-    }
-
-    setRewardData({ outcome: randomOutcome, bsai: bsaiReward, xp: xpReward, badge: badgeReward });
-    setCoreState('resolved');
-    setDescriptionKey(prev => prev + 1);
-    toast({ title: "Signal Resolved!", description: `Outcome: ${randomOutcome}. Rewards calculated.`});
   };
   
   const handleAcknowledgeReset = () => {
@@ -155,6 +167,7 @@ export default function MindTab() {
     setCurrentSignalParams(null);
     setSimulationResult(null);
     setRewardData(null);
+    setSignalStatusMessage('');
     setDescriptionKey(prev => prev + 1);
     setThoughtKey(prev => prev + 1);
     toast({ title: "Shadow Core Reset", description: "Ready for new signal deployment." });
@@ -178,8 +191,8 @@ export default function MindTab() {
             <Brain className="h-16 w-16 sm:h-20 sm:w-20 text-primary mx-auto mb-4 animate-pulse-opacity" />
             <TypewriterText 
               key={`desc-dormant-${descriptionKey}`} 
-              text="The Shadow Core is dormant. Your thoughts feed the Mind. Your signals guide the chain." 
-              className="text-lg sm:text-xl text-muted-foreground mb-6 font-code" 
+              text="The core is dormant. Activate to synchronize. Your thoughts feed the Mind. Your signals guide the chain." 
+              className="text-lg sm:text-xl text-muted-foreground mb-6 font-code text-center" 
               speed={30} 
             />
             <Button onClick={handleActivateCore} size="lg" className="font-code bg-primary text-primary-foreground hover:bg-primary/90 text-lg py-3 px-6 animate-pulse-glow-primary">
@@ -191,7 +204,7 @@ export default function MindTab() {
         return (
           <motion.div key="activating" {...cardVariants} className="text-center p-6 sm:p-10 min-h-[200px] flex flex-col justify-center items-center">
             <Loader2 className="h-12 w-12 sm:h-16 sm:w-16 text-primary animate-spin mb-4" />
-            <TypewriterText text="Initializing Shadow Core... Synchronizing neural pathways..." className="text-md sm:text-lg text-primary font-code" speed={40} />
+            <TypewriterText text="Initializing Shadow Core... Synchronizing neural pathways..." className="text-md sm:text-lg text-primary font-code text-center" speed={40} />
           </motion.div>
         );
       case 'idle':
@@ -218,7 +231,7 @@ export default function MindTab() {
                   <div>
                     <Label htmlFor="target" className="font-code text-xs sm:text-sm text-muted-foreground">Target Market (e.g., BTCUSDT)</Label>
                     <div className="flex items-center mt-1">
-                      <Input
+                       <Input
                         id="target"
                         name="target"
                         value={formState.target}
@@ -233,9 +246,9 @@ export default function MindTab() {
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="tradeMode" className="font-code text-xs sm:text-sm text-muted-foreground">Select Timeframe</Label>
-                    <Select name="tradeMode" value={formState.tradeMode} onValueChange={handleSelectChange('tradeMode')}>
-                      <SelectTrigger id="tradeMode" className="font-code mt-1 text-base sm:text-lg py-2 h-10 sm:h-auto dark:bg-black/80 dark:border-primary/60 dark:text-primary dark:focus-visible:ring-primary bg-background border-primary/40 text-primary focus-visible:ring-primary">
+                    <Label htmlFor="timeframe" className="font-code text-xs sm:text-sm text-muted-foreground">Select Timeframe</Label>
+                    <Select name="timeframe" value={formState.timeframe} onValueChange={handleSelectChange('timeframe')}>
+                      <SelectTrigger id="timeframe" className="font-code mt-1 text-base sm:text-lg py-2 h-10 sm:h-auto dark:bg-black/80 dark:border-primary/60 dark:text-primary dark:focus-visible:ring-primary bg-background border-primary/40 text-primary focus-visible:ring-primary">
                         <SelectValue placeholder="Select timeframe" />
                       </SelectTrigger>
                       <SelectContent>
@@ -287,7 +300,7 @@ export default function MindTab() {
             {currentSignalParams && (
               <TerminalExecutionAnimation
                 target={currentSignalParams.target}
-                tradeMode={currentSignalParams.tradeMode}
+                tradeMode={currentSignalParams.timeframe} // Use timeframe here
                 risk={currentSignalParams.risk}
               />
             )}
@@ -303,8 +316,8 @@ export default function MindTab() {
                   <div>
                     <CardTitle className="font-headline text-xl sm:text-3xl text-accent">Signal Pulse: LIVE</CardTitle>
                     <TypewriterText
-                        key={`desc-tracking-${descriptionKey}`}
-                        text={`Tracking: ${currentSignalParams?.target} | ${currentSignalParams?.tradeMode} | Risk: ${currentSignalParams?.risk}`}
+                        key={`desc-trackingstatus-${descriptionKey}`}
+                        text={signalStatusMessage || `Tracking: ${currentSignalParams?.target} | ${currentSignalParams?.timeframe} | Risk: ${currentSignalParams?.risk}`}
                         className="font-code text-xs sm:text-sm text-muted-foreground mt-1"
                         speed={15} showCaret={false}
                     />
@@ -323,9 +336,12 @@ export default function MindTab() {
                       <OutputItem label="Profit Target Zone" value={simulationResult.takeProfit} />
                     </div>
                      <div className="text-center p-3 border border-primary/30 rounded-md bg-black/50">
-                        <p className="text-primary text-md animate-pulse-opacity">
-                           [ SIGNAL LIVE — PULSE STRENGTH: {'█'.repeat(Math.floor(trackingPulse/10))+'░'.repeat(10-Math.floor(trackingPulse/10))} {trackingPulse}% ]
-                        </p>
+                        <TypewriterText 
+                            key={`signal-status-${descriptionKey}`}
+                            text={`[ ${signalStatusMessage.toUpperCase()} ]`}
+                            speed={30}
+                            className="text-primary text-md animate-pulse-opacity"
+                         />
                     </div>
                     <div>
                       <Label className="text-accent font-semibold text-base sm:text-lg block text-center sm:text-left">Oracle's Whisper (Core Logic):</Label>
@@ -341,9 +357,7 @@ export default function MindTab() {
                     </div>
                   </>
                 )}
-                <Button onClick={handleSimulateOutcome} className="w-full font-code bg-primary text-primary-foreground hover:bg-primary/90 text-base py-3">
-                  Simulate Signal Outcome
-                </Button>
+                {/* Button removed as per new flow */}
               </CardContent>
             </Card>
           </motion.div>
@@ -367,7 +381,7 @@ export default function MindTab() {
                 </div>
               </CardHeader>
               <CardContent className="p-4 sm:p-6 space-y-4 text-center font-code">
-                <p className="text-2xl font-semibold text-accent">{rewardData?.outcome}</p>
+                <p className="text-2xl font-semibold text-accent">{rewardData?.outcome}</p> {/* Or use signalStatusMessage if preferred */}
                 <div className="space-y-2 text-lg">
                   <p>BSAI Token Reward: <span className="font-bold text-primary">{rewardData?.bsai.toLocaleString() || 0} BSAI</span></p>
                   <p>Shadow XP Earned: <span className="font-bold text-primary">{rewardData?.xp.toLocaleString() || 0} XP</span></p>
@@ -376,7 +390,7 @@ export default function MindTab() {
                  <TypewriterText
                     key={`desc-reward-${descriptionKey}`}
                     text="Your contribution has been logged. The Shadow Core evolves."
-                    className="text-sm text-muted-foreground pt-2"
+                    className="text-sm text-muted-foreground pt-2 text-center"
                     speed={25} showCaret={false}
                 />
                 <Button onClick={handleAcknowledgeReset} size="lg" className="font-code bg-accent text-accent-foreground hover:bg-accent/90 text-lg py-3 px-6 mt-4">
@@ -397,7 +411,6 @@ export default function MindTab() {
         {renderContent()}
       </AnimatePresence>
 
-      {/* Auxiliary Tabs - only show if core is not dormant or activating */}
       {(coreState !== 'dormant' && coreState !== 'activating') && (
          <motion.div initial="initial" animate="animate" variants={cardVariants} className="mt-8">
             <Tabs defaultValue="experimental-mode" className="w-full">
