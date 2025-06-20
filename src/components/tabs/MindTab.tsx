@@ -11,7 +11,7 @@ import { generateMarketInsights, MarketInsightsInput, MarketInsightsOutput } fro
 import { useToast } from '@/hooks/use-toast';
 import TerminalExecutionAnimation from '@/components/TerminalExecutionAnimation';
 import TypewriterText from '@/components/TypewriterText';
-import { Loader2, BarChart, FileText, Lightbulb, TrendingUp, Zap, ShieldCheck, ShieldOff, Brain, AlertTriangle } from 'lucide-react';
+import { Loader2, FileText, Lightbulb, TrendingUp, Zap, ShieldCheck, ShieldOff, Brain } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from '@/lib/utils';
 
@@ -234,11 +234,8 @@ export default function MindTab() {
         </Card>
       )}
 
-      <Tabs defaultValue="live-chart" className="w-full mt-8 sm:mt-12">
-        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-2 bg-transparent p-0">
-          <TabsTrigger value="live-chart" className="font-code py-2 sm:py-2.5 text-sm sm:text-base data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:glow-border-primary data-[state=active]:shadow-md">
-            <BarChart className="mr-1.5 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5"/>Live Market Matrix
-          </TabsTrigger>
+      <Tabs defaultValue="experimental-mode" className="w-full mt-8 sm:mt-12">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2 bg-transparent p-0">
           <TabsTrigger value="experimental-mode" className="font-code py-2 sm:py-2.5 text-sm sm:text-base data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:glow-border-primary data-[state=active]:shadow-md">
            <Lightbulb className="mr-1.5 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />Auto-Trade Sim
           </TabsTrigger>
@@ -246,20 +243,6 @@ export default function MindTab() {
             <FileText className="mr-1.5 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5"/>Core Data Streams
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="live-chart" className="mt-4 sm:mt-6">
-          <Card className="glow-border-primary shadow-xl neural-dot-grid">
-            <CardHeader className="p-4 sm:p-6"><CardTitle className="font-headline text-primary text-lg sm:text-2xl relative z-10">Live Market Matrix</CardTitle></CardHeader>
-            <CardContent className="p-2 sm:p-4 relative z-10">
-              <div className="mt-2 sm:mt-4 h-[300px] sm:h-[400px] md:h-[500px] rounded-md border border-border flex items-center justify-center bg-background/50">
-                <div className="text-center text-muted-foreground p-4">
-                    <AlertTriangle className="w-12 h-12 mx-auto mb-3 text-primary/70" />
-                    <p className="font-headline text-lg text-primary">Live Chart Currently Unavailable</p>
-                    <p className="text-sm font-code mt-1">The integrated chart service is temporarily offline or under maintenance. Please check back later.</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
         <TabsContent value="experimental-mode" className="mt-4 sm:mt-6">
           <Card className="glow-border-primary shadow-xl p-4 sm:p-6">
             <CardHeader className="p-0 pb-3 sm:pb-4"><CardTitle className="font-headline text-primary text-lg sm:text-2xl">Experimental Auto-Trade Simulation</CardTitle></CardHeader>
@@ -280,7 +263,7 @@ export default function MindTab() {
                         : "bg-accent hover:bg-accent/90 text-accent-foreground"
                 )}
                 >
-                {isAutoTradeEnabled ? <ShieldOff className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> : <ShieldCheck className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />}
+                {isAutoTradeEnabled ? <ShieldOff className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> : <ShieldCheck className="mr-2 h-4 w-4 sm:h-5 sm:h-5" />}
                 {isAutoTradeEnabled ? "Disengage Auto-Trade Sim" : "Engage Auto-Trade Sim"}
               </Button>
                <p className="text-xs text-muted-foreground mt-3 sm:mt-4">Note: Auto-trade simulation is for training the Shadow Core. Actual trades are not executed.</p>
