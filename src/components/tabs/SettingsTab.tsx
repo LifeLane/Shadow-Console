@@ -10,12 +10,14 @@ import { Switch } from '@/components/ui/switch';
 import { useTheme } from 'next-themes';
 import { Wallet, Bell, Palette, KeyRound, Sun, Moon, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 export default function SettingsTab() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [showApiKey, setShowApiKey] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     setMounted(true);
@@ -29,6 +31,21 @@ export default function SettingsTab() {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
+  const handleConnectWallet = () => {
+    console.log("Connect Wallet button clicked - functionality to be implemented.");
+    toast({
+      title: "Wallet Connection",
+      description: "Wallet connection functionality is not yet implemented.",
+    });
+  };
+  
+  const handleSaveApiKeys = () => {
+    toast({
+        title: "API Keys",
+        description: "API Key saving functionality is not yet implemented.",
+    });
+  }
+
   return (
     <div className="space-y-8">
       <Card className="glow-border-primary">
@@ -41,7 +58,12 @@ export default function SettingsTab() {
           <div className="space-y-3 p-4 border border-border rounded-lg shadow-sm glow-border-accent">
             <h3 className="text-xl font-semibold font-headline text-accent flex items-center"><Wallet className="w-6 h-6 mr-2" /> Wallet Connection</h3>
             <p className="text-sm text-muted-foreground">Connect your preferred wallet (e.g., MetaMask, Phantom).</p>
-            <Button className="font-code bg-accent text-accent-foreground hover:bg-accent/90 transition-colors">Connect Wallet</Button>
+            <Button 
+              onClick={handleConnectWallet}
+              className="font-code bg-accent text-accent-foreground hover:bg-accent/90 transition-colors"
+            >
+              Connect Wallet
+            </Button>
             <p className="text-xs text-muted-foreground pt-2">Currently not connected.</p>
           </div>
 
@@ -101,7 +123,7 @@ export default function SettingsTab() {
                 </div>
               </div>
             </div>
-            <Button variant="outline" className="font-code border-primary text-primary hover:bg-primary/10 transition-colors">Save API Keys</Button>
+            <Button onClick={handleSaveApiKeys} variant="outline" className="font-code border-primary text-primary hover:bg-primary/10 transition-colors">Save API Keys</Button>
             <p className="text-xs text-destructive pt-1">API keys are stored locally and used only for features you enable. Handle with care.</p>
           </div>
         </CardContent>
