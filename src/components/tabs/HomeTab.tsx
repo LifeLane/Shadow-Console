@@ -14,8 +14,8 @@ import TypewriterText from '@/components/TypewriterText';
 import PulsingText from '@/components/PulsingText';
 import { Loader2, BarChart, FileText, Lightbulb } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { TradingViewWidget } from '@/components/TradingViewWidget'; // Added import
 
 // Define the shape of the form state, explicitly including contextualNewsSnippets
 // and omitting fields that are mocked.
@@ -222,9 +222,11 @@ export default function HomeTab() {
           <Card className="mt-4 glow-border-primary">
             <CardHeader><CardTitle className="font-headline text-primary">Live Chart View</CardTitle></CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">TradingView widget will be integrated here.</p>
-              <div className="mt-4 aspect-video bg-muted rounded-md flex items-center justify-center">
-                 <Image src="https://placehold.co/600x400.png" alt="Placeholder chart" data-ai-hint="financial chart" width={600} height={400} className="rounded-md" />
+              <div className="mt-4 h-[400px] md:h-[500px] rounded-md overflow-hidden">
+                <TradingViewWidget
+                  marketSymbol={formState.target || 'BTCUSDT'}
+                  timeframe={formState.timeframe || '15m'}
+                />
               </div>
             </CardContent>
           </Card>
@@ -267,3 +269,4 @@ const OutputItem: React.FC<OutputItemProps> = ({ label, value, valueClassName })
     <p className={cn("text-lg font-semibold", valueClassName)}>{value}</p>
   </div>
 );
+
