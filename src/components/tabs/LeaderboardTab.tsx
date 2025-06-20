@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Flame, Zap, Eye } from 'lucide-react'; // Using different icons for variety
+import { cn } from '@/lib/utils';
 
 interface LeaderboardUser {
   id: string;
