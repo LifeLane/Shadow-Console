@@ -11,7 +11,7 @@ import { generateMarketInsights, MarketInsightsInput, MarketInsightsOutput } fro
 import { useToast } from '@/hooks/use-toast';
 import PulsingText from '@/components/PulsingText';
 import TerminalExecutionAnimation from '@/components/TerminalExecutionAnimation';
-import { Loader2, BarChart, FileText, Lightbulb, Settings2, AlertTriangle, TrendingUp } from 'lucide-react';
+import { Loader2, BarChart, FileText, Lightbulb, Settings2, AlertTriangle, TrendingUp, Zap, ShieldCheck, ShieldOff } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from '@/lib/utils';
 import { TradingViewWidget } from '@/components/TradingViewWidget';
@@ -48,6 +48,7 @@ export default function HomeTab() {
   const [formState, setFormState] = useState<HomeFormState>(initialFormState);
   const [insights, setInsights] = useState<MarketInsightsOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isAutoTradeEnabled, setIsAutoTradeEnabled] = useState(false);
   const { toast } = useToast();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,6 +91,17 @@ export default function HomeTab() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const toggleAutoTrade = () => {
+    setIsAutoTradeEnabled(prev => {
+        const newState = !prev;
+        toast({
+            title: `Auto-Trade ${newState ? 'Enabled' : 'Disabled'}`,
+            description: `Shadow auto-trade suggestions are now ${newState ? 'active' : 'inactive'} (Simulated).`,
+        });
+        return newState;
+    });
   };
   
   const getPredictionColor = (prediction?: string) => {
@@ -155,7 +167,7 @@ export default function HomeTab() {
                     >
                       {level === 'Low' && <AlertTriangle className="w-4 h-4 mr-2 opacity-70" />}
                       {level === 'Medium' && <TrendingUp className="w-4 h-4 mr-2 opacity-70" />}
-                      {level === 'High' && <Loader2 className="w-4 h-4 mr-2 opacity-70 animate-spin-slow" />}
+                      {level === 'High' && <Zap className="w-4 h-4 mr-2 opacity-70" />}
                       {level}
                     </TabsTrigger>
                   ))}
@@ -235,10 +247,21 @@ export default function HomeTab() {
         </TabsContent>
         <TabsContent value="experimental-mode" className="mt-6">
           <Card className="glow-border-primary shadow-xl">
-            <CardHeader><CardTitle className="font-headline text-primary text-2xl">Experimental Mode</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="font-headline text-primary text-2xl">Experimental Auto-Trade (Simulated)</CardTitle></CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">Enable Shadow auto-trade suggestions (simulated environment).</p>
-              <Button className="mt-4 font-code bg-primary/80 hover:bg-primary text-primary-foreground py-2.5 px-6 text-base">Enable Auto-Trade (Simulated)</Button>
+              <p className="text-muted-foreground mb-4">Enable or disable Shadow auto-trade suggestions in a simulated environment.</p>
+              <Button 
+                onClick={toggleAutoTrade}
+                className={cn(
+                    "font-code py-2.5 px-6 text-base transition-all duration-300",
+                    isAutoTradeEnabled 
+                        ? "bg-red-600 hover:bg-red-700 text-white" 
+                        : "bg-green-500 hover:bg-green-600 text-white"
+                )}
+                >
+                {isAutoTradeEnabled ? <ShieldOff className="mr-2 h-5 w-5" /> : <ShieldCheck className="mr-2 h-5 w-5" />}
+                {isAutoTradeEnabled ? "Disable Auto-Trade (Simulated)" : "Enable Auto-Trade (Simulated)"}
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -271,3 +294,5 @@ const OutputItem: React.FC<OutputItemProps> = ({ label, value, valueClassName })
     <p className={cn("text-xl font-semibold mt-1", valueClassName)}>{value}</p>
   </div>
 );
+
+    

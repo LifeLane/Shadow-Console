@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useTheme } from 'next-themes';
-import { Wallet, Bell, Palette, KeyRound, Sun, Moon, Eye, EyeOff } from 'lucide-react';
+import { Wallet, Bell, Palette, KeyRound, Sun, Moon, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
@@ -17,6 +17,8 @@ export default function SettingsTab() {
   const [mounted, setMounted] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [showApiKey, setShowApiKey] = useState(false);
+  const [isWalletConnected, setIsWalletConnected] = useState(false);
+  const [connectedWalletName, setConnectedWalletName] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -31,20 +33,25 @@ export default function SettingsTab() {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
-  const handleConnectWallet = () => {
-    console.log("Connect Wallet button clicked - functionality to be implemented.");
-    toast({
-      title: "Wallet Connection",
-      description: "Wallet connection functionality is not yet implemented.",
-    });
+  const handleWalletConnection = () => {
+    if (isWalletConnected) {
+      setIsWalletConnected(false);
+      setConnectedWalletName('');
+      toast({ title: "Wallet Disconnected", description: "Your wallet has been disconnected (Simulated)." });
+    } else {
+      // Simulate connecting to MetaMask
+      setIsWalletConnected(true);
+      setConnectedWalletName('MetaMask (0xabc...def)');
+      toast({ title: "Wallet Connected!", description: "Successfully connected to MetaMask (Simulated)." });
+    }
   };
   
   const handleSaveApiKeys = () => {
     toast({
-        title: "API Keys",
-        description: "API Key saving functionality is not yet implemented.",
+        title: "API Keys Saved (Simulated)",
+        description: "Your Binance API keys have been securely saved (Simulated).",
     });
-  }
+  };
 
   return (
     <div className="space-y-8">
@@ -59,12 +66,20 @@ export default function SettingsTab() {
             <h3 className="text-xl font-semibold font-headline text-accent flex items-center"><Wallet className="w-6 h-6 mr-2" /> Wallet Connection</h3>
             <p className="text-sm text-muted-foreground">Connect your preferred wallet (e.g., MetaMask, Phantom).</p>
             <Button 
-              onClick={handleConnectWallet}
-              className="font-code bg-accent text-accent-foreground hover:bg-accent/90 transition-colors"
+              onClick={handleWalletConnection}
+              className={cn(
+                "font-code transition-colors",
+                isWalletConnected ? "bg-red-600 hover:bg-red-700 text-white" : "bg-accent text-accent-foreground hover:bg-accent/90"
+              )}
             >
-              Connect Wallet
+              {isWalletConnected ? <XCircle className="mr-2 h-5 w-5" /> : <Wallet className="mr-2 h-5 w-5" />}
+              {isWalletConnected ? 'Disconnect Wallet' : 'Connect Wallet (Simulated)'}
             </Button>
-            <p className="text-xs text-muted-foreground pt-2">Currently not connected.</p>
+            {isWalletConnected ? (
+                <p className="text-xs text-green-500 pt-2 flex items-center"><CheckCircle className="w-4 h-4 mr-1.5"/>Connected: {connectedWalletName}</p>
+            ) : (
+                <p className="text-xs text-muted-foreground pt-2">Currently not connected.</p>
+            )}
           </div>
 
           {/* Theme Settings */}
@@ -92,7 +107,10 @@ export default function SettingsTab() {
               <Switch
                 id="notifications-switch"
                 checked={notificationsEnabled}
-                onCheckedChange={setNotificationsEnabled}
+                onCheckedChange={(checked) => {
+                  setNotificationsEnabled(checked);
+                  toast({ title: "Notification Settings Updated", description: `Signal alerts ${checked ? 'enabled' : 'disabled'}.`});
+                }}
                 className="data-[state=checked]:bg-primary"
               />
             </div>
@@ -131,3 +149,5 @@ export default function SettingsTab() {
     </div>
   );
 }
+
+    
