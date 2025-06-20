@@ -2,16 +2,16 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { generateMarketInsights, MarketInsightsInput, MarketInsightsOutput } from '@/ai/flows/generate-market-insights';
 import { useToast } from '@/hooks/use-toast';
-import PulsingText from '@/components/PulsingText';
 import TerminalExecutionAnimation from '@/components/TerminalExecutionAnimation';
-import { Loader2, BarChart, FileText, Lightbulb, Settings2, AlertTriangle, TrendingUp, Zap, ShieldCheck, ShieldOff, Brain } from 'lucide-react';
+import TypewriterText from '@/components/TypewriterText';
+import { Loader2, BarChart, FileText, Lightbulb, TrendingUp, Zap, ShieldCheck, ShieldOff, Brain } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from '@/lib/utils';
 import { TradingViewWidget } from '@/components/TradingViewWidget';
@@ -50,6 +50,7 @@ export default function MindTab() {
   const [isLoading, setIsLoading] = useState(false);
   const [isAutoTradeEnabled, setIsAutoTradeEnabled] = useState(false);
   const { toast } = useToast();
+  const [descriptionKey, setDescriptionKey] = useState(0); // For re-triggering typewriter
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -71,6 +72,7 @@ export default function MindTab() {
     e.preventDefault();
     setIsLoading(true);
     setInsights(null);
+    setDescriptionKey(prev => prev + 1); // Re-trigger typewriter for descriptions
 
     try {
       const payload: MarketInsightsInput = {
@@ -110,7 +112,7 @@ export default function MindTab() {
   const getPredictionColor = (prediction?: string) => {
     if (!prediction) return 'text-foreground';
     switch (prediction.toUpperCase()) {
-      case 'BUY': return 'text-primary';
+      case 'BUY': return 'text-primary'; // Uses primary theme color (Neon Green in dark)
       case 'SELL': return 'text-destructive';
       case 'HOLD':
       default: return 'text-yellow-500'; 
@@ -120,35 +122,41 @@ export default function MindTab() {
   const chartTimeframe = useMemo(() => tradeModeToChartTimeframe(formState.tradeMode), [formState.tradeMode]);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       <Card className="glow-border-primary shadow-2xl">
-        <CardHeader className="border-b border-border">
-          <div className="flex items-center space-x-3">
-            <Brain className="h-8 w-8 text-primary" />
+        <CardHeader className="border-b border-border p-4 sm:p-6">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <Brain className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
             <div>
-              <CardTitle className="font-headline text-3xl text-primary">Shadow Core Console</CardTitle>
-              <CardDescription className="font-code text-sm">Input parameters to command the Shadow Core. Each analysis contributes to its learning and your Airdrop rewards.</CardDescription>
+              <CardTitle className="font-headline text-xl sm:text-3xl text-primary">Shadow Core Console</CardTitle>
+              <TypewriterText 
+                key={`desc-console-${descriptionKey}`}
+                text="Input parameters to command the Shadow Core. Each analysis contributes to its learning and your Airdrop rewards." 
+                className="font-code text-xs sm:text-sm text-muted-foreground mt-1" 
+                speed={15}
+                showCaret={false}
+              />
             </div>
           </div>
         </CardHeader>
-        <CardContent className="pt-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+        <CardContent className="p-4 sm:p-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-end">
               <div>
-                <Label htmlFor="target" className="font-code text-sm text-muted-foreground">Target Market (e.g., BTCUSDT)</Label>
+                <Label htmlFor="target" className="font-code text-xs sm:text-sm text-muted-foreground">Target Market (e.g., BTCUSDT)</Label>
                 <Input 
                   id="target" 
                   name="target" 
                   value={formState.target} 
                   onChange={handleInputChange} 
-                  className="font-code mt-1 bg-card border-primary/30 focus:border-primary focus:ring-primary text-lg py-2.5" 
+                  className="font-code mt-1 bg-card border-primary/30 focus:border-primary focus:ring-primary text-base sm:text-lg py-2 h-10 sm:h-auto" 
                   placeholder="e.g., BTCUSDT"
                 />
               </div>
               <div>
-                <Label htmlFor="tradeMode" className="font-code text-sm text-muted-foreground">Select Trade Mode</Label>
+                <Label htmlFor="tradeMode" className="font-code text-xs sm:text-sm text-muted-foreground">Select Trade Mode</Label>
                  <Select name="tradeMode" value={formState.tradeMode} onValueChange={handleSelectChange('tradeMode')}>
-                  <SelectTrigger id="tradeMode" className="font-code mt-1 bg-card border-primary/30 focus:border-primary focus:ring-primary text-lg py-2.5 h-auto">
+                  <SelectTrigger id="tradeMode" className="font-code mt-1 bg-card border-primary/30 focus:border-primary focus:ring-primary text-base sm:text-lg py-2 h-10 sm:h-auto">
                     <SelectValue placeholder="Select trade mode" />
                   </SelectTrigger>
                   <SelectContent>
@@ -159,21 +167,21 @@ export default function MindTab() {
             </div>
             
             <div>
-              <Label className="font-code text-sm text-muted-foreground mb-2 block">Risk Protocol</Label>
+              <Label className="font-code text-xs sm:text-sm text-muted-foreground mb-2 block">Risk Protocol</Label>
               <Tabs value={formState.risk} onValueChange={handleRiskTabChange} className="w-full">
-                <TabsList className="grid w-full grid-cols-3 bg-primary/5 border-primary/20 border">
+                <TabsList className="grid w-full grid-cols-3 bg-primary/5 border-primary/20 border p-1">
                   {riskLevels.map(level => (
                     <TabsTrigger 
                       key={level} 
                       value={level} 
                       className={cn(
-                        "font-code text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md py-2.5 transition-all",
+                        "font-code text-sm sm:text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md py-2 sm:py-2.5 transition-all",
                         formState.risk === level && "risk-tab-active-glow" 
                       )}
                     >
-                      {level === 'Low' && <ShieldCheck className="w-4 h-4 mr-2 opacity-70" />}
-                      {level === 'Medium' && <TrendingUp className="w-4 h-4 mr-2 opacity-70" />}
-                      {level === 'High' && <Zap className="w-4 h-4 mr-2 opacity-70" />}
+                      {level === 'Low' && <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2 opacity-70" />}
+                      {level === 'Medium' && <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2 opacity-70" />}
+                      {level === 'High' && <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2 opacity-70" />}
                       {level}
                     </TabsTrigger>
                   ))}
@@ -185,12 +193,12 @@ export default function MindTab() {
               type="submit" 
               disabled={isLoading} 
               className={cn(
-                "w-full font-code bg-gradient-to-r from-primary via-purple-600 to-pink-600 hover:from-primary/90 hover:via-purple-500 hover:to-pink-500 text-primary-foreground text-xl py-4 rounded-lg shadow-lg hover:shadow-primary/50 transition-all duration-300 transform",
+                "w-full font-code bg-gradient-to-r from-primary via-purple-600 to-pink-600 hover:from-primary/90 hover:via-purple-500 hover:to-pink-500 text-primary-foreground text-lg sm:text-xl py-3 sm:py-4 rounded-lg shadow-lg hover:shadow-primary/50 transition-all duration-300 transform",
                 !isLoading && "hover:scale-105 animate-button-ripple-pulse",
                 isLoading && "cursor-wait"
               )}
             >
-              {isLoading ? <Loader2 className="mr-2 h-6 w-6 animate-spin" /> : ':: INITIATE SHADOW ANALYSIS ::'}
+              {isLoading ? <Loader2 className="mr-2 h-5 w-5 sm:h-6 sm:w-6 animate-spin" /> : ':: INITIATE SHADOW ANALYSIS ::'}
             </Button>
           </form>
         </CardContent>
@@ -206,17 +214,23 @@ export default function MindTab() {
 
       {insights && !isLoading && (
         <Card className="glow-border-accent shadow-2xl">
-          <CardHeader className="border-b border-border">
-             <div className="flex items-center space-x-3">
-                <Lightbulb className="h-8 w-8 text-accent" />
+          <CardHeader className="border-b border-border p-4 sm:p-6">
+             <div className="flex items-center space-x-2 sm:space-x-3">
+                <Lightbulb className="h-6 w-6 sm:h-8 sm:w-8 text-accent" />
                 <div>
-                    <CardTitle className="font-headline text-3xl text-accent">Shadow Core Output</CardTitle>
-                    <CardDescription className="font-code text-sm">Analysis complete. Review the generated insights.</CardDescription>
+                    <CardTitle className="font-headline text-xl sm:text-3xl text-accent">Shadow Core Output</CardTitle>
+                     <TypewriterText 
+                        key={`desc-output-${descriptionKey}`}
+                        text="Analysis complete. Review the generated insights." 
+                        className="font-code text-xs sm:text-sm text-muted-foreground mt-1" 
+                        speed={15}
+                        showCaret={false}
+                      />
                 </div>
             </div>
           </CardHeader>
-          <CardContent className="pt-6 space-y-6 font-code text-sm md:text-base">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-6 font-code text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
               <OutputItem label="Signal Protocol" value={insights.prediction} valueClassName={getPredictionColor(insights.prediction)} />
               <OutputItem label="Confidence Matrix" value={`${insights.confidence}%`} />
               <OutputItem label="ShadowScore Index" value={`${insights.shadowScore}`} />
@@ -225,70 +239,83 @@ export default function MindTab() {
               <OutputItem label="Profit Target Zone" value={insights.takeProfit} />
             </div>
             <div className="pt-2">
-              <Label className="text-accent font-semibold text-lg">Oracle's Whisper (Core Logic):</Label>
-              <div className="p-4 mt-2 border border-accent/30 rounded-lg bg-card shadow-inner animate-pulse-glow-accent">
-                <PulsingText text={`"${insights.thought}"`} className="text-accent-foreground italic text-base" />
+              <Label className="text-accent font-semibold text-base sm:text-lg">Oracle's Whisper (Core Logic):</Label>
+              <div className="p-3 sm:p-4 mt-2 border border-accent/30 rounded-lg bg-card shadow-inner animate-pulse-glow-accent min-h-[60px]">
+                 <TypewriterText 
+                    key={`thought-${descriptionKey}`}
+                    text={`"${insights.thought}"`} 
+                    className="text-accent-foreground italic text-sm sm:text-base" 
+                    speed={25}
+                    showCaret={false}
+                  />
               </div>
             </div>
           </CardContent>
         </Card>
       )}
 
-      <Tabs defaultValue="live-chart" className="w-full mt-12">
-        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 bg-transparent p-0">
-          <TabsTrigger value="live-chart" className="font-code py-2.5 text-base data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:glow-border-primary data-[state=active]:shadow-md">
-            <BarChart className="mr-2 h-5 w-5"/>Live Market Matrix
+      <Tabs defaultValue="live-chart" className="w-full mt-8 sm:mt-12">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-2 bg-transparent p-0">
+          <TabsTrigger value="live-chart" className="font-code py-2 sm:py-2.5 text-sm sm:text-base data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:glow-border-primary data-[state=active]:shadow-md">
+            <BarChart className="mr-1.5 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5"/>Live Market Matrix
           </TabsTrigger>
-          <TabsTrigger value="experimental-mode" className="font-code py-2.5 text-base data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:glow-border-primary data-[state=active]:shadow-md">
-           <Lightbulb className="mr-2 h-5 w-5" />Auto-Trade Sim
+          <TabsTrigger value="experimental-mode" className="font-code py-2 sm:py-2.5 text-sm sm:text-base data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:glow-border-primary data-[state=active]:shadow-md">
+           <Lightbulb className="mr-1.5 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />Auto-Trade Sim
           </TabsTrigger>
-          <TabsTrigger value="data-sources" className="font-code py-2.5 text-base data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:glow-border-primary data-[state=active]:shadow-md">
-            <FileText className="mr-2 h-5 w-5"/>Core Data Streams
+          <TabsTrigger value="data-sources" className="font-code py-2 sm:py-2.5 text-sm sm:text-base data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:glow-border-primary data-[state=active]:shadow-md">
+            <FileText className="mr-1.5 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5"/>Core Data Streams
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="live-chart" className="mt-6">
+        <TabsContent value="live-chart" className="mt-4 sm:mt-6">
           <Card className="glow-border-primary shadow-xl neural-dot-grid">
-            <CardHeader><CardTitle className="font-headline text-primary text-2xl relative z-10">Live Market Matrix</CardTitle></CardHeader>
+            <CardHeader className="p-4 sm:p-6"><CardTitle className="font-headline text-primary text-lg sm:text-2xl relative z-10">Live Market Matrix</CardTitle></CardHeader>
             <CardContent className="p-2 sm:p-4 relative z-10">
-              <div className="mt-4 h-[400px] md:h-[500px] rounded-md overflow-hidden border border-border">
+              <div className="mt-2 sm:mt-4 h-[300px] sm:h-[400px] md:h-[500px] rounded-md overflow-hidden border border-border">
                 <TradingViewWidget
                   marketSymbol={formState.target || 'BTCUSDT'}
                   timeframe={chartTimeframe}
+                  height="100%"
                 />
               </div>
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="experimental-mode" className="mt-6">
-          <Card className="glow-border-primary shadow-xl">
-            <CardHeader><CardTitle className="font-headline text-primary text-2xl">Experimental Auto-Trade Simulation</CardTitle></CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-4">Engage or disengage the Shadow Core's auto-trade suggestions in a simulated environment. This feature is for testing and training purposes.</p>
+        <TabsContent value="experimental-mode" className="mt-4 sm:mt-6">
+          <Card className="glow-border-primary shadow-xl p-4 sm:p-6">
+            <CardHeader className="p-0 pb-3 sm:pb-4"><CardTitle className="font-headline text-primary text-lg sm:text-2xl">Experimental Auto-Trade Simulation</CardTitle></CardHeader>
+            <CardContent className="p-0">
+              <TypewriterText 
+                key={`desc-autotrade-${descriptionKey}`}
+                text="Engage or disengage the Shadow Core's auto-trade suggestions in a simulated environment. This feature is for testing and training purposes." 
+                className="text-muted-foreground mb-4 text-xs sm:text-sm" 
+                speed={15}
+                showCaret={false}
+              />
               <Button 
                 onClick={toggleAutoTrade}
                 className={cn(
-                    "font-code py-2.5 px-6 text-base transition-all duration-300 w-full sm:w-auto",
+                    "font-code py-2 px-4 sm:py-2.5 sm:px-6 text-sm sm:text-base transition-all duration-300 w-full sm:w-auto",
                     isAutoTradeEnabled 
                         ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground" 
                         : "bg-accent hover:bg-accent/90 text-accent-foreground"
                 )}
                 >
-                {isAutoTradeEnabled ? <ShieldOff className="mr-2 h-5 w-5" /> : <ShieldCheck className="mr-2 h-5 w-5" />}
+                {isAutoTradeEnabled ? <ShieldOff className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> : <ShieldCheck className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />}
                 {isAutoTradeEnabled ? "Disengage Auto-Trade Sim" : "Engage Auto-Trade Sim"}
               </Button>
-               <p className="text-xs text-muted-foreground mt-4">Note: Auto-trade simulation is for training the Shadow Core. Actual trades are not executed.</p>
+               <p className="text-xs text-muted-foreground mt-3 sm:mt-4">Note: Auto-trade simulation is for training the Shadow Core. Actual trades are not executed.</p>
             </CardContent>
           </Card>
         </TabsContent>
-         <TabsContent value="data-sources" className="mt-6">
-          <Card className="glow-border-primary shadow-xl">
-            <CardHeader><CardTitle className="font-headline text-primary text-2xl">Shadow Core: Data Streams</CardTitle></CardHeader>
-            <CardContent className="space-y-3 text-base">
-              <p><span className="font-semibold text-primary">Price Feed & Volume (Live):</span> Binance API</p>
-              <p><span className="font-semibold text-primary">Market Sentiment & News (Conceptual):</span> CoinDesk API (BPI for BTC, placeholder for others)</p>
-              <p><span className="font-semibold text-primary">AI Thought Generation:</span> Gemini Pro API via Genkit</p>
-              <p><span className="font-semibold text-primary">On-Chain Wallet Activity (Live):</span> PolygonScan API (USDT/WBTC on Polygon)</p>
-              <p className="text-sm text-muted-foreground pt-2">The Shadow Core utilizes these data streams to learn and generate insights. Your interactions help refine its accuracy.</p>
+         <TabsContent value="data-sources" className="mt-4 sm:mt-6">
+          <Card className="glow-border-primary shadow-xl p-4 sm:p-6">
+            <CardHeader className="p-0 pb-3 sm:pb-4"><CardTitle className="font-headline text-primary text-lg sm:text-2xl">Shadow Core: Data Streams</CardTitle></CardHeader>
+            <CardContent className="p-0 space-y-2 text-sm sm:text-base">
+              <TypewriterText key={`ds-1-${descriptionKey}`} text="Price Feed & Volume (Live): Binance API" speed={15} showCaret={false} className="text-foreground"><span className="font-semibold text-primary">Price Feed & Volume (Live):</span> Binance API</TypewriterText>
+              <TypewriterText key={`ds-2-${descriptionKey}`} text="Market Sentiment & News (Conceptual): CoinDesk API (BPI for BTC, placeholder for others)" speed={15} showCaret={false} className="text-foreground"><span className="font-semibold text-primary">Market Sentiment & News (Conceptual):</span> CoinDesk API (BPI for BTC, placeholder for others)</TypewriterText>
+              <TypewriterText key={`ds-3-${descriptionKey}`} text="AI Thought Generation: Gemini Pro API via Genkit" speed={15} showCaret={false} className="text-foreground"><span className="font-semibold text-primary">AI Thought Generation:</span> Gemini Pro API via Genkit</TypewriterText>
+              <TypewriterText key={`ds-4-${descriptionKey}`} text="On-Chain Wallet Activity (Live): PolygonScan API (USDT/WBTC on Polygon)" speed={15} showCaret={false} className="text-foreground"><span className="font-semibold text-primary">On-Chain Wallet Activity (Live):</span> PolygonScan API (USDT/WBTC on Polygon)</TypewriterText>
+              <TypewriterText key={`ds-5-${descriptionKey}`} text="The Shadow Core utilizes these data streams to learn and generate insights. Your interactions help refine its accuracy." speed={15} showCaret={false} className="text-xs sm:text-sm text-muted-foreground pt-2"/>
             </CardContent>
           </Card>
         </TabsContent>
@@ -305,10 +332,8 @@ interface OutputItemProps {
 }
 
 const OutputItem: React.FC<OutputItemProps> = ({ label, value, valueClassName }) => (
-  <div className="p-4 border border-border rounded-lg bg-card shadow-md hover:shadow-lg transition-shadow min-h-[80px] flex flex-col justify-center">
+  <div className="p-3 sm:p-4 border border-border rounded-lg bg-card shadow-md hover:shadow-lg transition-shadow min-h-[70px] sm:min-h-[80px] flex flex-col justify-center">
     <p className="text-xs text-muted-foreground uppercase tracking-wider">{label}</p>
-    <p className={cn("text-xl font-semibold mt-1 truncate", valueClassName)}>{value}</p>
+    <p className={cn("text-base sm:text-xl font-semibold mt-1 truncate", valueClassName)}>{value}</p>
   </div>
 );
-
-    

@@ -105,8 +105,52 @@
   body {
     @apply bg-background text-foreground;
     min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+  
+  /* Responsive typography */
+  h1, .font-headline.text-3xl {
+    font-size: theme('fontSize.2xl'); /* Base size for mobile */
+  }
+  @screen sm {
+    h1, .font-headline.text-3xl {
+      font-size: theme('fontSize.3xl'); /* sm+ screens */
+    }
+  }
+
+  h2, .font-headline.text-2xl {
+    font-size: theme('fontSize.xl');
+  }
+  @screen sm {
+    h2, .font-headline.text-2xl {
+      font-size: theme('fontSize.2xl');
+    }
+  }
+
+  h3, .font-headline.text-xl {
+    font-size: theme('fontSize.lg');
+  }
+  @screen sm {
+    h3, .font-headline.text-xl {
+      font-size: theme('fontSize.xl');
+    }
+  }
+
+  p, div, span, label, button { /* Target common text containers for base styles */
+    font-size: theme('fontSize.sm'); /* Base size for mobile */
+  }
+  @screen sm {
+    p, div, span, label, button {
+      font-size: theme('fontSize.base'); /* Slightly larger for sm+ */
+    }
+  }
+  /* Removed redefinition of .text-xs to prevent circular dependency.
+     Use Tailwind utility classes like .text-[0.65rem] sm:text-xs directly in HTML or
+     style specific semantic elements like 'small' if needed.
+  */
 }
+
 
 /* Glow effect for sections */
 .glow-border-primary {
@@ -163,7 +207,7 @@
 .typewriter-char {
   display: inline-block;
   opacity: 0;
-  animation: typechar 0.1s forwards;
+  animation: typechar 0.05s forwards; /* Faster for general text */
 }
 
 @keyframes typechar {
@@ -248,5 +292,4 @@
 .animate-button-ripple-pulse {
   animation: button-ripple-pulse 2s infinite ease-in-out;
 }
-
     

@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, XCircle, Gift, WalletCards, History, ExternalLink, Copy, AlertTriangle } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import TypewriterText from '@/components/TypewriterText';
 
 interface EligibilityItem {
   id: string;
@@ -43,8 +44,10 @@ export default function AirdropTab() {
   const [selectedChain, setSelectedChain] = useState('');
   const [walletAddress, setWalletAddress] = useState('');
   const [isWalletFormSubmitted, setIsWalletFormSubmitted] = useState(false);
+  const [descriptionKey, setDescriptionKey] = useState(0);
 
   useEffect(() => {
+    setDescriptionKey(prev => prev + 1); // For typewriter
     setEligibilityItems(
       initialEligibilityData.map(item => ({
         ...item,
@@ -100,21 +103,27 @@ export default function AirdropTab() {
   const allEligible = eligibilityItems.length > 0 && eligibleCount === eligibilityItems.length;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       <Card className="glow-border-primary">
-        <CardHeader>
-          <CardTitle className="font-headline text-3xl text-primary flex items-center"><Gift className="w-8 h-8 mr-3" />BSAI Airdrop Hub</CardTitle>
-          <CardDescription>Sync your wallet, verify contributions to the Shadow Core, and claim your BSAI airdrop rewards!</CardDescription>
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="font-headline text-xl sm:text-3xl text-primary flex items-center"><Gift className="w-6 h-6 sm:w-8 sm:h-8 mr-2 sm:mr-3" />BSAI Airdrop Hub</CardTitle>
+          <TypewriterText 
+            key={`desc-airdrop-${descriptionKey}`}
+            text="Sync your wallet, verify contributions to the Shadow Core, and claim your BSAI airdrop rewards! Your efforts power the collective intelligence." 
+            className="text-xs sm:text-sm text-muted-foreground mt-1"
+            speed={15}
+            showCaret={false}
+          />
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {!isWalletFormSubmitted ? (
-            <Card className="p-6 bg-card/80 border-primary/30 shadow-inner">
-              <form onSubmit={handleWalletSubmit} className="space-y-4">
-                <h3 className="text-xl font-semibold mb-3 text-primary font-headline">Sync Wallet for Airdrop Eligibility</h3>
+            <Card className="p-4 sm:p-6 bg-card/80 border-primary/30 shadow-inner">
+              <form onSubmit={handleWalletSubmit} className="space-y-3 sm:space-y-4">
+                <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3 text-primary font-headline">Sync Wallet for Airdrop Eligibility</h3>
                 <div>
-                  <Label htmlFor="chain-select" className="font-code text-muted-foreground">Select Network (ETH, SOL, or TON)</Label>
+                  <Label htmlFor="chain-select" className="font-code text-xs sm:text-sm text-muted-foreground">Select Network (ETH, SOL, or TON)</Label>
                   <Select value={selectedChain} onValueChange={setSelectedChain}>
-                    <SelectTrigger id="chain-select" className="w-full mt-1 bg-background border-border focus:border-primary focus:ring-primary">
+                    <SelectTrigger id="chain-select" className="w-full mt-1 bg-background border-border focus:border-primary focus:ring-primary text-sm sm:text-base h-10">
                       <SelectValue placeholder="Choose your network for BSAI" />
                     </SelectTrigger>
                     <SelectContent>
@@ -125,49 +134,49 @@ export default function AirdropTab() {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="wallet-address" className="font-code text-muted-foreground">Wallet Address</Label>
+                  <Label htmlFor="wallet-address" className="font-code text-xs sm:text-sm text-muted-foreground">Wallet Address</Label>
                   <Input
                     id="wallet-address"
                     value={walletAddress}
                     onChange={(e) => setWalletAddress(e.target.value)}
                     placeholder="Enter your wallet address (e.g., 0x... or Sol...)"
-                    className="mt-1 bg-background border-border focus:border-primary focus:ring-primary"
+                    className="mt-1 bg-background border-border focus:border-primary focus:ring-primary text-sm sm:text-base h-10"
                   />
                 </div>
-                <Button type="submit" className="w-full font-code bg-primary text-primary-foreground hover:bg-primary/90 py-2.5 text-base">Sync Wallet & Verify</Button>
+                <Button type="submit" className="w-full font-code bg-primary text-primary-foreground hover:bg-primary/90 py-2.5 text-sm sm:text-base">Sync Wallet & Verify</Button>
               </form>
             </Card>
           ) : (
-             <Card className="p-6 bg-accent/10 border-accent/50 shadow-md text-center">
-                <CheckCircle className="w-12 h-12 text-accent mx-auto mb-3" />
-                <h3 className="text-xl font-semibold text-accent font-headline">Wallet Synced Successfully!</h3>
-                <p className="text-muted-foreground">Network: {selectedChain} | Address: {walletAddress.substring(0,8)}...{walletAddress.substring(walletAddress.length - 6)}</p>
+             <Card className="p-4 sm:p-6 bg-accent/10 border-accent/50 shadow-md text-center">
+                <CheckCircle className="w-10 h-10 sm:w-12 sm:h-12 text-accent mx-auto mb-2 sm:mb-3" />
+                <h3 className="text-lg sm:text-xl font-semibold text-accent font-headline">Wallet Synced Successfully!</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">Network: {selectedChain} | Address: {walletAddress.substring(0,8)}...{walletAddress.substring(walletAddress.length - 6)}</p>
             </Card>
           )}
 
-          <div className="pt-4">
-            <h3 className="text-xl font-semibold mb-2 text-foreground font-headline">Airdrop Eligibility Progress</h3>
-            <Progress value={progressPercentage} className="w-full h-3 mb-1 [&>div]:bg-gradient-to-r [&>div]:from-primary [&>div]:to-accent" />
-            <p className="text-sm text-muted-foreground">{eligibleCount} of {eligibilityItems.length} criteria met. Each step aids the Shadow Core!</p>
+          <div className="pt-2 sm:pt-4">
+            <h3 className="text-lg sm:text-xl font-semibold mb-1 sm:mb-2 text-foreground font-headline">Airdrop Eligibility Progress</h3>
+            <Progress value={progressPercentage} className="w-full h-2.5 sm:h-3 mb-1 [&>div]:bg-gradient-to-r [&>div]:from-primary [&>div]:to-accent" />
+            <p className="text-xs sm:text-sm text-muted-foreground">{eligibleCount} of {eligibilityItems.length} criteria met. Each step aids the Shadow Core!</p>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {eligibilityItems.map((item) => (
               <Card key={item.id} className={cn(
-                "p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between transition-all duration-300 space-y-2 sm:space-y-0", 
+                "p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between transition-all duration-300 space-y-2 sm:space-y-0", 
                 item.isEligible 
                   ? "bg-accent/10 border-accent/50 shadow-sm hover:shadow-accent/20 hover:border-accent" 
                   : "bg-destructive/10 border-destructive/50 shadow-sm hover:shadow-destructive/20 hover:border-destructive"
                 )}>
-                <div className="flex items-center">
-                  {item.isEligible ? <CheckCircle className="w-6 h-6 mr-3 text-accent shrink-0" /> : <XCircle className="w-6 h-6 mr-3 text-destructive shrink-0" />}
-                  <div>
-                    <p className="font-semibold text-foreground">{item.label}</p>
-                    {item.details && <p className="text-xs text-muted-foreground">{item.details}</p>}
+                <div className="flex items-center w-full sm:w-auto">
+                  {item.isEligible ? <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 text-accent shrink-0" /> : <XCircle className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 text-destructive shrink-0" />}
+                  <div className="flex-grow">
+                    <p className="font-semibold text-sm sm:text-base text-foreground">{item.label}</p>
+                    {item.details && <TypewriterText key={`detail-${item.id}-${descriptionKey}`} text={item.details} className="text-xs text-muted-foreground" speed={10} showCaret={false} />}
                   </div>
                 </div>
                 {item.action && !item.isEligible && !item.disabled && (
-                  <Button variant="outline" size="sm" onClick={item.action} className="font-code border-primary text-primary hover:bg-primary/10 hover:text-primary self-end sm:self-center shrink-0">
+                  <Button variant="outline" size="sm" onClick={item.action} className="font-code border-primary text-primary hover:bg-primary/10 hover:text-primary self-end sm:self-center shrink-0 mt-2 sm:mt-0 text-xs sm:text-sm py-1.5 px-3">
                     {item.actionLabel}
                   </Button>
                 )}
@@ -179,69 +188,87 @@ export default function AirdropTab() {
             disabled={!allEligible} 
             onClick={() => toast({ title: "Airdrop Claim Initiated!", description: "BSAI Token Claim functionality is simulated. Your contribution is valued!"})}
             className={cn(
-              "w-full text-lg py-3 font-code transition-all duration-300",
+              "w-full text-base sm:text-lg py-2.5 sm:py-3 font-code transition-all duration-300",
               allEligible 
                 ? "bg-accent text-accent-foreground hover:bg-accent/90 animate-pulse-glow-accent shadow-lg hover:shadow-accent/70" 
                 : "bg-muted text-muted-foreground cursor-not-allowed"
             )}
           >
-            <WalletCards className="w-5 h-5 mr-2" /> {allEligible ? "Claim Your BSAI Airdrop Now!" : "Complete All Criteria to Claim Airdrop"}
+            <WalletCards className="w-4 h-4 sm:w-5 sm:h-5 mr-2" /> {allEligible ? "Claim Your BSAI Airdrop Now!" : "Complete All Criteria to Claim"}
           </Button>
         </CardContent>
       </Card>
 
       <Card className="glow-border-accent">
-        <CardHeader>
-          <CardTitle className="font-headline text-2xl text-accent flex items-center"><AlertTriangle className="w-6 h-6 mr-3" />BSAI Token Intel</CardTitle>
-          <CardDescription>Key information for the BSAI token on the Solana network.</CardDescription>
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="font-headline text-lg sm:text-2xl text-accent flex items-center"><AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3" />BSAI Token Intel</CardTitle>
+           <TypewriterText 
+            key={`desc-intel-${descriptionKey}`}
+            text="Key information for the BSAI token on the Solana network. DYOR." 
+            className="text-xs sm:text-sm text-muted-foreground mt-1"
+            speed={15}
+            showCaret={false}
+          />
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border border-border rounded-md bg-card hover:bg-muted/30 space-y-2 sm:space-y-0">
-            <div>
-              <p className="text-sm font-semibold text-foreground">BSAI Contract Address (Solana):</p>
+            <div className="flex-grow">
+              <p className="text-xs sm:text-sm font-semibold text-foreground">BSAI Contract Address (Solana):</p>
               <p className="text-xs font-code text-muted-foreground break-all">{BSAI_CONTRACT_ADDRESS}</p>
             </div>
-            <Button variant="ghost" size="icon" onClick={() => handleCopyToClipboard(BSAI_CONTRACT_ADDRESS, 'Contract Address')} className="text-primary hover:text-primary/80 self-start sm:self-center shrink-0">
-              <Copy className="w-5 h-5" />
+            <Button variant="ghost" size="icon" onClick={() => handleCopyToClipboard(BSAI_CONTRACT_ADDRESS, 'Contract Address')} className="text-primary hover:text-primary/80 self-start sm:self-center shrink-0 ml-0 sm:ml-2">
+              <Copy className="w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
           </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border border-border rounded-md bg-card hover:bg-muted/30 space-y-2 sm:space-y-0">
-             <div>
-              <p className="text-sm font-semibold text-foreground">Trade BSAI on Birdeye (Solana):</p>
+             <div className="flex-grow">
+              <p className="text-xs sm:text-sm font-semibold text-foreground">Trade BSAI on Birdeye (Solana):</p>
               <a href={BSAI_TRADING_LINK} target="_blank" rel="noopener noreferrer" className="text-xs font-code text-primary hover:underline break-all block">{BSAI_TRADING_LINK}</a>
             </div>
-            <Button variant="ghost" size="icon" asChild className="text-primary hover:text-primary/80 self-start sm:self-center shrink-0">
+            <Button variant="ghost" size="icon" asChild className="text-primary hover:text-primary/80 self-start sm:self-center shrink-0 ml-0 sm:ml-2">
               <a href={BSAI_TRADING_LINK} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="w-5 h-5" />
+                <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5" />
               </a>
             </Button>
           </div>
-           <p className="text-xs text-muted-foreground text-center pt-2">Always verify contract addresses from official Shadow Core channels before interacting.</p>
+           <p className="text-xs text-muted-foreground text-center pt-1 sm:pt-2">Always verify contract addresses from official Shadow Core channels before interacting.</p>
         </CardContent>
       </Card>
 
       <Card className="glow-border-primary">
-        <CardHeader>
-          <CardTitle className="font-headline text-2xl text-primary flex items-center"><History className="w-6 h-6 mr-3" />Transaction Ledger (Simulated)</CardTitle>
-          <CardDescription>Your recent simulated BSAI token transactions and reward logs.</CardDescription>
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="font-headline text-lg sm:text-2xl text-primary flex items-center"><History className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3" />Transaction Ledger (Simulated)</CardTitle>
+          <TypewriterText 
+            key={`desc-ledger-${descriptionKey}`}
+            text="Your recent simulated BSAI token transactions and reward logs." 
+            className="text-xs sm:text-sm text-muted-foreground mt-1"
+            speed={15}
+            showCaret={false}
+          />
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6">
           {mockTransactions.length > 0 ? (
-            <ul className="space-y-3">
+            <ul className="space-y-2 sm:space-y-3">
               {mockTransactions.map(tx => (
                 <li key={tx.id} className="p-3 border border-border rounded-md flex flex-col sm:flex-row justify-between items-start sm:items-center bg-card hover:bg-muted/30 transition-colors duration-200 space-y-1 sm:space-y-0">
-                  <div>
-                    <p className="font-semibold">{tx.type} - <span className="text-accent font-bold">{tx.amount}</span></p>
+                  <div className="flex-grow">
+                    <p className="font-semibold text-sm sm:text-base">{tx.type} - <span className="text-accent font-bold">{tx.amount}</span></p>
                     <p className="text-xs text-muted-foreground">{tx.date} - Status: {tx.status}</p>
                   </div>
-                  <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80 self-start sm:self-center">
-                    {tx.txHash} <ExternalLink className="w-3 h-3 ml-1.5" />
+                  <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80 self-start sm:self-center text-xs px-2 py-1">
+                    {tx.txHash} <ExternalLink className="w-3 h-3 ml-1" />
                   </Button>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-muted-foreground text-center py-4">No transactions logged yet. Complete missions to earn rewards!</p>
+            <TypewriterText 
+              key={`desc-no-tx-${descriptionKey}`}
+              text="No transactions logged yet. Complete missions to earn rewards!" 
+              className="text-muted-foreground text-center py-4 text-sm sm:text-base"
+              speed={20}
+              showCaret={false}
+            />
           )}
         </CardContent>
       </Card>
