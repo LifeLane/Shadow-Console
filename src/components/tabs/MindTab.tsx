@@ -11,8 +11,7 @@ import { generateMarketInsights, MarketInsightsInput, MarketInsightsOutput } fro
 import { useToast } from '@/hooks/use-toast';
 import TerminalExecutionAnimation from '@/components/TerminalExecutionAnimation';
 import TypewriterText from '@/components/TypewriterText';
-import { Loader2, FileText, Lightbulb, TrendingUp, Zap, ShieldCheck, ShieldOff, Brain, Activity, Award, CheckCircle, PlayCircle } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2, FileText, Lightbulb, TrendingUp, Zap, ShieldCheck, Brain, Activity, Award, CheckCircle, PlayCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -29,7 +28,7 @@ interface RewardData {
 
 const initialFormState: MarketInsightsInput = {
   target: 'BTCUSDT',
-  timeframe: '1h', // Changed from tradeMode
+  timeframe: '1h',
   risk: 'Medium',
 };
 
@@ -87,13 +86,13 @@ export default function MindTab() {
             xpReward = Math.floor(Math.random() * 20 + 10);
           }
           
-          setSignalStatusMessage(finalMessage); // Keep this for the reward screen if needed
+          setSignalStatusMessage(finalMessage);
           setRewardData({ outcome: randomOutcome, bsai: bsaiReward, xp: xpReward, badge: badgeReward });
           setCoreState('resolved');
           setDescriptionKey(prev => prev + 1); 
 
-        }, 5000); // 5 seconds after entry for outcome
-      }, 3000); // 3 seconds for entry
+        }, 5000); 
+      }, 3000); 
 
       return () => {
         clearTimeout(entryTimeoutId);
@@ -138,10 +137,9 @@ export default function MindTab() {
     setThoughtKey(prev => prev + 1);
 
     try {
-      // Ensure timeframe is passed correctly
       const payload: MarketInsightsInput = {
         target: formState.target,
-        timeframe: formState.timeframe, // Use the renamed state
+        timeframe: formState.timeframe,
         risk: formState.risk,
       };
       const result = await generateMarketInsights(payload);
@@ -259,28 +257,27 @@ export default function MindTab() {
                 </div>
                 <div>
                   <Label className="font-code text-xs sm:text-sm text-muted-foreground mb-2 block">Risk Protocol</Label>
-                  <Tabs value={formState.risk} onValueChange={handleRiskTabChange} className="w-full">
-                    <TabsList className="grid w-full grid-cols-3 bg-primary/5 border-primary/20 border p-1">
-                      {riskLevels.map(level => (
-                        <TabsTrigger
-                          key={level}
-                          value={level}
-                          className={cn(
-                            "font-code text-sm sm:text-base data-[state=active]:shadow-md py-2 sm:py-2.5 transition-all",
-                            formState.risk === level && "data-[state=active]:text-primary-foreground",
-                            formState.risk === level && level === 'Low' && "risk-tab-active-glow data-[state=active]:bg-primary",
-                            formState.risk === level && level === 'Medium' && "risk-tab-active-glow data-[state=active]:bg-primary",
-                            formState.risk === level && level === 'High' && "animate-pulse-glow-destructive data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground"
-                          )}
+                  {/* Using ShadCN Tabs for Risk Selection */}
+                  <div className="flex space-x-1 p-1 bg-muted rounded-md">
+                    {riskLevels.map(level => (
+                        <Button
+                            key={level}
+                            variant={formState.risk === level ? "default" : "ghost"}
+                            onClick={() => handleRiskTabChange(level)}
+                            className={cn(
+                                "w-full font-code text-sm sm:text-base py-2 sm:py-2.5 transition-all",
+                                formState.risk === level && level === 'Low' && "bg-primary text-primary-foreground risk-tab-active-glow",
+                                formState.risk === level && level === 'Medium' && "bg-primary text-primary-foreground risk-tab-active-glow",
+                                formState.risk === level && level === 'High' && "bg-destructive text-destructive-foreground animate-pulse-glow-destructive"
+                            )}
                         >
-                          {level === 'Low' && <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2 opacity-70" />}
-                          {level === 'Medium' && <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2 opacity-70" />}
-                          {level === 'High' && <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2 opacity-70" />}
-                          {level}
-                        </TabsTrigger>
-                      ))}
-                    </TabsList>
-                  </Tabs>
+                             {level === 'Low' && <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2 opacity-70" />}
+                             {level === 'Medium' && <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2 opacity-70" />}
+                             {level === 'High' && <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2 opacity-70" />}
+                             {level}
+                        </Button>
+                    ))}
+                  </div>
                 </div>
                 <Button
                   type="submit"
@@ -300,7 +297,7 @@ export default function MindTab() {
             {currentSignalParams && (
               <TerminalExecutionAnimation
                 target={currentSignalParams.target}
-                tradeMode={currentSignalParams.timeframe} // Use timeframe here
+                tradeMode={currentSignalParams.timeframe}
                 risk={currentSignalParams.risk}
               />
             )}
@@ -349,7 +346,7 @@ export default function MindTab() {
                         <TypewriterText
                           key={`thought-tracking-${thoughtKey}`}
                           text={`"${simulationResult.thought}"`}
-                          className="text-accent italic text-sm sm:text-base text-center"
+                          className="text-accent-foreground italic text-sm sm:text-base text-center"
                           speed={25}
                           showCaret={false}
                         />
@@ -357,7 +354,6 @@ export default function MindTab() {
                     </div>
                   </>
                 )}
-                {/* Button removed as per new flow */}
               </CardContent>
             </Card>
           </motion.div>
@@ -381,7 +377,7 @@ export default function MindTab() {
                 </div>
               </CardHeader>
               <CardContent className="p-4 sm:p-6 space-y-4 text-center font-code">
-                <p className="text-2xl font-semibold text-accent">{rewardData?.outcome}</p> {/* Or use signalStatusMessage if preferred */}
+                <p className="text-2xl font-semibold text-accent">{signalStatusMessage}</p>
                 <div className="space-y-2 text-lg">
                   <p>BSAI Token Reward: <span className="font-bold text-primary">{rewardData?.bsai.toLocaleString() || 0} BSAI</span></p>
                   <p>Shadow XP Earned: <span className="font-bold text-primary">{rewardData?.xp.toLocaleString() || 0} XP</span></p>
@@ -407,61 +403,24 @@ export default function MindTab() {
 
   return (
     <div className="space-y-6 sm:space-y-8">
-       <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait">
         {renderContent()}
       </AnimatePresence>
 
       {(coreState !== 'dormant' && coreState !== 'activating') && (
          <motion.div initial="initial" animate="animate" variants={cardVariants} className="mt-8">
-            <Tabs defaultValue="experimental-mode" className="w-full">
-                <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2 bg-transparent p-0">
-                <TabsTrigger value="experimental-mode" className="font-code py-2 sm:py-2.5 text-sm sm:text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:glow-border-primary data-[state=active]:shadow-md">
-                <Lightbulb className="mr-1.5 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />Auto-Trade Sim (Placeholder)
-                </TabsTrigger>
-                <TabsTrigger value="data-sources" className="font-code py-2 sm:py-2.5 text-sm sm:text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:glow-border-primary data-[state=active]:shadow-md">
-                    <FileText className="mr-1.5 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5"/>Core Data Streams
-                </TabsTrigger>
-                </TabsList>
-                <TabsContent value="experimental-mode" className="mt-8">
-                <motion.div initial="initial" animate="animate" variants={cardVariants}>
-                    <Card className="glow-border-primary shadow-xl p-4 sm:p-6">
-                    <CardHeader className="p-0 pb-3 sm:pb-4"><CardTitle className="font-headline text-primary text-lg sm:text-2xl">Experimental Auto-Trade Simulation</CardTitle></CardHeader>
-                    <CardContent className="p-0">
-                        <div className="flex flex-col items-center space-y-3 sm:space-y-4">
-                            <TypewriterText
-                            key={`desc-autotrade-${descriptionKey}`}
-                            text="This feature is currently under development. Auto-trade simulation will allow testing agent strategies."
-                            className="text-muted-foreground text-xs sm:text-sm text-center"
-                            speed={15}
-                            showCaret={false}
-                            />
-                            <Button
-                                disabled
-                                className={cn( "font-code py-2 px-4 sm:py-2.5 sm:px-6 text-sm sm:text-base w-full max-w-xs bg-muted text-muted-foreground cursor-not-allowed" )} >
-                            <ShieldOff className="mr-2 h-4 w-4 sm:h-5 sm:h-5" /> Engage Auto-Trade Sim (Coming Soon)
-                            </Button>
-                        </div>
-                    </CardContent>
-                    </Card>
-                </motion.div>
-                </TabsContent>
-                <TabsContent value="data-sources" className="mt-8">
-                <motion.div initial="initial" animate="animate" variants={cardVariants}>
-                    <Card className="glow-border-primary shadow-xl p-4 sm:p-6">
-                    <CardHeader className="p-0 pb-3 sm:pb-4"><CardTitle className="font-headline text-primary text-lg sm:text-2xl">Shadow Core: Data Streams</CardTitle></CardHeader>
-                    <CardContent className="p-0 text-sm sm:text-base">
-                        <div className="flex flex-col items-center space-y-2">
-                            <TypewriterText key={`ds-1-${descriptionKey}`} text="Price Feed & Volume (Live): Binance API" speed={15} showCaret={false} className="text-foreground text-center"><span className="font-semibold text-primary">Price Feed & Volume (Live):</span> Binance API</TypewriterText>
-                            <TypewriterText key={`ds-2-${descriptionKey}`} text="Market Sentiment & News (Conceptual): CoinDesk API (BPI for BTC, placeholder for others)" speed={15} showCaret={false} className="text-foreground text-center"><span className="font-semibold text-primary">Market Sentiment & News (Conceptual):</span> CoinDesk API (BPI for BTC, placeholder for others)</TypewriterText>
-                            <TypewriterText key={`ds-3-${descriptionKey}`} text="AI Thought Generation: Gemini Pro API via Genkit" speed={15} showCaret={false} className="text-foreground text-center"><span className="font-semibold text-primary">AI Thought Generation:</span> Gemini Pro API via Genkit</TypewriterText>
-                            <TypewriterText key={`ds-4-${descriptionKey}`} text="On-Chain Wallet Activity (Live): PolygonScan API (USDT/WBTC on Polygon)" speed={15} showCaret={false} className="text-foreground text-center"><span className="font-semibold text-primary">On-Chain Wallet Activity (Live):</span> PolygonScan API (USDT/WBTC on Polygon)</TypewriterText>
-                            <TypewriterText key={`ds-5-${descriptionKey}`} text="The Shadow Core utilizes these data streams to learn and generate insights. Your interactions help refine its accuracy." speed={15} showCaret={false} className="text-xs sm:text-sm text-muted-foreground pt-2 text-center"/>
-                        </div>
-                    </CardContent>
-                    </Card>
-                </motion.div>
-                </TabsContent>
-            </Tabs>
+            <Card className="glow-border-primary shadow-xl p-4 sm:p-6">
+            <CardHeader className="p-0 pb-3 sm:pb-4"><CardTitle className="font-headline text-primary text-lg sm:text-2xl flex items-center"><FileText className="mr-2 h-5 w-5"/>Core Data Streams</CardTitle></CardHeader>
+            <CardContent className="p-0 text-sm sm:text-base">
+                <div className="flex flex-col items-center space-y-2">
+                    <TypewriterText key={`ds-1-${descriptionKey}`} text="Price Feed & Volume (Live): Binance API" speed={15} showCaret={false} className="text-foreground text-center"><span className="font-semibold text-primary">Price Feed & Volume (Live):</span> Binance API</TypewriterText>
+                    <TypewriterText key={`ds-2-${descriptionKey}`} text="Market Sentiment & News (Conceptual): CoinDesk API (BPI for BTC, placeholder for others)" speed={15} showCaret={false} className="text-foreground text-center"><span className="font-semibold text-primary">Market Sentiment & News (Conceptual):</span> CoinDesk API (BPI for BTC, placeholder for others)</TypewriterText>
+                    <TypewriterText key={`ds-3-${descriptionKey}`} text="AI Thought Generation: Gemini Pro API via Genkit" speed={15} showCaret={false} className="text-foreground text-center"><span className="font-semibold text-primary">AI Thought Generation:</span> Gemini Pro API via Genkit</TypewriterText>
+                    <TypewriterText key={`ds-4-${descriptionKey}`} text="On-Chain Wallet Activity (Live): PolygonScan API (USDT/WBTC on Polygon)" speed={15} showCaret={false} className="text-foreground text-center"><span className="font-semibold text-primary">On-Chain Wallet Activity (Live):</span> PolygonScan API (USDT/WBTC on Polygon)</TypewriterText>
+                    <TypewriterText key={`ds-5-${descriptionKey}`} text="The Shadow Core utilizes these data streams to learn and generate insights. Your interactions help refine its accuracy." speed={15} showCaret={false} className="text-xs sm:text-sm text-muted-foreground pt-2 text-center"/>
+                </div>
+            </CardContent>
+            </Card>
         </motion.div>
       )}
     </div>
