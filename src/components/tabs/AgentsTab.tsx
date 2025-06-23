@@ -1,13 +1,15 @@
 
 "use client";
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Label } from '@/components/ui/label';
-import { Bot, History, Target, TrendingUp, TrendingDown, CheckCircle, XCircle, Award, Star } from 'lucide-react';
+import { Bot, History, Target, TrendingUp, TrendingDown, CheckCircle, XCircle, Award, Star, Power, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/hooks/use-toast';
 
 // Mock Data
 const userStats = {
@@ -33,6 +35,13 @@ const signalHistory = [
   { id: 'sig5', target: 'LINKUSDT', prediction: 'SELL', outcome: 'Take Profit Hit', reward: 975 },
 ];
 
+const initialAgents = [
+    { id: 'agent-1', name: 'BTC Scalper Prime', description: 'High-frequency scalping for BTC/USDT on the 5m timeframe.', status: 'Inactive', premium: true },
+    { id: 'agent-2', name: 'ETH Swing Sentinel', description: 'Swing trading agent for ETH/USDT, operating on the 4h chart.', status: 'Active', premium: false },
+    { id: 'agent-3', name: 'SOL Momentum Rider', description: 'Intraday agent that follows momentum trends for SOL/USDT.', status: 'Inactive', premium: false },
+    { id: 'agent-4', name: 'FutureFlow Oracle', description: 'Advanced futures agent using predictive modeling. Requires Shadow Key.', status: 'Inactive', premium: true },
+];
+
 const StatCard = ({ title, value, children }: { title: string; value: string | number; children: React.ReactNode }) => (
     <Card className="p-4 bg-card/80 text-center shadow-inner hover:shadow-lg transition-shadow">
         <div className="text-primary mb-2">{children}</div>
@@ -42,6 +51,25 @@ const StatCard = ({ title, value, children }: { title: string; value: string | n
 );
 
 export default function AgentsTab() {
+  const [agents, setAgents] = useState(initialAgents);
+  const { toast } = useToast();
+
+  const handleToggleAgent = (agentId: string) => {
+    setAgents(prevAgents =>
+        prevAgents.map(agent => {
+            if (agent.id === agentId) {
+                const newStatus = agent.status === 'Active' ? 'Inactive' : 'Active';
+                toast({
+                    title: `Agent ${newStatus === 'Active' ? 'Deployed' : 'Deactivated'}`,
+                    description: `${agent.name} is now ${newStatus}.`,
+                });
+                return { ...agent, status: newStatus };
+            }
+            return agent;
+        })
+    );
+  };
+
   const winRate = useMemo(() => {
     if (userStats.signalsGenerated === 0) return "0.00%";
     return ((userStats.signalsWon / userStats.signalsGenerated) * 100).toFixed(2) + "%";
@@ -98,10 +126,46 @@ export default function AgentsTab() {
         </CardContent>
       </Card>
 
-      {/* Signal History Card */}
+      {/* Deployable Agents Card */}
       <Card className="glow-border-accent">
         <CardHeader className="p-4 sm:p-6">
-          <CardTitle className="font-headline text-lg sm:text-2xl text-accent">Signal Ledger</CardTitle>
+            <CardTitle className="font-headline text-lg sm:text-2xl text-accent flex items-center">
+                <Power className="mr-2 h-6 w-6"/> Deployable Signal Agents
+            </CardTitle>
+            <CardDescription>Deploy autonomous agents to generate signals on ShadowNet. Deployed agents contribute to your overall stats and BSAI earnings.</CardDescription>
+        </CardHeader>
+        <CardContent className="p-4 sm:p-6 space-y-4">
+            {agents.map(agent => (
+                <Card key={agent.id} className="p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between bg-card/80 hover:bg-muted/50 transition-colors duration-200 space-y-3 sm:space-y-0">
+                    <div className="flex-1 space-y-1">
+                        <h4 className="font-semibold text-base sm:text-lg flex items-center">
+                            {agent.name}
+                            {agent.premium && <Badge variant="destructive" className="ml-2 text-xs bg-accent/80 border-accent">Premium</Badge>}
+                        </h4>
+                        <p className="text-xs sm:text-sm text-muted-foreground">{agent.description}</p>
+                    </div>
+                    <div className="flex items-center space-x-3 self-end sm:self-center">
+                        <div className="flex items-center space-x-2">
+                            <span className={cn("h-2 w-2 rounded-full", agent.status === 'Active' ? 'bg-green-500 animate-pulse' : 'bg-gray-500')}></span>
+                            <Label htmlFor={`agent-${agent.id}`} className="text-sm font-medium">{agent.status}</Label>
+                        </div>
+                        <Switch
+                            id={`agent-${agent.id}`}
+                            checked={agent.status === 'Active'}
+                            onCheckedChange={() => handleToggleAgent(agent.id)}
+                            className="data-[state=checked]:bg-primary"
+                        />
+                    </div>
+                </Card>
+            ))}
+        </CardContent>
+      </Card>
+
+
+      {/* Signal History Card */}
+      <Card className="glow-border-primary">
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="font-headline text-lg sm:text-2xl text-primary">Signal Ledger</CardTitle>
           <CardDescription>A log of your recently deployed signals and their outcomes.</CardDescription>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 space-y-3">
