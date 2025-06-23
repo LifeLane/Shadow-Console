@@ -35,7 +35,7 @@ const MarketInsightsOutputSchema = z.object({
   prediction: z.string().describe('The predicted market action (BUY, HOLD, SELL).'),
   confidence: z.number().describe('The confidence score for the prediction (0-100).'),
   entryRange: z.string().describe('The recommended entry range for the trade.'),
-  stopLoss: z.string().describe('The recommended stop loss price.'),
+  stopLoss: z.string().describe('The recommended take profit price.'),
   takeProfit: z.string().describe('The recommended take profit price.'),
   shadowScore: z.number().describe('A score reflecting the overall quality of the signal (0-100).'),
   thought: z.string().describe('The AI-generated thought process behind the prediction.'),
@@ -70,7 +70,7 @@ const marketInsightsPrompt = ai.definePrompt({
   output: {schema: MarketInsightsOutputSchema},
   prompt: `You are an AI-powered market analyst providing insights on cryptocurrency trends.
 
-  Analyze the following market data to generate a trading signal.
+  Analyze ALL the following market data comprehensively to generate a precise trading signal. Do not default to "HOLD" unless there is truly no clear BUY or SELL indication from the aggregated data. The prediction should be a decisive BUY, SELL, or HOLD based on strong signals.
 
   Target Market: {{{target}}}
   Trade Mode: {{{tradeMode}}}
@@ -80,9 +80,9 @@ const marketInsightsPrompt = ai.definePrompt({
   Sentiment & News Data (conceptual, from CoinDesk/general sources): {{{sentimentNews}}}
   Recent Wallet Transaction/Token Activity (from Polygon): {{{walletTransaction}}}
 
-  Based on this information, provide a prediction, confidence score, entry range, stop loss, take profit, shadow score, and a brief thought process.
-  Ensure values like entryRange, stopLoss, and takeProfit are plausible for the {{{target}}} market.
-  Confidence and ShadowScore should be between 0 and 100.
+  Based on this information, provide a prediction (BUY, HOLD, or SELL), a confidence score, an entry range, a stop loss, a take profit, a shadow score, and a brief thought process.
+  Ensure values like entryRange, stopLoss, and takeProfit are plausible for the {{{target}}} market and align with the prediction.
+  Confidence and ShadowScore should be between 0 and 100. The ShadowScore should reflect the overall quality and conviction of the signal.
 
   Example Output Format:
   {
@@ -94,7 +94,7 @@ const marketInsightsPrompt = ai.definePrompt({
     "shadowScore": 85,
     "thought": "Volume is diverging against retail flow, with positive sentiment and notable on-chain accumulation, indicating a potential upward trend."
   }
-  `,
+  `
 });
 
 const generateMarketInsightsFlow = ai.defineFlow(
@@ -135,5 +135,3 @@ const generateMarketInsightsFlow = ai.defineFlow(
     return output;
   }
 );
-
-    

@@ -1,1 +1,15 @@
-[]
+[
+  {
+    "id": "default_user",
+    "name": "Shadow Agent 001",
+    "xp": 2025,
+    "signals_generated": 80,
+    "signals_won": 64,
+    "bsai_earned": 13523,
+    "avatarUrl": "https://placehold.co/100x100.png",
+    "wallet_address": null,
+    "wallet_chain": null,
+    "created_at": "2025-06-23T13:11:50.131Z",
+    "updated_at": "2025-06-23T13:20:26.831Z"
+  }
+]

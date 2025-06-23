@@ -1,1 +1,68 @@
-[]
+[
+  {
+    "name": "My ETH Momentum Bot",
+    "description": "Custom agent focusing on ETH/USDT momentum.",
+    "status": "Active",
+    "is_custom": true,
+    "parameters": {
+      "symbol": "ETHUSDT",
+      "tradeMode": "Intraday",
+      "risk": "Medium",
+      "indicators": [
+        "RSI",
+        "MACD"
+      ]
+    },
+    "code": "// Strategy: Momentum\n// Indicators: RSI, MACD\n\nif (crossover(rsi, 70)) {\n  sell();\n} else if (crossover(rsi, 30)) {\n  buy();\n}",
+    "performance": {
+      "signals": 40,
+      "winRate": 85
+    },
+    "id": "agent-custom-my-eth-momentum-bot",
+    "user_id": "default_user"
+  },
+  {
+    "name": "SOL Scalper v2",
+    "description": "High-frequency scalping for SOL/USDT on the 5m timeframe.",
+    "status": "Inactive",
+    "is_custom": true,
+    "parameters": {
+      "symbol": "SOLUSDT",
+      "tradeMode": "Scalping",
+      "risk": "High",
+      "indicators": [
+        "EMA",
+        "Volume Profile"
+      ]
+    },
+    "code": "// Strategy: High-frequency\n// Indicators: EMA, Volume\n\nfunction onTick(price, indicators) {\n  if (price > indicators.ema_fast) {\n    return 'BUY';\n  }\n  return 'SELL';\n}",
+    "performance": {
+      "signals": 38,
+      "winRate": 72
+    },
+    "id": "agent-custom-sol-scalper-v2",
+    "user_id": "default_user"
+  },
+  {
+    "name": "BTC Sentinel Prime",
+    "description": "Balanced agent for BTC/USDT, operating on the 4h chart.",
+    "status": "Inactive",
+    "is_custom": false,
+    "parameters": {
+      "symbol": "BTCUSDT",
+      "tradeMode": "Swing Trading",
+      "risk": "Medium",
+      "indicators": [
+        "Ichimoku Cloud",
+        "Fib Retracement"
+      ]
+    },
+    "code": "// PREMADE AGENT LOGIC - PROTECTED",
+    "performance": {
+      "signals": 0,
+      "winRate": 0
+    },
+    "id": "agent-premade-btc-sentinel-prime",
+    "user_id": "default_user"
+  }
+]

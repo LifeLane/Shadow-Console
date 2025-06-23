@@ -1,1 +1,52 @@
-[]
+[
+  {
+    "id": "signal",
+    "title": "Shadow Core: First Signal Test",
+    "description": "Use the Market Command Console to generate and analyze one signal. Your input trains the Core!",
+    "xp": 50,
+    "reward": {
+      "type": "NFT",
+      "name": "ShadowBox NFT (Common)"
+    }
+  },
+  {
+    "id": "wallet",
+    "title": "Sync Wallet with Polygon Network",
+    "description": "Connect your primary wallet (ETH, SOL, or TON) and perform a test sync via Polygon for BSAI airdrop eligibility.",
+    "xp": 100,
+    "reward": {
+      "type": "Key",
+      "name": "ShadowNet Testnet Key"
+    }
+  },
+  {
+    "id": "share",
+    "title": "Broadcast: Share Prediction on X",
+    "description": "Share one of your Shadow Core predictions on X (Twitter) with #ShadowTrader.",
+    "xp": 75,
+    "reward": {
+      "type": "XP_Boost",
+      "name": "+20% XP Boost (24h)"
+    }
+  },
+  {
+    "id": "learn",
+    "title": "Intel Briefing: ShadowScore Module",
+    "description": "Complete the \"Intro to ShadowScore\" learning module to understand Core analysis.",
+    "xp": 60,
+    "reward": {
+      "type": "Badge",
+      "name": "Shadow Analyst Badge"
+    }
+  },
+  {
+    "id": "daily_login",
+    "title": "Daily Check-in: Report to Core",
+    "description": "Log in daily to maintain your agent status and receive bonus XP.",
+    "xp": 25,
+    "reward": {
+      "type": "Airdrop_Multiplier",
+      "name": "Airdrop Multiplier +0.1x"
+    }
+  }
+]
