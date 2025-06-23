@@ -77,7 +77,7 @@ export default function AppLayout() {
         </Button>
       </header>
 
-      <main className="flex-grow overflow-y-auto">
+      <main className="flex-grow overflow-y-auto pb-16 sm:pb-20">
         <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
           <AnimatePresence mode="wait">
             <motion.div
@@ -94,7 +94,7 @@ export default function AppLayout() {
         </div>
       </main>
 
-      <footer className="border-t border-border bg-background/80 backdrop-blur-md">
+      <footer className="sticky bottom-0 z-40 border-t border-border bg-background/80 backdrop-blur-md">
         <nav className="container mx-auto grid grid-cols-6 items-center h-16 sm:h-20 px-1">
           {tabs.map((tab) => (
             <Button
@@ -113,7 +113,7 @@ export default function AppLayout() {
               <div className={cn(
                 "p-1.5 sm:p-2 rounded-full transition-all duration-300 ease-out",
                  activeTab === tab.id
-                    ? 'glow-border-primary animate-pulse-glow-primary'
+                    ? 'glow-border-primary' // Active icon gets cyan glow
                     : 'opacity-70 group-hover:opacity-100'
               )}>
                 <tab.icon className="h-4 w-4 sm:h-5 sm:w-6" />
