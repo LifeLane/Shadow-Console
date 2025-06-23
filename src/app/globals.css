@@ -23,8 +23,8 @@
     --muted: 270 25% 22%;
     --muted-foreground: 270 20% 65%;
 
-    --accent: 300 100% 50%; /* Magenta */
-    --accent-foreground: 0 0% 100%; /* White */
+    --accent: 48 100% 50%; /* Yellow */
+    --accent-foreground: 0 0% 10%; /* Dark Gray/Black */
 
     --destructive: 0 80% 60%; /* Vibrant Red */
     --destructive-foreground: 0 0% 100%; /* White */
@@ -45,8 +45,8 @@
     --sidebar-foreground: 270 25% 95%;
     --sidebar-primary: 180 100% 50%;
     --sidebar-primary-foreground: 240 40% 5%;
-    --sidebar-accent: 300 100% 55%;
-    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-accent: 48 100% 50%; /* Yellow */
+    --sidebar-accent-foreground: 0 0% 10%; /* Dark Gray/Black */
     --sidebar-border: 270 35% 28%;
     --sidebar-ring: 180 100% 50%;
   }
@@ -70,8 +70,8 @@
     --muted: 231 28% 20%;
     --muted-foreground: 180 30% 60%; /* Medium-Dark Cyan for muted text */
 
-    --accent: 300 100% 50%; /* Magenta */
-    --accent-foreground: 0 0% 100%; /* White (for text on Magenta) */
+    --accent: 48 100% 50%; /* Yellow */
+    --accent-foreground: 0 0% 10%; /* Dark Gray/Black */
     
     --destructive: 330 90% 60%; /* Vivid Pink/Red for destructive actions */
     --destructive-foreground: 0 0% 100%; /* White */
@@ -81,7 +81,7 @@
     --ring: 180 100% 50%; /* Neon Cyan for rings */
     
     --chart-1: 180 70% 50%; /* Cyan shades for charts */
-    --chart-2: 300 60% 45%; /* Magenta shades for charts */
+    --chart-2: 48 60% 45%; /* Yellow shades for charts */
     --chart-3: 210 80% 55%; /* Blue shades */
     --chart-4: 270 65% 60%; /* Purple shades */
     --chart-5: 330 75% 55%; /* Pink shades */
@@ -91,8 +91,8 @@
     --sidebar-foreground: 180 70% 92%;
     --sidebar-primary: 180 100% 50%;
     --sidebar-primary-foreground: 240 50% 5%;
-    --sidebar-accent: 300 100% 50%;
-    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-accent: 48 100% 50%; /* Yellow */
+    --sidebar-accent-foreground: 0 0% 10%; /* Dark Gray/Black */
     --sidebar-border: 240 20% 20%;
     --sidebar-ring: 180 100% 50%;
   }

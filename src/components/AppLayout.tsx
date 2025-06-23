@@ -118,13 +118,13 @@ export default function AppLayout() {
               )}>
                 <tab.icon className={cn(
                     "h-4 w-4 sm:h-5 sm:w-6",
-                     activeTab === tab.id ? 'text-primary' : 'text-muted-foreground group-hover:text-yellow-400'
+                     activeTab === tab.id ? 'text-primary' : 'text-muted-foreground group-hover:text-black'
                   )}
                 />
               </div>
               <span className={cn(
                   "mt-0.5 sm:mt-1 font-medium truncate max-w-[50px] sm:max-w-none hidden sm:inline-block",
-                  activeTab === tab.id ? 'text-primary' : 'text-muted-foreground group-hover:text-yellow-400'
+                  activeTab === tab.id ? 'text-primary' : 'text-muted-foreground group-hover:text-black'
                 )}
               >
                 {tab.label}
