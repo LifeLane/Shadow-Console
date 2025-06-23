@@ -150,7 +150,7 @@ export default function SettingsTab() {
             <CardContent className="p-0 space-y-2 sm:space-y-3">
                 <div className="flex items-center justify-between">
                 <Label htmlFor="theme-toggle" className="text-sm sm:text-base">
-                    Current Mode: {theme === 'dark' ? 'Shadow Ops (Dark)' : 'Daylight Ops (Light)'}
+                    Current Mode: {theme === 'dark' ? 'Shadow Ops (Navy)' : 'Twilight Ops (Purple)'}
                 </Label>
                 <Button onClick={toggleTheme} variant="outline" size="icon" className="border-primary text-primary hover:bg-primary/10 transition-colors h-8 w-8 sm:h-9 sm:w-9">
                     {theme === 'dark' ? <Sun className="h-4 w-4 sm:h-5 sm:w-5" /> : <Moon className="h-4 w-4 sm:h-5 sm:w-5" />}
