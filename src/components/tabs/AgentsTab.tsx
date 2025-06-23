@@ -12,11 +12,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
-import { Bot, History, CheckCircle, Award, Star, Power, PlusCircle, Edit, Rocket, BrainCircuit } from 'lucide-react';
+import { Bot, History, CheckCircle, Award, Star, Power, PlusCircle, Edit, Rocket, BrainCircuit, Activity, BarChart, ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
 // --- MOCK DATA & TYPES ---
+
+interface AgentPerformance {
+    signals: number;
+    winRate: number; // as a percentage, e.g., 80 for 80%
+}
 
 interface AgentParameters {
     symbol: string;
@@ -33,20 +38,21 @@ interface Agent {
     isCustom: boolean;
     parameters: AgentParameters;
     code: string;
+    performance: AgentPerformance;
 }
 
 const userStats = {
-    signalsGenerated: 12,
-    signalsWon: 9,
-    totalBsaiEarned: 7540,
-    currentXp: 1250,
-    xpForNextLevel: 2000,
+    signalsGenerated: 78,
+    signalsWon: 62,
+    totalBsaiEarned: 12450,
+    currentXp: 1850,
+    xpForNextLevel: 2500,
 };
 
 const initialAgents: Agent[] = [
-    { id: 'agent-custom-1', name: 'My ETH Momentum Bot', description: 'Custom agent focusing on ETH/USDT momentum.', status: 'Inactive', isCustom: true, parameters: { symbol: 'ETHUSDT', tradeMode: 'Intraday', risk: 'Medium', indicators: ['RSI', 'MACD'] }, code: `// Strategy: Momentum\n// Indicators: RSI, MACD\n\nif (crossover(rsi, 70)) {\n  sell();\n} else if (crossover(rsi, 30)) {\n  buy();\n}` },
-    { id: 'agent-premade-1', name: 'BTC Scalper Prime', description: 'High-frequency scalping for BTC/USDT on the 5m timeframe.', status: 'Inactive', isCustom: false, parameters: { symbol: 'BTCUSDT', tradeMode: 'Scalping', risk: 'High', indicators: ['EMA', 'Volume Profile'] }, code: '// PREMADE AGENT LOGIC - PROTECTED' },
-    { id: 'agent-premade-2', name: 'SOL Swing Sentinel', description: 'Swing trading agent for SOL/USDT, operating on the 4h chart.', status: 'Inactive', isCustom: false, parameters: { symbol: 'SOLUSDT', tradeMode: 'Swing Trading', risk: 'Medium', indicators: ['Ichimoku Cloud', 'Fib Retracement'] }, code: '// PREMADE AGENT LOGIC - PROTECTED' },
+    { id: 'agent-custom-1', name: 'My ETH Momentum Bot', description: 'Custom agent focusing on ETH/USDT momentum.', status: 'Active', isCustom: true, parameters: { symbol: 'ETHUSDT', tradeMode: 'Intraday', risk: 'Medium', indicators: ['RSI', 'MACD'] }, code: `// Strategy: Momentum\n// Indicators: RSI, MACD\n\nif (crossover(rsi, 70)) {\n  sell();\n} else if (crossover(rsi, 30)) {\n  buy();\n}`, performance: { signals: 40, winRate: 85 } },
+    { id: 'agent-custom-2', name: 'SOL Scalper v2', description: 'High-frequency scalping for SOL/USDT on the 5m timeframe.', status: 'Inactive', isCustom: true, parameters: { symbol: 'SOLUSDT', tradeMode: 'Scalping', risk: 'High', indicators: ['EMA', 'Volume Profile'] }, code: `// Strategy: High-frequency\n// Indicators: EMA, Volume\n\nfunction onTick(price, indicators) {\n  if (price > indicators.ema_fast) {\n    return 'BUY';\n  }\n  return 'SELL';\n}`, performance: { signals: 38, winRate: 72 } },
+    { id: 'agent-premade-1', name: 'BTC Sentinel Prime', description: 'Balanced agent for BTC/USDT, operating on the 4h chart.', status: 'Inactive', isCustom: false, parameters: { symbol: 'BTCUSDT', tradeMode: 'Swing Trading', risk: 'Medium', indicators: ['Ichimoku Cloud', 'Fib Retracement'] }, code: '// PREMADE AGENT LOGIC - PROTECTED', performance: { signals: 0, winRate: 0 } },
 ];
 
 const availableIndicators = [
@@ -66,7 +72,8 @@ const newAgentTemplate: Omit<Agent, 'id'> = {
     status: 'Inactive',
     isCustom: true,
     parameters: { symbol: 'BTCUSDT', tradeMode: 'Intraday', risk: 'Medium', indicators: [] },
-    code: `// Define your custom strategy here.\n// Example: Use indicators to trigger buy/sell signals.\n\nfunction onTick(price, indicators) {\n  if (indicators.rsi < 30) {\n    // Buy condition\n    return 'BUY';\n  }\n  return 'HOLD';\n}`
+    code: `// Define your custom strategy here.\n// Example: Use indicators to trigger buy/sell signals.\n\nfunction onTick(price, indicators) {\n  if (indicators.rsi < 30) {\n    // Buy condition\n    return 'BUY';\n  }\n  return 'HOLD';\n}`,
+    performance: { signals: 0, winRate: 0 },
 };
 
 // --- COMPONENTS ---
@@ -79,8 +86,8 @@ const StatCard = ({ title, value, children }: { title: string; value: string | n
     </Card>
 );
 
-const AgentEditorDialog: React.FC<{ agent: Agent, onSave: (agent: Agent) => void, children: React.ReactNode }> = ({ agent, onSave, children }) => {
-    const [editedAgent, setEditedAgent] = useState<Agent>(agent);
+const AgentEditorDialog: React.FC<{ agent: Omit<Agent, 'id'> | Agent, onSave: (agent: Omit<Agent, 'id'> | Agent) => void, children: React.ReactNode }> = ({ agent, onSave, children }) => {
+    const [editedAgent, setEditedAgent] = useState(agent);
 
     const handleSave = () => {
         onSave(editedAgent);
@@ -109,23 +116,23 @@ const AgentEditorDialog: React.FC<{ agent: Agent, onSave: (agent: Agent) => void
                 <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto px-1">
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="agent-name" className="text-right">Name</Label>
-                        <Input id="agent-name" value={editedAgent.name} onChange={e => setEditedAgent(p => ({ ...p, name: e.target.value }))} className="col-span-3" readOnly={!editedAgent.isCustom} />
+                        <Input id="agent-name" value={editedAgent.name} onChange={e => setEditedAgent(p => ({ ...p, name: e.target.value }))} className="col-span-3 bg-input border-border focus:border-primary focus:ring-primary" readOnly={!editedAgent.isCustom} />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="symbol" className="text-right">Symbol</Label>
-                        <Input id="symbol" value={editedAgent.parameters.symbol} onChange={e => setEditedAgent(p => ({ ...p, parameters: { ...p.parameters, symbol: e.target.value.toUpperCase() } }))} className="col-span-3" readOnly={!editedAgent.isCustom} />
+                        <Input id="symbol" value={editedAgent.parameters.symbol} onChange={e => setEditedAgent(p => ({ ...p, parameters: { ...p.parameters, symbol: e.target.value.toUpperCase() } }))} className="col-span-3 bg-input border-border focus:border-primary focus:ring-primary" readOnly={!editedAgent.isCustom} />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label className="text-right">Trade Mode</Label>
                         <Select value={editedAgent.parameters.tradeMode} onValueChange={(v) => setEditedAgent(p => ({ ...p, parameters: { ...p.parameters, tradeMode: v } }))} disabled={!editedAgent.isCustom}>
-                            <SelectTrigger className="col-span-3"><SelectValue /></SelectTrigger>
+                            <SelectTrigger className="col-span-3 bg-input border-border focus:border-primary focus:ring-primary"><SelectValue /></SelectTrigger>
                             <SelectContent>{tradeModes.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
                         </Select>
                     </div>
                      <div className="grid grid-cols-4 items-center gap-4">
                         <Label className="text-right">Risk</Label>
                          <Select value={editedAgent.parameters.risk} onValueChange={(v) => setEditedAgent(p => ({ ...p, parameters: { ...p.parameters, risk: v as any } }))} disabled={!editedAgent.isCustom}>
-                            <SelectTrigger className="col-span-3"><SelectValue /></SelectTrigger>
+                            <SelectTrigger className="col-span-3 bg-input border-border focus:border-primary focus:ring-primary"><SelectValue /></SelectTrigger>
                             <SelectContent>{riskLevels.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
                         </Select>
                     </div>
@@ -142,7 +149,7 @@ const AgentEditorDialog: React.FC<{ agent: Agent, onSave: (agent: Agent) => void
                     </div>
                     <div className="grid grid-cols-4 items-start gap-4">
                         <Label htmlFor="code" className="text-right pt-2">Logic</Label>
-                        <Textarea id="code" value={editedAgent.code} onChange={e => setEditedAgent(p => ({...p, code: e.target.value }))} className="col-span-3 min-h-[150px]" readOnly={!editedAgent.isCustom} />
+                        <Textarea id="code" value={editedAgent.code} onChange={e => setEditedAgent(p => ({...p, code: e.target.value }))} className="col-span-3 min-h-[150px] bg-input border-border focus:border-primary focus:ring-primary" readOnly={!editedAgent.isCustom} />
                     </div>
                 </div>
                 <DialogFooter>
@@ -159,29 +166,31 @@ export default function AgentsTab() {
     const [agents, setAgents] = useState<Agent[]>(initialAgents);
     const { toast } = useToast();
 
-    const handleSaveAgent = (updatedAgent: Agent) => {
-        const index = agents.findIndex(a => a.id === updatedAgent.id);
-        if (index > -1) {
-            const newAgents = [...agents];
-            newAgents[index] = updatedAgent;
-            setAgents(newAgents);
-            toast({ title: "Agent Updated", description: `${updatedAgent.name} has been saved successfully.` });
+    const handleSaveAgent = (updatedAgent: Omit<Agent, 'id'> | Agent) => {
+        if ('id' in updatedAgent) {
+            const index = agents.findIndex(a => a.id === updatedAgent.id);
+            if (index > -1) {
+                const newAgents = [...agents];
+                newAgents[index] = updatedAgent;
+                setAgents(newAgents);
+                toast({ title: "Agent Updated", description: `${updatedAgent.name} has been saved successfully.` });
+            }
         } else {
-            setAgents(prev => [...prev, { ...updatedAgent, id: `agent-custom-${Date.now()}` }]);
-             toast({ title: "Agent Created", description: `${updatedAgent.name} has been added to your control panel.` });
+            const newAgentWithId: Agent = { ...updatedAgent, id: `agent-custom-${Date.now()}` };
+            setAgents(prev => [...prev, newAgentWithId]);
+            toast({ title: "Agent Created", description: `${newAgentWithId.name} has been added to your control panel.` });
         }
     };
 
-    const handleToggleAgentStatus = (agentId: string) => {
+    const handleDeployAgent = (agentId: string) => {
         setAgents(prevAgents =>
             prevAgents.map(agent => {
                 if (agent.id === agentId) {
-                    const newStatus = agent.status === 'Active' ? 'Inactive' : 'Active';
                     toast({
-                        title: `Agent ${newStatus === 'Active' ? 'Deployed to ShadowNet' : 'Deactivated'}`,
-                        description: `${agent.name} is now ${newStatus}.`,
+                        title: `Agent Deployed to ShadowNet`,
+                        description: `${agent.name} is now active and generating signals.`,
                     });
-                    return { ...agent, status: newStatus };
+                    return { ...agent, status: 'Active' };
                 }
                 return agent;
             })
@@ -243,13 +252,17 @@ export default function AgentsTab() {
                             <div className="flex-1 space-y-1">
                                 <h4 className="font-semibold text-base sm:text-lg flex items-center">{agent.name}</h4>
                                 <p className="text-xs sm:text-sm text-muted-foreground">{agent.parameters.symbol} | {agent.parameters.tradeMode} | {agent.parameters.risk} Risk</p>
+                                <div className="flex items-center space-x-4 text-xs pt-1">
+                                    <span className="flex items-center text-muted-foreground"><Activity className="w-3 h-3 mr-1 text-primary"/>Signals: <b className="text-foreground ml-1">{agent.performance.signals}</b></span>
+                                    <span className="flex items-center text-muted-foreground"><BarChart className="w-3 h-3 mr-1 text-primary"/>Win Rate: <b className="text-foreground ml-1">{agent.performance.winRate}%</b></span>
+                                </div>
                             </div>
                             <div className="flex items-center space-x-3 self-end sm:self-center">
                                 <Badge variant={agent.status === 'Active' ? 'default' : 'secondary'} className={cn(agent.status === 'Active' && 'bg-green-600/80 border-green-500')}>{agent.status}</Badge>
                                  <AgentEditorDialog agent={agent} onSave={handleSaveAgent}>
                                      <Button variant="ghost" size="icon" className="h-8 w-8"><Edit className="h-4 w-4"/></Button>
                                  </AgentEditorDialog>
-                                <Button size="sm" className="bg-primary hover:bg-primary/90" onClick={() => handleToggleAgentStatus(agent.id)}><Rocket className="mr-2 h-4 w-4" />Deploy</Button>
+                                <Button size="sm" className="bg-primary hover:bg-primary/90" disabled={agent.status === 'Active'} onClick={() => handleDeployAgent(agent.id)}><Rocket className="mr-2 h-4 w-4" />Deploy</Button>
                             </div>
                         </Card>
                     )) : (

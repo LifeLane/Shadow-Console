@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Flame, Zap, Eye, Award as RankIcon, Trophy } from 'lucide-react';
+import { Flame, Zap, Eye, Award as RankIcon, Trophy, Bot } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import TypewriterText from '@/components/TypewriterText';
 
@@ -13,19 +13,21 @@ interface LeaderboardUser {
   id: string;
   rank: number;
   name: string;
+  isBot?: boolean;
   avatarUrl?: string;
-  accuracy: number; // Contribution Score (Shadow XP)
-  missionsCompleted: number; // Missions for Shadow Core
-  airdropContribution: number; // Airdrop Points
+  shadowXp: number;
+  missionsCompleted: number;
+  airdropContribution: number;
   tags: string[];
 }
 
 const mockLeaderboardData: LeaderboardUser[] = [
-  { id: '1', rank: 1, name: 'CryptoKingX', avatarUrl: 'https://placehold.co/100x100.png', accuracy: 9200, missionsCompleted: 50, airdropContribution: 12000, tags: ['🔮 Signal Oracle', '⚡ Chain Whisperer'] },
-  { id: '2', rank: 2, name: 'NovaTrader7', avatarUrl: 'https://placehold.co/100x100.png', accuracy: 8800, missionsCompleted: 45, airdropContribution: 9500, tags: ['⚡ Chain Whisperer'] },
-  { id: '3', rank: 3, name: 'ShadowScout', accuracy: 8500, missionsCompleted: 40, airdropContribution: 8000, tags: ['🔮 Signal Oracle'] },
-  { id: '4', rank: 4, name: 'PixelProphet', avatarUrl: 'https://placehold.co/100x100.png', accuracy: 8200, missionsCompleted: 38, airdropContribution: 7500, tags: [] },
-  { id: '5', rank: 5, name: 'ByteBard', accuracy: 7900, missionsCompleted: 35, airdropContribution: 6000, tags: ['⚡ Chain Whisperer'] },
+  { id: '1', rank: 1, name: 'CryptoKingX', avatarUrl: 'https://placehold.co/100x100.png', shadowXp: 9200, missionsCompleted: 50, airdropContribution: 12000, tags: ['🔮 Signal Oracle', '⚡ Chain Whisperer'] },
+  { id: '2', rank: 2, name: 'NovaTrader7', avatarUrl: 'https://placehold.co/100x100.png', shadowXp: 8800, missionsCompleted: 45, airdropContribution: 9500, tags: ['⚡ Chain Whisperer'] },
+  { id: '3', rank: 3, name: 'My ETH Momentum Bot', isBot: true, shadowXp: 8750, missionsCompleted: 40, airdropContribution: 8200, tags: ['📈 Momentum Master'] },
+  { id: '4', rank: 4, name: 'ShadowScout', shadowXp: 8500, missionsCompleted: 40, airdropContribution: 8000, tags: ['🔮 Signal Oracle'] },
+  { id: '5', rank: 5, name: 'PixelProphet', avatarUrl: 'https://placehold.co/100x100.png', shadowXp: 8200, missionsCompleted: 38, airdropContribution: 7500, tags: [] },
+  { id: '6', rank: 6, name: 'ByteBard', shadowXp: 7900, missionsCompleted: 35, airdropContribution: 6000, tags: ['⚡ Chain Whisperer'] },
 ];
 
 export default function LeaderboardTab() {
@@ -71,15 +73,16 @@ export default function LeaderboardTab() {
                   <span className={cn("font-bold", index < 3 ? "text-2xl sm:text-4xl" : "text-xl sm:text-3xl")}>{user.rank}</span>
                 </div>
                 <Avatar className={cn("h-10 w-10 sm:h-14 sm:w-14 border-2 shrink-0", index < 3 ? "border-accent" : "border-primary")}>
-                  <AvatarImage 
-                    src={user.avatarUrl}
-                    data-ai-hint="profile avatar" 
-                    alt={user.name}
-                  />
-                  <AvatarFallback className="text-sm sm:text-lg bg-muted text-foreground">{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                  {user.avatarUrl && <AvatarImage src={user.avatarUrl} data-ai-hint="profile avatar" alt={user.name} />}
+                  <AvatarFallback className="text-sm sm:text-lg bg-muted text-foreground">
+                    {user.isBot ? <Bot className="w-6 h-6" /> : user.name.substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="flex-grow min-w-0">
-                  <h3 className="text-base sm:text-lg font-semibold font-headline text-foreground truncate">{user.name}</h3>
+                  <h3 className="text-base sm:text-lg font-semibold font-headline text-foreground truncate flex items-center">
+                      {user.name}
+                      {user.isBot && <Badge variant="secondary" className="ml-2 text-xs">Bot</Badge>}
+                  </h3>
                   <div className="flex flex-wrap gap-1 mt-0.5 sm:mt-1">
                     {user.tags.map(tag => (
                       <Badge 
@@ -98,9 +101,9 @@ export default function LeaderboardTab() {
                   </div>
                 </div>
                 <div className="text-right space-y-0.5 text-[0.65rem] sm:text-xs hidden md:block shrink-0 min-w-[120px]">
-                  <p className="flex items-center justify-end text-muted-foreground"><Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 text-primary/80" /> Shadow XP: <span className="font-semibold ml-1 text-foreground">{user.accuracy}</span></p>
+                  <p className="flex items-center justify-end text-muted-foreground"><Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 text-primary/80" /> Shadow XP: <span className="font-semibold ml-1 text-foreground">{user.shadowXp.toLocaleString()}</span></p>
                   <p className="flex items-center justify-end text-muted-foreground"><Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 text-orange-500" /> Missions: <span className="font-semibold ml-1 text-foreground">{user.missionsCompleted}</span></p>
-                  <p className="flex items-center justify-end text-muted-foreground"><Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 text-yellow-500" /> Airdrop Pts: <span className="font-semibold ml-1 text-foreground">{user.airdropContribution}</span></p>
+                  <p className="flex items-center justify-end text-muted-foreground"><Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 text-yellow-500" /> Airdrop Pts: <span className="font-semibold ml-1 text-foreground">{user.airdropContribution.toLocaleString()}</span></p>
                 </div>
               </CardContent>
             </Card>
