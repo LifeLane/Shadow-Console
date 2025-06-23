@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -48,6 +48,8 @@ const userStats = {
     currentXp: 1850,
     xpForNextLevel: 2500,
 };
+
+const AGENTS_STORAGE_KEY = 'shadow_trader_agents';
 
 const initialAgents: Agent[] = [
     { id: 'agent-custom-1', name: 'My ETH Momentum Bot', description: 'Custom agent focusing on ETH/USDT momentum.', status: 'Active', isCustom: true, parameters: { symbol: 'ETHUSDT', tradeMode: 'Intraday', risk: 'Medium', indicators: ['RSI', 'MACD'] }, code: `// Strategy: Momentum\n// Indicators: RSI, MACD\n\nif (crossover(rsi, 70)) {\n  sell();\n} else if (crossover(rsi, 30)) {\n  buy();\n}`, performance: { signals: 40, winRate: 85 } },
@@ -165,6 +167,34 @@ const AgentEditorDialog: React.FC<{ agent: Omit<Agent, 'id'> | Agent, onSave: (a
 export default function AgentsTab() {
     const [agents, setAgents] = useState<Agent[]>(initialAgents);
     const { toast } = useToast();
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (isMounted) {
+            try {
+                const storedAgents = window.localStorage.getItem(AGENTS_STORAGE_KEY);
+                if (storedAgents) {
+                    setAgents(JSON.parse(storedAgents));
+                }
+            } catch (error) {
+                console.error("Error reading agents from localStorage", error);
+            }
+        }
+    }, [isMounted]);
+
+    useEffect(() => {
+        if (isMounted) {
+            try {
+                window.localStorage.setItem(AGENTS_STORAGE_KEY, JSON.stringify(agents));
+            } catch (error) {
+                console.error("Error saving agents to localStorage", error);
+            }
+        }
+    }, [agents, isMounted]);
 
     const handleSaveAgent = (updatedAgent: Omit<Agent, 'id'> | Agent) => {
         if ('id' in updatedAgent) {
