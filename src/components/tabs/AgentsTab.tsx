@@ -145,13 +145,15 @@ const AgentEditorDialog: React.FC<{ agent: Omit<Agent, 'id'> | Agent, onSave: (a
 
 // --- MAIN TAB COMPONENT ---
 
-export default function AgentsTab() {
+export default function AgentsTab({ isDbInitialized }: { isDbInitialized: boolean }) {
     const [agents, setAgents] = useState<Agent[]>([]);
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
 
     useEffect(() => {
+        if (!isDbInitialized) return;
+
         async function loadInitialData() {
             setIsLoading(true);
             try {
@@ -170,7 +172,7 @@ export default function AgentsTab() {
             }
         }
         loadInitialData();
-    }, [toast]);
+    }, [isDbInitialized, toast]);
 
     const handleSaveAgent = async (agentToSave: Agent) => {
         try {

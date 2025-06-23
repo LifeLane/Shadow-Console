@@ -17,7 +17,7 @@ import { getUserData, updateWalletAction } from '@/app/settings/actions';
 import type { User } from '@/lib/types';
 
 
-export default function SettingsTab() {
+export default function SettingsTab({ isDbInitialized }: { isDbInitialized: boolean }) {
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
@@ -40,6 +40,8 @@ export default function SettingsTab() {
   // Load user data on mount
   useEffect(() => {
     setMounted(true);
+    if (!isDbInitialized) return;
+
     async function loadUserData() {
         try {
             setIsLoading(true);
@@ -60,7 +62,7 @@ export default function SettingsTab() {
         }
     }
     loadUserData();
-  }, [toast]);
+  }, [isDbInitialized, toast]);
   
   // Signal strength simulation
   useEffect(() => {
@@ -76,8 +78,13 @@ export default function SettingsTab() {
   }, [mounted, isWalletConnected]);
 
 
-  if (!mounted) {
-    return null; 
+  if (!mounted || (isLoading && !user)) {
+    return (
+        <div className="flex justify-center items-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="ml-4 text-lg text-muted-foreground">Loading Configuration...</p>
+        </div>
+    );
   }
 
   const handleWalletConnection = async () => {
@@ -237,7 +244,7 @@ export default function SettingsTab() {
                     <Label htmlFor="binance-secret-key" className="font-code text-xs sm:text-sm">Binance Secret Key</Label>
                     <div className="relative mt-1">
                         <Input id="binance-secret-key" type={showApiKey ? "text" : "password"} placeholder="Enter your Binance Secret Key" className="font-code bg-card border-primary/50 focus:border-primary focus:ring-primary pr-10 h-9 sm:h-10 text-sm" />
-                        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 sm:h-7 sm:h-7 text-muted-foreground hover:text-primary" onClick={() => setShowApiKey(!showApiKey)}>
+                        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 sm:h-7 sm:w-7 text-muted-foreground hover:text-primary" onClick={() => setShowApiKey(!showApiKey)}>
                             {showApiKey ? <EyeOff className="h-3.5 w-3.5 sm:h-4 sm:h-4"/> : <Eye className="h-3.5 w-3.5 sm:h-4 sm:h-4"/>}
                     </Button>
                     </div>

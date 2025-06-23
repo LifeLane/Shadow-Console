@@ -97,7 +97,7 @@ export default function AppLayout() {
               variants={pageTransitionVariants}
               transition={pageTransitionVariants.transition}
             >
-              <ActiveComponent />
+              <ActiveComponent isDbInitialized={isDbInitialized} />
             </motion.div>
           </AnimatePresence>
         </div>

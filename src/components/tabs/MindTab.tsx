@@ -38,7 +38,7 @@ const cardVariants = {
 };
 
 
-export default function MindTab() {
+export default function MindTab({ isDbInitialized }: { isDbInitialized: boolean }) {
   const [formState, setFormState] = useState<MarketInsightsInput>(initialFormState);
   const [coreState, setCoreState] = useState<CoreState>('idle');
   const [insights, setInsights] = useState<MarketInsightsOutput | null>(null);
@@ -76,8 +76,9 @@ export default function MindTab() {
   };
 
   useEffect(() => {
+    if (!isDbInitialized) return;
     fetchSignalHistory();
-  }, []);
+  }, [isDbInitialized]);
 
   useEffect(() => {
     if (coreState === 'tracking' && simulationResult) {

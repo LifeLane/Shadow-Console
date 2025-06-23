@@ -18,12 +18,14 @@ interface LeaderboardUser extends User {
     tags?: string[];
 }
 
-export default function LeaderboardTab() {
+export default function LeaderboardTab({ isDbInitialized }: { isDbInitialized: boolean }) {
   const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [descriptionKey, setDescriptionKey] = useState(0);
 
   useEffect(() => {
+    if (!isDbInitialized) return;
+
     async function loadLeaderboard() {
         setIsLoading(true);
         try {
@@ -43,7 +45,7 @@ export default function LeaderboardTab() {
         }
     }
     loadLeaderboard();
-  }, []);
+  }, [isDbInitialized]);
 
   if (isLoading) {
     return (
