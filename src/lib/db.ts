@@ -12,6 +12,12 @@ function getClient() {
     // issue that can occur in serverless environments.
     const sql = postgres(connectionString, {
         idle_timeout: undefined,
+        transform: {
+            // Transform numeric and bigint types from strings to numbers.
+            // This is safe for this application's purposes.
+            numeric: parseFloat,
+            bigint: parseInt,
+        },
     });
     return sql;
 }
