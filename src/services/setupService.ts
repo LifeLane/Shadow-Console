@@ -13,6 +13,8 @@ export async function setupTables() {
     await sql`
       CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
+        name TEXT,
+        avatarUrl TEXT,
         wallet_address TEXT,
         wallet_chain TEXT,
         signals_generated INT NOT NULL DEFAULT 0,
@@ -93,7 +95,7 @@ export async function seedInitialUser() {
     const result = await sql`SELECT COUNT(*) FROM users`;
     if (parseInt(result[0].count, 10) === 0) {
         console.log('Seeding default user...');
-        await sql`INSERT INTO users (id, xp, signals_generated, signals_won, bsai_earned) VALUES ('default_user', 1850, 78, 62, 12450)`;
+        await sql`INSERT INTO users (id, name, xp, signals_generated, signals_won, bsai_earned, avatarUrl) VALUES ('default_user', 'Shadow Agent 001', 1850, 78, 62, 12450, 'https://placehold.co/100x100.png')`;
     }
 }
 

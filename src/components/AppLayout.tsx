@@ -12,7 +12,9 @@ import SettingsTab from '@/components/tabs/SettingsTab';
 import MainnetStats from '@/components/MainnetStats';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion'; // Import framer-motion
+import { motion, AnimatePresence } from 'framer-motion';
+import { setupDatabaseAndSeed } from '@/app/agents/actions';
+import { useToast } from '@/hooks/use-toast';
 
 type TabId = 'mind' | 'agents' | 'airdrop' | 'missions' | 'leaderboard' | 'settings';
 
@@ -42,6 +44,28 @@ const pageTransitionVariants = {
 
 export default function AppLayout() {
   const [activeTab, setActiveTab] = useState<TabId>('mind');
+  const [isDbInitialized, setIsDbInitialized] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    async function initializeDatabase() {
+        if (isDbInitialized) return;
+        try {
+            console.log("Initializing database and seeding data...");
+            await setupDatabaseAndSeed();
+            console.log("Database initialization complete.");
+            setIsDbInitialized(true);
+        } catch (error) {
+            console.error("Failed to initialize database:", error);
+            toast({
+                title: "Database Connection Error",
+                description: "Could not initialize the application database. Some features may not work correctly.",
+                variant: "destructive",
+            });
+        }
+    }
+    initializeDatabase();
+  }, [isDbInitialized, toast]);
 
   const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || (() => <div className="text-center p-4 sm:p-8">Component not found. Select a tab.</div>);
 

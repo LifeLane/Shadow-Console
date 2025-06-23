@@ -16,17 +16,10 @@ import { Bot, History, CheckCircle, Award, Star, Power, PlusCircle, Edit, Rocket
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import type { Agent, AgentParameters, User } from '@/lib/types';
-import { getAgentsAction, saveAgentAction, updateAgentStatusAction, setupDatabaseAndSeed } from '@/app/agents/actions';
-import { getUser } from '@/services/userService'; // We can call a service directly here for read-only ops
+import { getAgentsAction, saveAgentAction, updateAgentStatusAction } from '@/app/agents/actions';
+import { getUser } from '@/services/userService';
 
 // --- INITIAL DATA & TYPES ---
-
-const initialAgentsData: Agent[] = [
-    { id: 'agent-custom-1', name: 'My ETH Momentum Bot', description: 'Custom agent focusing on ETH/USDT momentum.', status: 'Active', is_custom: true, parameters: { symbol: 'ETHUSDT', tradeMode: 'Intraday', risk: 'Medium', indicators: ['RSI', 'MACD'] }, code: `// Strategy: Momentum\n// Indicators: RSI, MACD\n\nif (crossover(rsi, 70)) {\n  sell();\n} else if (crossover(rsi, 30)) {\n  buy();\n}`, performance: { signals: 40, winRate: 85 } },
-    { id: 'agent-custom-2', name: 'SOL Scalper v2', description: 'High-frequency scalping for SOL/USDT on the 5m timeframe.', status: 'Inactive', is_custom: true, parameters: { symbol: 'SOLUSDT', tradeMode: 'Scalping', risk: 'High', indicators: ['EMA', 'Volume Profile'] }, code: `// Strategy: High-frequency\n// Indicators: EMA, Volume\n\nfunction onTick(price, indicators) {\n  if (price > indicators.ema_fast) {\n    return 'BUY';\n  }\n  return 'SELL';\n}`, performance: { signals: 38, winRate: 72 } },
-    { id: 'agent-premade-1', name: 'BTC Sentinel Prime', description: 'Balanced agent for BTC/USDT, operating on the 4h chart.', status: 'Inactive', is_custom: false, parameters: { symbol: 'BTCUSDT', tradeMode: 'Swing Trading', risk: 'Medium', indicators: ['Ichimoku Cloud', 'Fib Retracement'] }, code: '// PREMADE AGENT LOGIC - PROTECTED', performance: { signals: 0, winRate: 0 } },
-];
-
 
 const availableIndicators = [
     { id: 'RSI', label: 'RSI (Relative Strength Index)' },
@@ -162,9 +155,6 @@ export default function AgentsTab() {
         async function loadInitialData() {
             setIsLoading(true);
             try {
-                // This ensures the table exists and seeds it on first run
-                await setupDatabaseAndSeed(initialAgentsData);
-                
                 const [dbAgents, dbUser] = await Promise.all([
                     getAgentsAction(),
                     getUser('default_user')
@@ -245,7 +235,7 @@ export default function AgentsTab() {
             <Card className="glow-border-primary">
                 <CardHeader className="p-4 sm:p-6">
                     <div className="flex items-center space-x-2 sm:space-x-3">
-                        <Bot className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />
+                        <Bot className="h-7 w-7 sm:h-8 sm:h-8 text-primary" />
                         <div>
                             <CardTitle className="font-headline text-xl sm:text-3xl text-primary">Your Agent Profile</CardTitle>
                             <CardDescription>Your performance statistics and contributions to the Shadow Core.</CardDescription>

@@ -14,10 +14,22 @@ const initialMissionsToSeed: Mission[] = [
   { id: 'daily_login', title: 'Daily Check-in: Report to Core', description: 'Log in daily to maintain your agent status and receive bonus XP.', xp: 25, reward: { type: 'Airdrop_Multiplier', name: 'Airdrop Multiplier +0.1x'} },
 ];
 
-export async function setupDatabaseAndSeed(initialAgents: Agent[]) {
+const initialAgentsData: Omit<Agent, 'id' | 'user_id'>[] = [
+    { name: 'My ETH Momentum Bot', description: 'Custom agent focusing on ETH/USDT momentum.', status: 'Active', is_custom: true, parameters: { symbol: 'ETHUSDT', tradeMode: 'Intraday', risk: 'Medium', indicators: ['RSI', 'MACD'] }, code: `// Strategy: Momentum\n// Indicators: RSI, MACD\n\nif (crossover(rsi, 70)) {\n  sell();\n} else if (crossover(rsi, 30)) {\n  buy();\n}`, performance: { signals: 40, winRate: 85 } },
+    { name: 'SOL Scalper v2', description: 'High-frequency scalping for SOL/USDT on the 5m timeframe.', status: 'Inactive', is_custom: true, parameters: { symbol: 'SOLUSDT', tradeMode: 'Scalping', risk: 'High', indicators: ['EMA', 'Volume Profile'] }, code: `// Strategy: High-frequency\n// Indicators: EMA, Volume\n\nfunction onTick(price, indicators) {\n  if (price > indicators.ema_fast) {\n    return 'BUY';\n  }\n  return 'SELL';\n}`, performance: { signals: 38, winRate: 72 } },
+    { name: 'BTC Sentinel Prime', description: 'Balanced agent for BTC/USDT, operating on the 4h chart.', status: 'Inactive', is_custom: false, parameters: { symbol: 'BTCUSDT', tradeMode: 'Swing Trading', risk: 'Medium', indicators: ['Ichimoku Cloud', 'Fib Retracement'] }, code: '// PREMADE AGENT LOGIC - PROTECTED', performance: { signals: 0, winRate: 0 } },
+];
+
+
+export async function setupDatabaseAndSeed() {
+  const agentsToSeed = initialAgentsData.map(agent => ({
+    ...agent,
+    id: `agent-${agent.is_custom ? 'custom' : 'premade'}-${agent.name.toLowerCase().replace(/\s+/g, '-')}`
+  }));
+
   await setupTables();
   await seedInitialUser();
-  await seedInitialAgents(initialAgents);
+  await seedInitialAgents(agentsToSeed);
   await seedInitialMissions(initialMissionsToSeed);
 }
 

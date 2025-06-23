@@ -63,11 +63,11 @@ export async function updateUserWallet(userId: string, walletAddress: string | n
  */
 export async function getLeaderboardData(): Promise<User[]> {
   try {
-    // Adding mock names for display purposes. In a real app, users would have profile names.
     return await sql<User[]>`
         SELECT 
             id,
-            COALESCE(name, 'Agent ' || substr(id, 1, 8)) as name,
+            name,
+            avatarUrl,
             xp,
             bsai_earned,
             signals_generated
