@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useTheme } from 'next-themes';
-import { Wallet, Bell, Palette, KeyRound, Sun, Moon, Eye, EyeOff, CheckCircle, XCircle, Settings as SettingsGear, UserCircle, BarChartBig, Database, Download } from 'lucide-react';
+import { Wallet, Bell, Palette, KeyRound, Sun, Moon, Eye, EyeOff, CheckCircle, XCircle, Settings as SettingsGear, UserCircle, BarChartBig } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import TypewriterText from '@/components/TypewriterText';
@@ -86,52 +86,6 @@ export default function SettingsTab() {
     });
   };
 
-  const handleDownloadData = () => {
-      try {
-          const agents = localStorage.getItem('shadow_trader_agents') || '[]';
-          const walletInfo = {
-              connected: isWalletConnected,
-              walletName: connectedWalletName,
-              storedWallet: localStorage.getItem("connectedWalletName_simulated") || "Not connected",
-          };
-          
-          const dataToDownload = {
-              agents: JSON.parse(agents),
-              wallet: walletInfo,
-              settings: {
-                  theme,
-                  notificationsEnabled,
-              },
-              timestamp: new Date().toISOString(),
-          };
-
-          const dataStr = JSON.stringify(dataToDownload, null, 2);
-          const dataBlob = new Blob([dataStr], {type: "application/json"});
-          const url = URL.createObjectURL(dataBlob);
-          
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = 'shadow_trader_data.json';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-
-          toast({
-              title: "Data Downloaded",
-              description: "Your agent and settings data has been downloaded.",
-          });
-
-      } catch (error) {
-          console.error("Failed to download data:", error);
-          toast({
-              title: "Download Failed",
-              description: "There was an error preparing your data for download.",
-              variant: "destructive",
-          });
-      }
-  };
-
   return (
     <div className="space-y-6 sm:space-y-8">
       <Card className="glow-border-primary">
@@ -200,7 +154,7 @@ export default function SettingsTab() {
                     Current Mode: {theme === 'dark' ? 'Shadow Ops (Navy)' : 'Twilight Ops (Purple)'}
                 </Label>
                 <Button onClick={toggleTheme} variant="outline" size="icon" className="border-primary text-primary hover:bg-primary/10 transition-colors h-8 w-8 sm:h-9 sm:w-9">
-                    {theme === 'dark' ? <Sun className="h-4 w-4 sm:h-5 sm:w-5" /> : <Moon className="h-4 w-4 sm:h-5 sm:w-5" />}
+                    {theme === 'dark' ? <Sun className="h-4 w-4 sm:h-5 sm:h-5" /> : <Moon className="h-4 w-4 sm:h-5 sm:h-5" />}
                     <span className="sr-only">Toggle theme</span>
                 </Button>
                 </div>
@@ -241,26 +195,6 @@ export default function SettingsTab() {
                     speed={15}
                     showCaret={false}
                  />
-            </CardContent>
-          </Card>
-          
-          {/* Data Management */}
-          <Card className="p-3 sm:p-4 border border-border rounded-lg shadow-sm">
-             <CardHeader className="p-0 pb-2 sm:pb-3">
-                <CardTitle className="text-lg sm:text-xl font-semibold font-headline text-primary flex items-center"><Database className="w-5 h-5 sm:w-6 sm:h-6 mr-2" /> Data Management</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0 space-y-2 sm:space-y-3">
-                 <TypewriterText 
-                    key={`desc-data-${descriptionKey}`}
-                    text="Download your configuration including custom agents and wallet links." 
-                    className="text-xs sm:text-sm text-muted-foreground"
-                    speed={15}
-                    showCaret={false}
-                 />
-                <Button onClick={handleDownloadData} variant="outline" className="font-code border-primary text-primary hover:bg-primary/10 transition-colors text-sm py-2 px-3">
-                    <Download className="w-4 h-4 mr-2" />
-                    Download My Data
-                </Button>
             </CardContent>
           </Card>
 
