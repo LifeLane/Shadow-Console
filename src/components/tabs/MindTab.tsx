@@ -63,6 +63,7 @@ export default function MindTab() {
   const [rewardData, setRewardData] = useState<{ bsaid: number; xp: number } | null>(null);
   const [simulationResult, setSimulationResult] = useState<MarketInsightsOutput | null>(null);
   const [livePrice, setLivePrice] = useState<string | null>(null);
+  const [completedHistoryLines, setCompletedHistoryLines] = useState<string[]>([]);
 
   const trackingIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
 
@@ -82,7 +83,10 @@ export default function MindTab() {
       if (activationStep < 3) {
         timeoutId = setTimeout(() => setActivationStep(activationStep + 1), 700);
       } else {
-        timeoutId = setTimeout(() => setCoreState('idle'), 700);
+        timeoutId = setTimeout(() => {
+            setCoreState('idle');
+            setCompletedHistoryLines([]); // Reset for animation
+        }, 700);
       }
     }
 
@@ -195,6 +199,7 @@ export default function MindTab() {
     setRewardData(null);
     setSignalStatusMessage('');
     setLivePrice(null);
+    setCompletedHistoryLines([]); // Reset for animation
   };
   
   const getPredictionColor = (prediction?: string) => {
@@ -399,66 +404,32 @@ export default function MindTab() {
                     </CardTitle>
                     <CardDescription>A record of previously generated signals from the Shadow Core.</CardDescription>
                 </CardHeader>
-                <CardContent className="p-4 sm:p-6">
+                <CardContent className="p-4 sm:p-6 bg-black/70 rounded-b-lg">
                    {mockSignalHistory.length > 0 ? (
-                    <Tabs defaultValue={mockSignalHistory[0].id} className="w-full">
-                        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 h-auto bg-transparent p-0">
-                            {mockSignalHistory.map((signal) => {
+                        <div className="font-code text-sm space-y-1 h-32 overflow-y-auto">
+                            {mockSignalHistory.map((signal, index) => {
+                                const isPreviousLineCompleted = index === 0 || completedHistoryLines.includes(mockSignalHistory[index - 1].id);
+                                if (!isPreviousLineCompleted) {
+                                    return null;
+                                }
+
                                 const isWin = signal.outcome === 'TP_HIT';
+                                const isLong = signal.prediction === 'BUY';
+                                const lineText = `[${isWin ? 'WIN' : 'LOSS'}] ${signal.asset} | ${isLong ? 'LONG' : 'SHORT'} | +${signal.reward} BSAI (Gas: -${signal.gasPaid})`;
+                                
                                 return (
-                                    <TabsTrigger 
-                                        key={signal.id} 
-                                        value={signal.id} 
-                                        className={cn(
-                                            "h-auto flex flex-col items-center justify-center p-2 space-y-1 rounded-md border data-[state=active]:shadow-lg data-[state=active]:scale-105 transition-all",
-                                            isWin ? "border-green-500/30 data-[state=active]:glow-border-primary data-[state=active]:bg-primary/10" : "border-red-500/30 data-[state=active]:glow-border-destructive data-[state=active]:bg-destructive/10"
-                                        )}
-                                    >
-                                        <span className="font-bold font-code text-sm text-foreground">{signal.asset}</span>
-                                        <span className={cn("text-xs flex items-center gap-1", isWin ? "text-green-400" : "text-red-400")}>
-                                            {isWin ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                                            {isWin ? "Win" : "Loss"}
-                                        </span>
-                                    </TabsTrigger>
+                                    <TypewriterText
+                                        key={signal.id}
+                                        text={lineText}
+                                        speed={10}
+                                        className={cn("whitespace-pre-wrap break-words", isWin ? 'text-green-400' : 'text-red-400')}
+                                        onComplete={() => setCompletedHistoryLines(prev => [...prev, signal.id])}
+                                        showCaret={!completedHistoryLines.includes(signal.id)} 
+                                        caretClassName="bg-accent animate-blink-block-caret opacity-100"
+                                    />
                                 );
                             })}
-                        </TabsList>
-
-                        {mockSignalHistory.map((signal) => {
-                             const isWin = signal.outcome === 'TP_HIT';
-                             const isLong = signal.prediction === 'BUY';
-                             return (
-                                <TabsContent key={signal.id} value={signal.id} className="mt-4 p-4 border border-border/20 rounded-lg bg-card/50 font-code">
-                                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 text-sm">
-                                        <div className="space-y-1">
-                                            <p className="text-muted-foreground text-xs">Symbol</p>
-                                            <p className="font-semibold text-foreground">{signal.asset}</p>
-                                        </div>
-                                         <div className="space-y-1">
-                                            <p className="text-muted-foreground text-xs">Mode</p>
-                                            <p className="font-semibold text-foreground">{signal.mode}</p>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p className="text-muted-foreground text-xs">Direction</p>
-                                            <p className={cn("font-semibold", isLong ? 'text-primary' : 'text-destructive')}>{isLong ? 'Long' : 'Short'}</p>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p className="text-muted-foreground text-xs">Outcome</p>
-                                            <p className={cn("font-semibold", isWin ? 'text-green-400' : 'text-red-400')}>{isWin ? 'Win' : 'Loss'}</p>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p className="text-muted-foreground text-xs">Reward Earned</p>
-                                            <p className="font-semibold text-green-400">+{signal.reward} BSAI</p>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p className="text-muted-foreground text-xs">Gas Paid</p>
-                                            <p className="font-semibold text-red-400">-{signal.gasPaid} BSAI</p>
-                                        </div>
-                                   </div>
-                                </TabsContent>
-                            )
-                        })}
-                    </Tabs>
+                        </div>
                    ) : (
                      <p className="text-center text-muted-foreground">No signal history found. Generate a signal to begin.</p>
                    )}
@@ -491,3 +462,6 @@ const OutputItem: React.FC<OutputItemProps> = ({ label, value, valueClassName })
     <p className={cn("text-base sm:text-xl font-semibold mt-1 truncate", valueClassName)}>{value}</p>
   </div>
 );
+
+
+    
