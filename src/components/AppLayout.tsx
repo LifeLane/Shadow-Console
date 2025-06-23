@@ -12,7 +12,6 @@ import SettingsTab from '@/components/tabs/SettingsTab';
 import MainnetStats from '@/components/MainnetStats';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useTheme } from 'next-themes';
 import { motion, AnimatePresence } from 'framer-motion'; // Import framer-motion
 
 type TabId = 'mind' | 'agents' | 'airdrop' | 'missions' | 'leaderboard' | 'settings';
@@ -43,12 +42,6 @@ const pageTransitionVariants = {
 
 export default function AppLayout() {
   const [activeTab, setActiveTab] = useState<TabId>('mind');
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || (() => <div className="text-center p-4 sm:p-8">Component not found. Select a tab.</div>);
 
@@ -58,14 +51,6 @@ export default function AppLayout() {
     }
   };
 
-  const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
-  };
-
-  if (!mounted) {
-    return null;
-  }
-
   return (
     <div className="flex flex-col min-h-screen bg-background/80 text-foreground font-body backdrop-blur-sm">
       <header className="sticky top-0 z-50 flex items-center justify-between p-3 sm:p-4 bg-background/80 backdrop-blur-md border-b border-border">
@@ -73,9 +58,6 @@ export default function AppLayout() {
           <Sparkles className="h-7 w-7 sm:h-8 sm:w-8 mr-2 text-primary" />
           <h1 className="text-xl sm:text-2xl font-headline font-bold text-primary">Shadow Trader <span className="text-xs text-muted-foreground align-super">v2.0</span></h1>
         </div>
-        <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
-          {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-        </Button>
       </header>
 
       <MainnetStats />

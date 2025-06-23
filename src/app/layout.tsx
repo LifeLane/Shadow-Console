@@ -27,7 +27,8 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="theme-dark"
+          themes={['theme-light', 'theme-dark', 'theme-shadow', 'custom']}
           disableTransitionOnChange
         >
           <DynamicParticleBackground /> {/* Use the new client component here */}
