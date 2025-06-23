@@ -2,19 +2,19 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Brain, Bot, Gift, ListChecks, Settings as SettingsIcon, Sparkles, Moon, Sun, Rss } from 'lucide-react';
+import { Brain, Bot, Gift, ListChecks, Settings as SettingsIcon, Sparkles, Moon, Sun, Trophy } from 'lucide-react';
 import MindTab from '@/components/tabs/MindTab';
 import AgentsTab from '@/components/tabs/AgentsTab';
 import AirdropTab from '@/components/tabs/AirdropTab';
 import MissionsTab from '@/components/tabs/MissionsTab';
-import CoreDataStreamsTab from '@/components/tabs/CoreDataStreamsTab';
+import LeaderboardTab from '@/components/tabs/LeaderboardTab';
 import SettingsTab from '@/components/tabs/SettingsTab';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useTheme } from 'next-themes';
 import { motion, AnimatePresence } from 'framer-motion'; // Import framer-motion
 
-type TabId = 'mind' | 'agents' | 'airdrop' | 'missions' | 'streams' | 'settings';
+type TabId = 'mind' | 'agents' | 'airdrop' | 'missions' | 'leaderboard' | 'settings';
 
 interface Tab {
   id: TabId;
@@ -29,7 +29,7 @@ const tabs: Tab[] = [
   { id: 'agents', label: 'Agents', icon: Bot, component: AgentsTab, description: "Deployable Shadow agents (strategies)" },
   { id: 'airdrop', label: 'Airdrop Hub', icon: Gift, component: AirdropTab, description: "Claim airdrops, complete quests" },
   { id: 'missions', label: 'Missions', icon: ListChecks, component: MissionsTab, description: "Daily streaks, testnet tasks" },
-  { id: 'streams', label: 'Data Streams', icon: Rss, component: CoreDataStreamsTab, description: "Core data feeds and insights"},
+  { id: 'leaderboard', label: 'Leaderboard', icon: Trophy, component: LeaderboardTab, description: "Top agents by contribution"},
   { id: 'settings', label: 'Settings', icon: SettingsIcon, component: SettingsTab, description: "Wallets, APIs, theme" },
 ];
 
