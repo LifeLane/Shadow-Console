@@ -1,71 +1,78 @@
 'use server';
 
-import { cache } from 'react';
-import sql from '@/lib/db';
+import { promises as fs } from 'fs';
+import path from 'path';
 import type { Mission } from '@/lib/types';
+
+const missionsFilePath = path.join(process.cwd(), 'src', 'data', 'missions.json');
+const userMissionsFilePath = path.join(process.cwd(), 'src', 'data', 'user_missions.json');
+const usersFilePath = path.join(process.cwd(), 'src', 'data', 'users.json');
+
+async function readData<T>(filePath: string, defaultValue: T): Promise<T> {
+    try {
+        const fileContent = await fs.readFile(filePath, 'utf-8');
+        return JSON.parse(fileContent);
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            return defaultValue;
+        }
+        console.error(`Error reading file ${filePath}:`, error);
+        throw new Error(`Could not read data from ${filePath}.`);
+    }
+}
+
+async function writeData<T>(filePath: string, data: T) {
+    try {
+        await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8');
+    } catch (error) {
+        console.error(`Error writing file ${filePath}:`, error);
+        throw new Error(`Could not write data to ${filePath}.`);
+    }
+}
 
 /**
  * Fetches all available missions.
- * This function is cached to optimize data fetching.
  */
-export const getMissions = cache(async (): Promise<Mission[]> => {
-    try {
-        const missions = await sql<Mission[]>`SELECT * FROM missions ORDER BY xp`;
-        return missions;
-    } catch (error) {
-        console.error('Database Error: Failed to fetch missions.', error);
-        if (error.message.includes('relation "missions" does not exist')) {
-            return [];
-        }
-        throw error;
-    }
-});
+export async function getMissions(): Promise<Mission[]> {
+    return readData<Mission[]>(missionsFilePath, []);
+}
 
 /**
  * Fetches the IDs of completed missions for a user.
- * This function is cached to optimize data fetching.
  */
-export const getCompletedMissionIds = cache(async (userId: string): Promise<string[]> => {
-    try {
-        const result = await sql<{ mission_id: string }[]>`
-            SELECT mission_id FROM user_missions WHERE user_id = ${userId}
-        `;
-        return result.map(r => r.mission_id);
-    } catch (error) {
-        console.error(`Database Error: Failed to fetch completed missions for user ${userId}.`, error);
-        if (error.message.includes('relation "user_missions" does not exist')) {
-            return [];
-        }
-        throw error;
-    }
-});
+export async function getCompletedMissionIds(userId: string): Promise<string[]> {
+    const userMissions = await readData<Record<string, string[]>>(userMissionsFilePath, {});
+    return userMissions[userId] || [];
+}
 
 /**
  * Marks a mission as complete for a user and updates their XP.
  */
 export async function completeMissionForUser(userId: string, missionId: string): Promise<Mission> {
-    const allMissions = await getMissions(); // Uses cached version
+    const allMissions = await getMissions();
     const mission = allMissions.find(m => m.id === missionId);
 
     if (!mission) {
         throw new Error(`Mission with ID ${missionId} not found.`);
     }
 
-    await sql.begin(async (sql) => {
-        // 1. Add to user_missions
-        await sql`
-            INSERT INTO user_missions (user_id, mission_id)
-            VALUES (${userId}, ${missionId})
-            ON CONFLICT (user_id, mission_id) DO NOTHING
-        `;
+    // Update user missions
+    const userMissions = await readData<Record<string, string[]>>(userMissionsFilePath, {});
+    if (!userMissions[userId]) {
+        userMissions[userId] = [];
+    }
+    if (!userMissions[userId].includes(missionId)) {
+        userMissions[userId].push(missionId);
+        await writeData(userMissionsFilePath, userMissions);
 
-        // 2. Update user's XP
-        await sql`
-            UPDATE users
-            SET xp = xp + ${mission.xp}
-            WHERE id = ${userId}
-        `;
-    });
+        // Update user's XP
+        const users = await readData<any[]>(usersFilePath, []);
+        const userIndex = users.findIndex(u => u.id === userId);
+        if (userIndex > -1) {
+            users[userIndex].xp += mission.xp;
+            await writeData(usersFilePath, users);
+        }
+    }
     
     return mission;
 }

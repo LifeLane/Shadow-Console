@@ -21,7 +21,7 @@ const rewardIcons: { [key: string]: React.ElementType } = {
   daily_login: Sparkles,
 };
 
-export default function MissionsTab({ isDbInitialized }: { isDbInitialized: boolean }) {
+export default function MissionsTab() {
   const [missions, setMissions] = useState<MissionData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [completingId, setCompletingId] = useState<string | null>(null);
@@ -29,8 +29,6 @@ export default function MissionsTab({ isDbInitialized }: { isDbInitialized: bool
   const [descriptionKey, setDescriptionKey] = useState(0);
 
   useEffect(() => {
-    if (!isDbInitialized) return;
-
     async function loadMissions() {
       setIsLoading(true);
       try {
@@ -44,7 +42,7 @@ export default function MissionsTab({ isDbInitialized }: { isDbInitialized: bool
       }
     }
     loadMissions();
-  }, [isDbInitialized, toast]);
+  }, [toast]);
 
   const handleTaskAction = async (missionId: string) => {
     setCompletingId(missionId);

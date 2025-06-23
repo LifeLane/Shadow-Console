@@ -24,7 +24,7 @@ const POINTS_CONFIG = {
     GENESIS_INVITE: 25,
 };
 
-export default function AirdropTab({ isDbInitialized }: { isDbInitialized: boolean }) {
+export default function AirdropTab() {
   const { toast } = useToast();
   const [stats, setStats] = useState<AirdropStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,9 +50,8 @@ export default function AirdropTab({ isDbInitialized }: { isDbInitialized: boole
   };
 
   useEffect(() => {
-    if (!isDbInitialized) return;
     fetchStats();
-  }, [isDbInitialized, toast]);
+  }, []);
   
   const handleWalletSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

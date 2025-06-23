@@ -1,44 +1,51 @@
 'use server';
 
-import { cache } from 'react';
-import sql from '@/lib/db';
+import { promises as fs } from 'fs';
+import path from 'path';
 import type { User } from '@/lib/types';
 
+const dataFilePath = path.join(process.cwd(), 'src', 'data', 'users.json');
+
+async function readUsers(): Promise<User[]> {
+    try {
+        const fileContent = await fs.readFile(dataFilePath, 'utf-8');
+        return JSON.parse(fileContent);
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            return []; // File doesn't exist, return empty array
+        }
+        console.error('Error reading users file:', error);
+        throw new Error('Could not read users data.');
+    }
+}
+
+async function writeUsers(users: User[]) {
+    try {
+        await fs.writeFile(dataFilePath, JSON.stringify(users, null, 2), 'utf-8');
+    } catch (error) {
+        console.error('Error writing users file:', error);
+        throw new Error('Could not write users data.');
+    }
+}
+
+
 /**
- * Fetches all users from the database.
- * This function is cached to optimize data fetching.
+ * Fetches all users from the local JSON file.
  * @returns A promise that resolves to an array of users.
  */
-export const getUsers = cache(async (): Promise<User[]> => {
-    try {
-        return await sql<User[]>`SELECT * FROM users`;
-    } catch(e) {
-        console.error('Failed to fetch users', e);
-        if (e.message.includes('relation "users" does not exist')) {
-            return [];
-        }
-        throw e;
-    }
-});
+export async function getUsers(): Promise<User[]> {
+    return readUsers();
+}
 
 /**
  * Fetches a single user by ID.
- * This function is cached to optimize data fetching.
  * @param id The ID of the user to fetch.
  * @returns A promise that resolves to the user object or null if not found.
  */
-export const getUser = cache(async (id: string): Promise<User | null> => {
-    try {
-        const users = await sql<User[]>`SELECT * FROM users WHERE id = ${id}`;
-        return users[0] || null;
-    } catch(e) {
-        console.error(`Failed to fetch user ${id}`, e);
-        if (e.message.includes('relation "users" does not exist')) {
-            return null;
-        }
-        throw e;
-    }
-});
+export async function getUser(id: string): Promise<User | null> {
+    const users = await readUsers();
+    return users.find(u => u.id === id) || null;
+}
 
 /**
  * Updates a user's wallet information.
@@ -47,42 +54,26 @@ export const getUser = cache(async (id: string): Promise<User | null> => {
  * @param walletChain The new wallet chain.
  */
 export async function updateUserWallet(userId: string, walletAddress: string | null, walletChain: string | null) {
-  try {
-    await sql`
-      UPDATE users
-      SET wallet_address = ${walletAddress}, wallet_chain = ${walletChain}, updated_at = NOW()
-      WHERE id = ${userId};
-    `;
-  } catch (error) {
-    console.error(`Database Error: Failed to update wallet for user ${userId}.`, error);
-    throw new Error('Failed to update wallet information.');
+  const users = await readUsers();
+  const userIndex = users.findIndex(u => u.id === userId);
+
+  if (userIndex > -1) {
+    users[userIndex].wallet_address = walletAddress;
+    users[userIndex].wallet_chain = walletChain;
+    users[userIndex].updated_at = new Date().toISOString();
+    await writeUsers(users);
+  } else {
+    throw new Error(`User with id ${userId} not found.`);
   }
 }
 
 /**
  * Fetches leaderboard data.
- * This function is cached to optimize data fetching.
  * @returns A promise that resolves to an array of users sorted by XP.
  */
-export const getLeaderboardData = cache(async (): Promise<User[]> => {
-  try {
-    return await sql<User[]>`
-        SELECT 
-            id,
-            name,
-            avatarUrl,
-            xp,
-            bsai_earned,
-            signals_generated
-        FROM users
-        ORDER BY xp DESC
-        LIMIT 10;
-    `;
-  } catch (e) {
-    console.error('Failed to fetch leaderboard data', e);
-    if (e.message.includes('relation "users" does not exist')) {
-        return [];
-    }
-    throw e;
-  }
-});
+export async function getLeaderboardData(): Promise<User[]> {
+    const users = await readUsers();
+    return users
+        .sort((a, b) => b.xp - a.xp)
+        .slice(0, 10);
+}

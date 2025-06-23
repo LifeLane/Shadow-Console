@@ -145,15 +145,13 @@ const AgentEditorDialog: React.FC<{ agent: Omit<Agent, 'id'> | Agent, onSave: (a
 
 // --- MAIN TAB COMPONENT ---
 
-export default function AgentsTab({ isDbInitialized }: { isDbInitialized: boolean }) {
+export default function AgentsTab() {
     const [agents, setAgents] = useState<Agent[]>([]);
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
 
     useEffect(() => {
-        if (!isDbInitialized) return;
-
         async function loadInitialData() {
             setIsLoading(true);
             try {
@@ -165,14 +163,14 @@ export default function AgentsTab({ isDbInitialized }: { isDbInitialized: boolea
                 setAgents(dbAgents);
                 setUser(dbUser);
             } catch (error) {
-                console.error("Failed to load data from database", error);
+                console.error("Failed to load data from data store", error);
                 toast({ title: "Error", description: "Could not load agent & user data.", variant: "destructive" });
             } finally {
                 setIsLoading(false);
             }
         }
         loadInitialData();
-    }, [isDbInitialized, toast]);
+    }, [toast]);
 
     const handleSaveAgent = async (agentToSave: Agent) => {
         try {
@@ -183,10 +181,10 @@ export default function AgentsTab({ isDbInitialized }: { isDbInitialized: boolea
             const isNew = !agents.some(a => a.id === agentToSave.id);
             toast({ 
                 title: isNew ? "Agent Created" : "Agent Updated", 
-                description: `${agentToSave.name} has been saved to the database.` 
+                description: `${agentToSave.name} has been saved.` 
             });
         } catch (error) {
-            toast({ title: "Save Failed", description: "Could not save the agent to the database.", variant: "destructive" });
+            toast({ title: "Save Failed", description: "Could not save the agent.", variant: "destructive" });
         }
     };
     
@@ -227,7 +225,7 @@ export default function AgentsTab({ isDbInitialized }: { isDbInitialized: boolea
         return (
             <div className="flex justify-center items-center h-64">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="ml-4 text-lg text-muted-foreground">Connecting to Shadow Core Database...</p>
+                <p className="ml-4 text-lg text-muted-foreground">Connecting to Shadow Core Datastore...</p>
             </div>
         );
     }

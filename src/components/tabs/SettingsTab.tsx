@@ -17,7 +17,7 @@ import { getUserData, updateWalletAction } from '@/app/settings/actions';
 import type { User } from '@/lib/types';
 
 
-export default function SettingsTab({ isDbInitialized }: { isDbInitialized: boolean }) {
+export default function SettingsTab() {
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
@@ -40,8 +40,7 @@ export default function SettingsTab({ isDbInitialized }: { isDbInitialized: bool
   // Load user data on mount
   useEffect(() => {
     setMounted(true);
-    if (!isDbInitialized) return;
-
+    
     async function loadUserData() {
         try {
             setIsLoading(true);
@@ -55,14 +54,14 @@ export default function SettingsTab({ isDbInitialized }: { isDbInitialized: bool
                  setSignalStrength(Math.floor(Math.random() * 50) + 20); 
             }
         } catch (error) {
-            toast({ title: "Error", description: "Could not load user data from database.", variant: "destructive" });
+            toast({ title: "Error", description: "Could not load user data.", variant: "destructive" });
         } finally {
             setIsLoading(false);
             setDescriptionKey(prev => prev + 1);
         }
     }
     loadUserData();
-  }, [isDbInitialized, toast]);
+  }, [toast]);
   
   // Signal strength simulation
   useEffect(() => {
@@ -89,24 +88,29 @@ export default function SettingsTab({ isDbInitialized }: { isDbInitialized: bool
 
   const handleWalletConnection = async () => {
     setIsSaving(true);
-    if (isWalletConnected) {
-      await updateWalletAction(null, null);
-      setIsWalletConnected(false);
-      setConnectedWalletInfo(null);
-      setSignalStrength(Math.floor(Math.random() * 50) + 20);
-      toast({ title: "Wallet Disconnected", description: "Your Neural ID has been decoupled from the Shadow Core." });
-    } else {
-      // In a real app, this would come from a wallet connector like RainbowKit/WAGMI
-      const simulatedAddress = `0x${Array(40).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('')}`;
-      const simulatedChain = 'ETH';
-
-      await updateWalletAction(simulatedAddress, simulatedChain);
-      setIsWalletConnected(true);
-      setConnectedWalletInfo({ address: simulatedAddress, chain: simulatedChain });
-      setSignalStrength(Math.floor(Math.random() * 30) + 70);
-      toast({ title: "Neural ID Synced!", description: `Successfully synced wallet with Shadow Core.` });
+    try {
+        if (isWalletConnected) {
+          await updateWalletAction(null, null);
+          setIsWalletConnected(false);
+          setConnectedWalletInfo(null);
+          setSignalStrength(Math.floor(Math.random() * 50) + 20);
+          toast({ title: "Wallet Disconnected", description: "Your Neural ID has been decoupled from the Shadow Core." });
+        } else {
+          // In a real app, this would come from a wallet connector like RainbowKit/WAGMI
+          const simulatedAddress = `0x${Array(40).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('')}`;
+          const simulatedChain = 'ETH';
+    
+          await updateWalletAction(simulatedAddress, simulatedChain);
+          setIsWalletConnected(true);
+          setConnectedWalletInfo({ address: simulatedAddress, chain: simulatedChain });
+          setSignalStrength(Math.floor(Math.random() * 30) + 70);
+          toast({ title: "Neural ID Synced!", description: `Successfully synced wallet with Shadow Core.` });
+        }
+    } catch (error) {
+         toast({ title: "Error", description: "Failed to update wallet status.", variant: "destructive" });
+    } finally {
+        setIsSaving(false);
     }
-    setIsSaving(false);
   };
   
   const handleSaveApiKeys = () => {

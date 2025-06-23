@@ -1,72 +1,66 @@
 'use server';
 
-import { cache } from 'react';
-import sql from '@/lib/db';
+import { promises as fs } from 'fs';
+import path from 'path';
 import type { Agent } from '@/lib/types';
 
+const dataFilePath = path.join(process.cwd(), 'src', 'data', 'agents.json');
+
+async function readAgents(): Promise<Agent[]> {
+    try {
+        const fileContent = await fs.readFile(dataFilePath, 'utf-8');
+        return JSON.parse(fileContent);
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            return []; // File doesn't exist, return empty array
+        }
+        console.error('Error reading agents file:', error);
+        throw new Error('Could not read agents data.');
+    }
+}
+
+async function writeAgents(agents: Agent[]) {
+    try {
+        await fs.writeFile(dataFilePath, JSON.stringify(agents, null, 2), 'utf-8');
+    } catch (error) {
+        console.error('Error writing agents file:', error);
+        throw new Error('Could not write agents data.');
+    }
+}
+
 /**
- * Fetches agents for the default user from the database.
- * This function is cached to optimize data fetching.
+ * Fetches agents for the default user from the local JSON file.
  * @returns A promise that resolves to an array of agents.
  */
-export const getAgents = cache(async (): Promise<Agent[]> => {
-  try {
-    // For now, we'll assume a single default user. This can be parameterized later.
-    const agents = await sql<Agent[]>`SELECT * FROM agents WHERE user_id = 'default_user'`;
-    return agents;
-  } catch (error) {
-    console.error('Database Error: Failed to fetch agents.', error);
-    // If the table doesn't exist, it's not a fatal error on first run.
-    if (error.message.includes('relation "agents" does not exist')) {
-        return [];
-    }
-    throw error;
-  }
-});
+export async function getAgents(): Promise<Agent[]> {
+    const allAgents = await readAgents();
+    return allAgents.filter(agent => agent.user_id === 'default_user');
+}
 
 /**
- * Fetches ALL agents from the database, for admin purposes.
- * This function is cached to optimize data fetching.
+ * Fetches ALL agents from the local JSON file for admin purposes.
  * @returns A promise that resolves to an array of all agents.
  */
-export const getAllAgents = cache(async (): Promise<Agent[]> => {
-  try {
-    const agents = await sql<Agent[]>`SELECT * FROM agents`;
-    return agents;
-  } catch (error) {
-    console.error('Database Error: Failed to fetch all agents.', error);
-    if (error.message.includes('relation "agents" does not exist')) {
-        return [];
-    }
-    throw error;
-  }
-});
-
+export async function getAllAgents(): Promise<Agent[]> {
+    return readAgents();
+}
 
 /**
- * Saves or updates an agent in the database.
+ * Saves or updates an agent in the local JSON file.
  * @param agent The agent object to save.
  */
 export async function saveAgent(agent: Agent) {
-  const { id, name, description, status, is_custom, parameters, code, performance, user_id } = agent;
-  try {
-    await sql`
-      INSERT INTO agents (id, name, description, status, is_custom, parameters, code, performance, user_id)
-      VALUES (${id}, ${name}, ${description}, ${status}, ${is_custom}, ${sql.json(parameters)}, ${code}, ${sql.json(performance)}, ${user_id || 'default_user'})
-      ON CONFLICT (id) 
-      DO UPDATE SET
-        name = EXCLUDED.name,
-        description = EXCLUDED.description,
-        status = EXCLUDED.status,
-        is_custom = EXCLUDED.is_custom,
-        parameters = EXCLUDED.parameters,
-        code = EXCLUDED.code,
-        performance = EXCLUDED.performance;
-    `;
-  } catch (error) {
-    console.error(`Database Error: Failed to save agent ${id}.`, error);
-    throw new Error('Failed to save agent.');
-  }
+    const agents = await readAgents();
+    const agentIndex = agents.findIndex(a => a.id === agent.id);
+
+    const agentToSave = { ...agent, user_id: agent.user_id || 'default_user' };
+
+    if (agentIndex > -1) {
+        agents[agentIndex] = agentToSave;
+    } else {
+        agents.push(agentToSave);
+    }
+    await writeAgents(agents);
 }
 
 /**
@@ -75,14 +69,13 @@ export async function saveAgent(agent: Agent) {
  * @param status The new status.
  */
 export async function updateAgentStatus(agentId: string, status: Agent['status']) {
-  try {
-    await sql`
-      UPDATE agents
-      SET status = ${status}
-      WHERE id = ${agentId};
-    `;
-  } catch (error) {
-    console.error(`Database Error: Failed to update status for agent ${agentId}.`, error);
-    throw new Error('Failed to update agent status.');
-  }
+    const agents = await readAgents();
+    const agentIndex = agents.findIndex(a => a.id === agentId);
+
+    if (agentIndex > -1) {
+        agents[agentIndex].status = status;
+        await writeAgents(agents);
+    } else {
+        throw new Error(`Agent with id ${agentId} not found.`);
+    }
 }

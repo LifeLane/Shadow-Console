@@ -44,28 +44,25 @@ const pageTransitionVariants = {
 
 export default function AppLayout() {
   const [activeTab, setActiveTab] = useState<TabId>('mind');
-  const [isDbInitialized, setIsDbInitialized] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    async function initializeDatabase() {
-        if (isDbInitialized) return;
+    async function initializeDataStore() {
         try {
-            console.log("Initializing database and seeding data...");
+            console.log("Initializing local JSON data store...");
             await setupDatabaseAndSeed();
-            console.log("Database initialization complete.");
-            setIsDbInitialized(true);
+            console.log("Local data store initialization complete.");
         } catch (error) {
-            console.error("Failed to initialize database:", error);
+            console.error("Failed to initialize local data store:", error);
             toast({
-                title: "Database Connection Error",
-                description: "Could not initialize the application database. Some features may not work correctly.",
+                title: "Data Store Error",
+                description: "Could not initialize the application's local data files. Some features may not work correctly.",
                 variant: "destructive",
             });
         }
     }
-    initializeDatabase();
-  }, [isDbInitialized, toast]);
+    initializeDataStore();
+  }, [toast]);
 
   const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || (() => <div className="text-center p-4 sm:p-8">Component not found. Select a tab.</div>);
 
@@ -97,7 +94,7 @@ export default function AppLayout() {
               variants={pageTransitionVariants}
               transition={pageTransitionVariants.transition}
             >
-              <ActiveComponent isDbInitialized={isDbInitialized} />
+              <ActiveComponent />
             </motion.div>
           </AnimatePresence>
         </div>

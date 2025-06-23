@@ -2,7 +2,6 @@
 
 import { getAllAgents } from '@/services/agentService';
 import { getUsers } from '@/services/userService';
-import type { Agent, User } from '@/lib/types';
 
 export async function exportAllData() {
     try {
