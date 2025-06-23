@@ -1,13 +1,12 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTheme } from 'next-themes';
 import { Wallet, Bell, Palette, KeyRound, Eye, EyeOff, CheckCircle, XCircle, Settings as SettingsGear, UserCircle, BarChartBig, Loader2 } from 'lucide-react';
@@ -17,39 +16,6 @@ import TypewriterText from '@/components/TypewriterText';
 import { getUserData, updateWalletAction } from '@/app/settings/actions';
 import type { User } from '@/lib/types';
 
-interface Color {
-  h: number;
-  s: number;
-  l: number;
-}
-
-interface CustomTheme {
-  background: Color;
-  primary: Color;
-  accent: Color;
-}
-
-const CUSTOM_THEME_STORAGE_KEY = 'shadow-trader-custom-theme';
-
-const initialCustomTheme: CustomTheme = {
-  background: { h: 220, s: 15, l: 10 },
-  primary: { h: 260, s: 100, l: 65 },
-  accent: { h: 60, s: 100, l: 50 },
-};
-
-const ColorSlider: React.FC<{ label: string; value: number; onValueChange: (value: number[]) => void; max?: number; step?: number, color: string }> = ({ label, value, onValueChange, max = 360, step = 1, color }) => (
-    <div className="flex items-center space-x-4">
-        <Label className="w-8 text-xs font-code">{label}</Label>
-        <Slider
-            value={[value]}
-            onValueChange={onValueChange}
-            max={max}
-            step={step}
-            className={cn(color)}
-        />
-        <div className="text-xs font-mono w-10 text-right">{value}</div>
-    </div>
-);
 
 export default function SettingsTab() {
   const { theme, setTheme } = useTheme();
@@ -71,10 +37,7 @@ export default function SettingsTab() {
   const [signalStrength, setSignalStrength] = useState(0);
   const [descriptionKey, setDescriptionKey] = useState(0);
 
-  // Custom Theme State
-  const [customTheme, setCustomTheme] = useState<CustomTheme>(initialCustomTheme);
-
-  // Load user data and custom theme from localStorage on mount
+  // Load user data on mount
   useEffect(() => {
     setMounted(true);
     async function loadUserData() {
@@ -97,48 +60,7 @@ export default function SettingsTab() {
         }
     }
     loadUserData();
-    
-    try {
-        const savedTheme = localStorage.getItem(CUSTOM_THEME_STORAGE_KEY);
-        if (savedTheme) {
-            setCustomTheme(JSON.parse(savedTheme));
-        }
-    } catch (e) {
-        console.error("Failed to load custom theme from localStorage", e);
-    }
   }, [toast]);
-
-  // Apply custom theme colors as CSS variables
-  const applyCustomTheme = useCallback((colors: CustomTheme) => {
-    const root = document.documentElement;
-    root.style.setProperty('--background', `${colors.background.h} ${colors.background.s}% ${colors.background.l}%`);
-    root.style.setProperty('--primary', `${colors.primary.h} ${colors.primary.s}% ${colors.primary.l}%`);
-    root.style.setProperty('--accent', `${colors.accent.h} ${colors.accent.s}% ${colors.accent.l}%`);
-    // You can add more variables for foreground, card, etc. if you want more control
-  }, []);
-
-  const clearCustomTheme = useCallback(() => {
-    const root = document.documentElement;
-    root.style.removeProperty('--background');
-    root.style.removeProperty('--primary');
-    root.style.removeProperty('--accent');
-  }, []);
-
-  // Effect to manage theme application
-  useEffect(() => {
-    if (theme === 'custom') {
-      applyCustomTheme(customTheme);
-    } else {
-      clearCustomTheme();
-    }
-  }, [theme, customTheme, applyCustomTheme, clearCustomTheme]);
-
-  // Save custom theme to localStorage whenever it changes
-  useEffect(() => {
-    if (mounted) {
-      localStorage.setItem(CUSTOM_THEME_STORAGE_KEY, JSON.stringify(customTheme));
-    }
-  }, [customTheme, mounted]);
   
   // Signal strength simulation
   useEffect(() => {
@@ -185,16 +107,6 @@ export default function SettingsTab() {
         title: "API Keys Configuration Updated (Simulated)",
         description: "Your Binance API keys have been securely processed for simulated operations.",
     });
-  };
-
-  const handleCustomColorChange = (colorType: keyof CustomTheme, property: keyof Color, value: number) => {
-    setCustomTheme(prev => ({
-        ...prev,
-        [colorType]: {
-            ...prev[colorType],
-            [property]: value
-        }
-    }));
   };
 
   if (isLoading) {
@@ -246,33 +158,9 @@ export default function SettingsTab() {
                         <SelectItem value="theme-light">Light</SelectItem>
                         <SelectItem value="theme-dark">Dark (Cyberpunk)</SelectItem>
                         <SelectItem value="theme-shadow">Shadow (Arcane)</SelectItem>
-                        <SelectItem value="custom">Custom</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-
-                {theme === 'custom' && (
-                    <div className="space-y-4 pt-2">
-                        <div className="space-y-2">
-                            <h4 className="font-semibold text-sm">Background Color</h4>
-                            <ColorSlider label="H" value={customTheme.background.h} onValueChange={([v]) => handleCustomColorChange('background', 'h', v)} color="[--slider-track:hsl(var(--background-h),100%,50%)]" />
-                            <ColorSlider label="S" value={customTheme.background.s} onValueChange={([v]) => handleCustomColorChange('background', 's', v)} max={100} />
-                            <ColorSlider label="L" value={customTheme.background.l} onValueChange={([v]) => handleCustomColorChange('background', 'l', v)} max={100} />
-                        </div>
-                         <div className="space-y-2">
-                            <h4 className="font-semibold text-sm">Primary Color</h4>
-                            <ColorSlider label="H" value={customTheme.primary.h} onValueChange={([v]) => handleCustomColorChange('primary', 'h', v)} />
-                            <ColorSlider label="S" value={customTheme.primary.s} onValueChange={([v]) => handleCustomColorChange('primary', 's', v)} max={100} />
-                            <ColorSlider label="L" value={customTheme.primary.l} onValueChange={([v]) => handleCustomColorChange('primary', 'l', v)} max={100} />
-                        </div>
-                         <div className="space-y-2">
-                            <h4 className="font-semibold text-sm">Accent Color</h4>
-                            <ColorSlider label="H" value={customTheme.accent.h} onValueChange={([v]) => handleCustomColorChange('accent', 'h', v)} />
-                            <ColorSlider label="S" value={customTheme.accent.s} onValueChange={([v]) => handleCustomColorChange('accent', 's', v)} max={100} />
-                            <ColorSlider label="L" value={customTheme.accent.l} onValueChange={([v]) => handleCustomColorChange('accent', 'l', v)} max={100} />
-                        </div>
-                    </div>
-                )}
             </CardContent>
           </Card>
 

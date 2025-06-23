@@ -3,7 +3,6 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import DynamicParticleBackground from '@/components/DynamicParticleBackground'; // Import the new client component
 
 export const metadata: Metadata = {
   title: 'Shadow Trader',
@@ -28,10 +27,9 @@ export default function RootLayout({
         <ThemeProvider
           attribute="class"
           defaultTheme="theme-dark"
-          themes={['theme-light', 'theme-dark', 'theme-shadow', 'custom']}
+          themes={['theme-light', 'theme-dark', 'theme-shadow']}
           disableTransitionOnChange
         >
-          <DynamicParticleBackground /> {/* Use the new client component here */}
           {children}
           <Toaster />
         </ThemeProvider>
