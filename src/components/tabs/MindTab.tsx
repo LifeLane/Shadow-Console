@@ -20,7 +20,7 @@ import { getSignalHistoryAction, saveSignalAction } from '@/app/mind/actions';
 import type { Signal } from '@/lib/types';
 
 
-type CoreState = 'dormant' | 'activating' | 'idle' | 'simulating' | 'tracking' | 'resolved';
+type CoreState = 'idle' | 'simulating' | 'tracking' | 'resolved';
 
 const initialFormState: MarketInsightsInput = {
   target: 'BTCUSDT',
@@ -40,11 +40,10 @@ const cardVariants = {
 
 export default function MindTab() {
   const [formState, setFormState] = useState<MarketInsightsInput>(initialFormState);
-  const [coreState, setCoreState] = useState<CoreState>('dormant');
+  const [coreState, setCoreState] = useState<CoreState>('idle');
   const [insights, setInsights] = useState<MarketInsightsOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const [activationStep, setActivationStep] = useState(0);
   const [signalStatusMessage, setSignalStatusMessage] = useState('');
   const [rewardData, setRewardData] = useState<{ bsaid: number; xp: number } | null>(null);
   const [simulationResult, setSimulationResult] = useState<MarketInsightsOutput | null>(null);
@@ -77,86 +76,71 @@ export default function MindTab() {
   };
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
+    fetchSignalHistory();
+  }, []);
 
-    if (coreState === 'activating') {
-      if (activationStep < 3) {
-        timeoutId = setTimeout(() => setActivationStep(activationStep + 1), 700);
-      } else {
-        timeoutId = setTimeout(() => {
-            setCoreState('idle');
-            fetchSignalHistory(); // Fetch history when core is ready
-            setCompletedHistoryLines([]); // Reset for animation
-        }, 700);
-      }
+  useEffect(() => {
+    if (coreState === 'tracking' && simulationResult) {
+      // Phase 1: On Hold
+      setLivePrice(null);
+      setSignalStatusMessage(`On Hold: Awaiting optimal entry near ${simulationResult.entryRange}...`);
+      
+      const entryTimeout = setTimeout(() => {
+          // Phase 2: Order Executed & Start Tracking
+          setSignalStatusMessage(`Order Executed! Monitoring Take Profit (${simulationResult.takeProfit}) / Stop Loss (${simulationResult.stopLoss})...`);
+          
+          trackingIntervalRef.current = setInterval(async () => {
+          const priceStr = await getLivePrice(formState.target);
+          if (priceStr) {
+              const currentPrice = parseFloat(priceStr);
+              setLivePrice(priceStr);
+
+              const stopLossPrice = parseFloat(simulationResult.stopLoss.replace(/[^0-9.-]+/g,""));
+              const takeProfitPrice = parseFloat(simulationResult.takeProfit.replace(/[^0-9.-]+/g,""));
+
+              const isBuySignal = simulationResult.prediction.toUpperCase() === 'BUY';
+              let outcome: 'TP_HIT' | 'SL_HIT' | null = null;
+              
+              if (isBuySignal) {
+                  if (currentPrice >= takeProfitPrice) outcome = 'TP_HIT';
+                  else if (currentPrice <= stopLossPrice) outcome = 'SL_HIT';
+              } else { // It's a SELL signal
+                  if (currentPrice <= takeProfitPrice) outcome = 'TP_HIT';
+                  else if (currentPrice >= stopLossPrice) outcome = 'SL_HIT';
+              }
+
+              if (outcome) {
+                  if (trackingIntervalRef.current) clearInterval(trackingIntervalRef.current);
+                  
+                  const bsaid = outcome === 'TP_HIT' ? Math.floor(Math.random() * 500) + 250 : 0;
+                  const xp = outcome === 'TP_HIT' ? Math.floor(Math.random() * 100) + 50 : 10;
+                  setRewardData({ bsaid, xp });
+
+                  await saveSignalAction({
+                      asset: formState.target,
+                      prediction: simulationResult.prediction as 'BUY' | 'SELL' | 'HOLD',
+                      trade_mode: formState.tradeMode,
+                      outcome: outcome,
+                      reward_bsai: bsaid,
+                      reward_xp: xp,
+                      gas_paid: Math.floor(Math.random() * 5) + 1,
+                  });
+
+                  setSignalStatusMessage(outcome === 'TP_HIT' ? `Take Profit Hit at ${priceStr}!` : `Stop Loss Hit at ${priceStr}!`);
+                  setCoreState('resolved');
+              }
+          }
+          }, 5000); // Check price every 5 seconds
+      }, 4000); // 4 second "On Hold" delay
+
+      return () => {
+          clearTimeout(entryTimeout);
+          if (trackingIntervalRef.current) {
+            clearInterval(trackingIntervalRef.current);
+          }
+      };
     }
-
-    const handleTracking = async () => {
-       if (coreState === 'tracking' && simulationResult) {
-            // Phase 1: On Hold
-            setLivePrice(null);
-            setSignalStatusMessage(`On Hold: Awaiting optimal entry near ${simulationResult.entryRange}...`);
-            
-            const entryTimeout = setTimeout(() => {
-                // Phase 2: Order Executed & Start Tracking
-                setSignalStatusMessage(`Order Executed! Monitoring Take Profit (${simulationResult.takeProfit}) / Stop Loss (${simulationResult.stopLoss})...`);
-                
-                trackingIntervalRef.current = setInterval(async () => {
-                const priceStr = await getLivePrice(formState.target);
-                if (priceStr) {
-                    const currentPrice = parseFloat(priceStr);
-                    setLivePrice(priceStr);
-
-                    const stopLossPrice = parseFloat(simulationResult.stopLoss.replace(/[^0-9.-]+/g,""));
-                    const takeProfitPrice = parseFloat(simulationResult.takeProfit.replace(/[^0-9.-]+/g,""));
-
-                    const isBuySignal = simulationResult.prediction.toUpperCase() === 'BUY';
-                    let outcome: 'TP_HIT' | 'SL_HIT' | null = null;
-                    
-                    if (isBuySignal) {
-                        if (currentPrice >= takeProfitPrice) outcome = 'TP_HIT';
-                        else if (currentPrice <= stopLossPrice) outcome = 'SL_HIT';
-                    } else { // It's a SELL signal
-                        if (currentPrice <= takeProfitPrice) outcome = 'TP_HIT';
-                        else if (currentPrice >= stopLossPrice) outcome = 'SL_HIT';
-                    }
-
-                    if (outcome) {
-                        if (trackingIntervalRef.current) clearInterval(trackingIntervalRef.current);
-                        
-                        const bsaid = outcome === 'TP_HIT' ? Math.floor(Math.random() * 500) + 250 : 0;
-                        const xp = outcome === 'TP_HIT' ? Math.floor(Math.random() * 100) + 50 : 10;
-                        setRewardData({ bsaid, xp });
-
-                        await saveSignalAction({
-                            asset: formState.target,
-                            prediction: simulationResult.prediction as 'BUY' | 'SELL' | 'HOLD',
-                            trade_mode: formState.tradeMode,
-                            outcome: outcome,
-                            reward_bsai: bsaid,
-                            reward_xp: xp,
-                            gas_paid: Math.floor(Math.random() * 5) + 1,
-                        });
-
-                        setSignalStatusMessage(outcome === 'TP_HIT' ? `Take Profit Hit at ${priceStr}!` : `Stop Loss Hit at ${priceStr}!`);
-                        setCoreState('resolved');
-                    }
-                }
-                }, 5000); // Check price every 5 seconds
-            }, 4000); // 4 second "On Hold" delay
-
-            return () => {
-                clearTimeout(entryTimeout);
-                if (trackingIntervalRef.current) {
-                clearInterval(trackingIntervalRef.current);
-                }
-            };
-       }
-    };
-    handleTracking();
-
-    return () => clearTimeout(timeoutId);
-  }, [coreState, activationStep, simulationResult, formState.target]);
+  }, [coreState, simulationResult, formState.target]);
 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -205,8 +189,7 @@ export default function MindTab() {
   };
 
   const resetCore = () => {
-    setCoreState('idle'); // Go back to idle, not dormant
-    setActivationStep(0);
+    setCoreState('idle');
     setInsights(null);
     setSimulationResult(null);
     setRewardData(null);
@@ -228,36 +211,6 @@ export default function MindTab() {
 
   const renderContent = () => {
     switch (coreState) {
-      case 'dormant':
-        return (
-          <motion.div key="dormant" {...cardVariants} className="flex flex-col items-center justify-center">
-            <Card className="glow-border-primary shadow-2xl bg-card text-center p-8 w-full max-w-md">
-              <CardTitle className="font-headline text-3xl text-primary mb-2">Core is Dormant</CardTitle>
-              <CardDescription className="font-code text-base mb-6">Your thoughts feed the Mind. Your signals guide the chain.</CardDescription>
-              <Button onClick={() => setCoreState('activating')} className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg py-3 px-6 glow-border-primary">
-                Activate Shadow Core
-              </Button>
-            </Card>
-          </motion.div>
-        );
-      case 'activating':
-        const steps = [
-          { text: 'Unlocking neural channel...', progress: 25 },
-          { text: 'Calibrating quantum parameters...', progress: 60 },
-          { text: 'Synchronizing with ShadowNet...', progress: 100 },
-        ];
-        const currentStep = steps[activationStep] || steps[2];
-        return (
-           <motion.div key="activating" {...cardVariants}>
-            <Card className="glow-border-primary shadow-2xl bg-card text-center p-8">
-                <CardTitle className="font-headline text-3xl text-primary mb-4">Core Activation</CardTitle>
-                <div className="w-full bg-primary/10 rounded-full h-2.5 mb-4">
-                    <div className="bg-primary h-2.5 rounded-full transition-all duration-700" style={{ width: `${currentStep.progress}%` }}></div>
-                </div>
-                <TypewriterText text={currentStep.text} speed={40} className="font-code text-lg text-muted-foreground" showCaret={false} />
-            </Card>
-           </motion.div>
-        );
       case 'simulating':
         return (
           <motion.div key="simulating" {...cardVariants}>
