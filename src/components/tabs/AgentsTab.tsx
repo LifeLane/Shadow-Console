@@ -1,160 +1,138 @@
 
 "use client";
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Bot, ShieldQuestion, Zap, PlusCircle } from 'lucide-react';
-import Image from 'next/image';
-import TypewriterText from '@/components/TypewriterText';
+import React, { useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Label } from '@/components/ui/label';
+import { Bot, History, Target, TrendingUp, TrendingDown, CheckCircle, XCircle, Award, Star } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-interface AgentStrategy {
-  id: string;
-  name: string;
-  description: string;
-  style: string; 
-  riskProfile: string; 
-  iconUrl?: string; 
-  performanceMetrics?: {
-    winRate: string;
-    avgReturn: string;
-  };
-  status: 'active' | 'inactive' | 'training';
-}
+// Mock Data
+const userStats = {
+  signalsGenerated: 12,
+  signalsWon: 9,
+  totalBsaiEarned: 7540,
+  currentXp: 1250,
+  xpForNextLevel: 2000,
+  milestones: [
+    { name: "First Signal", completed: true },
+    { name: "First Win", completed: true },
+    { name: "10 Signals", completed: true },
+    { name: "5 Wins", completed: true },
+    { name: "Signal Streak: 3", completed: false },
+  ]
+};
 
-const mockAgents: AgentStrategy[] = [
-  {
-    id: 'agent_alpha',
-    name: 'Alpha Predator X1',
-    description: 'High-frequency scalping agent optimized for volatile markets. Utilizes micro-trend analysis and rapid execution protocols for short-term gains.',
-    style: 'Scalping',
-    riskProfile: 'Aggressive',
-    iconUrl: 'https://placehold.co/150x150.png',
-    performanceMetrics: { winRate: '68%', avgReturn: '+1.2%/trade' },
-    status: 'active',
-  },
-  {
-    id: 'agent_sigma',
-    name: 'Sigma Sentinel',
-    description: 'Swing trading agent focusing on macro trends and sustained momentum shifts. Ideal for longer holds, leveraging deep market structure analysis.',
-    style: 'Swing Trading',
-    riskProfile: 'Balanced',
-    iconUrl: 'https://placehold.co/150x150.png',
-    performanceMetrics: { winRate: '75%', avgReturn: '+5.5%/trade' },
-    status: 'inactive',
-  },
-  {
-    id: 'agent_omega',
-    name: 'Omega Oracle (Training)',
-    description: 'Experimental agent leveraging advanced pattern recognition and quantum entanglement simulations for futures contracts. Currently in Shadow Core training.',
-    style: 'Futures',
-    riskProfile: 'Experimental',
-    iconUrl: 'https://placehold.co/150x150.png',
-    status: 'training',
-  },
+const signalHistory = [
+  { id: 'sig1', target: 'BTCUSDT', prediction: 'BUY', outcome: 'Take Profit Hit', reward: 850 },
+  { id: 'sig2', target: 'ETHUSDT', prediction: 'SELL', outcome: 'Stop Loss Hit', reward: 15 },
+  { id: 'sig3', target: 'SOLUSDT', prediction: 'BUY', outcome: 'Take Profit Hit', reward: 1200 },
+  { id: 'sig4', target: 'DOGEUSDT', prediction: 'BUY', outcome: 'Take Profit Hit', reward: 450 },
+  { id: 'sig5', target: 'LINKUSDT', prediction: 'SELL', outcome: 'Take Profit Hit', reward: 975 },
 ];
 
+const StatCard = ({ title, value, children }: { title: string; value: string | number; children: React.ReactNode }) => (
+    <Card className="p-4 bg-card/80 text-center shadow-inner hover:shadow-lg transition-shadow">
+        <div className="text-primary mb-2">{children}</div>
+        <p className="text-2xl font-bold font-headline">{value}</p>
+        <p className="text-xs text-muted-foreground uppercase tracking-wider">{title}</p>
+    </Card>
+);
 
 export default function AgentsTab() {
-  const [descriptionKey, setDescriptionKey] = useState(0); // For re-triggering typewriter
-  
-  React.useEffect(() => { // Trigger typewriter on mount for initial descriptions
-    setDescriptionKey(prev => prev + 1);
+  const winRate = useMemo(() => {
+    if (userStats.signalsGenerated === 0) return "0.00%";
+    return ((userStats.signalsWon / userStats.signalsGenerated) * 100).toFixed(2) + "%";
+  }, []);
+
+  const xpProgress = useMemo(() => {
+    return (userStats.currentXp / userStats.xpForNextLevel) * 100;
   }, []);
 
   return (
     <div className="space-y-6 sm:space-y-8">
+      {/* Agent Profile & Stats Card */}
       <Card className="glow-border-primary">
         <CardHeader className="p-4 sm:p-6">
           <div className="flex items-center space-x-2 sm:space-x-3">
             <Bot className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />
             <div>
-              <CardTitle className="font-headline text-xl sm:text-3xl text-primary">Shadow Agent Deployment</CardTitle>
-              <TypewriterText 
-                key={`desc-main-${descriptionKey}`}
-                text="Deploy and manage autonomous Shadow Agents. These AI-driven strategies execute trades based on Shadow Core insights and your configured parameters. (Feature in Development)" 
-                className="text-xs sm:text-sm text-muted-foreground mt-1"
-                speed={15}
-                showCaret={false}
-              />
+              <CardTitle className="font-headline text-xl sm:text-3xl text-primary">Your Agent Profile</CardTitle>
+              <CardDescription>Your performance statistics and contributions to the Shadow Core.</CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-4 sm:p-6 text-center space-y-4 sm:space-y-6">
-           <ShieldQuestion className="h-16 w-16 sm:h-20 sm:w-20 text-muted-foreground mx-auto animate-pulse-opacity" />
-          <TypewriterText 
-            key={`desc-dev-${descriptionKey}`}
-            text="The Shadow Agent deployment module is currently under advanced development within the Shadow Core." 
-            className="text-base sm:text-lg text-muted-foreground"
-            speed={20}
-            showCaret={false}
-          />
-          <TypewriterText
-            key={`desc-soon-${descriptionKey}`}
-            text="Soon, you'll be able to select, customize, and deploy sophisticated AI trading agents directly from this console. These agents will learn from your interactions and the Core's collective intelligence."
-            className="text-xs sm:text-sm"
-            speed={15}
-            showCaret={false}
-          />
-           <Button variant="outline" className="font-code border-primary text-primary hover:bg-primary/10 text-sm sm:text-base py-2 px-4">
-            <PlusCircle className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> Notify Me on Launch (Simulated)
-          </Button>
+        <CardContent className="p-4 sm:p-6 space-y-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCard title="Signals Generated" value={userStats.signalsGenerated}>
+                  <History className="h-8 w-8 mx-auto" />
+              </StatCard>
+              <StatCard title="Win Rate" value={winRate}>
+                  <CheckCircle className="h-8 w-8 mx-auto" />
+              </StatCard>
+              <StatCard title="Total BSAI Earned" value={userStats.totalBsaiEarned.toLocaleString()}>
+                  <Award className="h-8 w-8 mx-auto" />
+              </StatCard>
+               <StatCard title="Current XP" value={userStats.currentXp.toLocaleString()}>
+                  <Star className="h-8 w-8 mx-auto" />
+              </StatCard>
+          </div>
+           <div>
+              <Label className="text-sm font-medium text-muted-foreground">Next Milestone Progress</Label>
+              <Progress value={xpProgress} className="w-full mt-2 h-3" />
+              <p className="text-xs text-right mt-1 text-muted-foreground">{userStats.currentXp.toLocaleString()} / {userStats.xpForNextLevel.toLocaleString()} XP</p>
+          </div>
+          <div>
+            <h4 className="text-lg font-semibold font-headline mb-2 text-primary">Milestones</h4>
+            <div className="flex flex-wrap gap-2">
+              {userStats.milestones.map(milestone => (
+                <Badge key={milestone.name} variant={milestone.completed ? "default" : "outline"} className={cn("text-xs sm:text-sm py-1 px-2", milestone.completed ? "bg-primary/80 border-primary" : "border-border text-muted-foreground")}>
+                  {milestone.completed && <CheckCircle className="h-3 w-3 mr-1.5" />}
+                  {milestone.name}
+                </Badge>
+              ))}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
+      {/* Signal History Card */}
       <Card className="glow-border-accent">
         <CardHeader className="p-4 sm:p-6">
-          <CardTitle className="font-headline text-lg sm:text-2xl text-accent">Available Agent Blueprints (Conceptual)</CardTitle>
-          <TypewriterText 
-            key={`desc-blueprints-${descriptionKey}`}
-            text="Preview of potential Shadow Agent strategies you can deploy."
-            className="text-xs sm:text-sm text-muted-foreground mt-1"
-            speed={15}
-            showCaret={false}
-          />
+          <CardTitle className="font-headline text-lg sm:text-2xl text-accent">Signal Ledger</CardTitle>
+          <CardDescription>A log of your recently deployed signals and their outcomes.</CardDescription>
         </CardHeader>
-        <CardContent className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {mockAgents.map(agent => (
-            <Card key={agent.id} className="bg-card/80 hover:shadow-lg transition-shadow duration-300 flex flex-col">
-              <CardHeader className="p-4 text-center">
-                {agent.iconUrl && (
-                  <div className="relative w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-2 sm:mb-3 rounded-full overflow-hidden border-2 border-primary/50">
-                    <Image src={agent.iconUrl} alt={`${agent.name} icon`} layout="fill" objectFit="cover" data-ai-hint="strategy robot"/>
-                  </div>
-                )}
-                <CardTitle className="text-md sm:text-xl font-headline text-primary">{agent.name}</CardTitle>
-                <p className="text-xs sm:text-sm font-code text-muted-foreground">{agent.style} - {agent.riskProfile}</p>
-              </CardHeader>
-              <CardContent className="flex-grow p-4 pt-0">
-                <TypewriterText 
-                  key={`desc-agent-${agent.id}-${descriptionKey}`}
-                  text={agent.description} 
-                  className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3"
-                  speed={10}
-                  showCaret={false}
-                />
-                {agent.performanceMetrics && (
-                  <div className="text-xs space-y-1 font-code">
-                    <p>Simulated Win Rate: <span className="font-semibold text-accent">{agent.performanceMetrics.winRate}</span></p>
-                    <p>Simulated Avg Return: <span className="font-semibold text-accent">{agent.performanceMetrics.avgReturn}</span></p>
-                  </div>
-                )}
-              </CardContent>
-              <div className="p-4 pt-0">
-                <Button 
-                  variant={agent.status === 'active' ? "destructive" : "default"} 
-                  size="sm" 
-                  className="w-full font-code text-sm py-2"
-                  disabled={agent.status === 'training'}
-                >
-                  {agent.status === 'active' ? <Zap className="mr-2 h-4 w-4" /> : <PlusCircle className="mr-2 h-4 w-4" />}
-                  {agent.status === 'active' ? 'Deactivate (Sim)' : agent.status === 'training' ? 'Training...' : 'Deploy (Sim)'}
-                </Button>
-              </div>
-            </Card>
-          ))}
+        <CardContent className="p-4 sm:p-6 space-y-3">
+            {signalHistory.length > 0 ? signalHistory.map(signal => (
+                <Card key={signal.id} className="p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between bg-card/80 hover:bg-muted/50 transition-colors duration-200 space-y-2 sm:space-y-0">
+                    <div className="flex items-center space-x-3 sm:space-x-4 flex-grow">
+                        {signal.prediction === 'BUY' 
+                            ? <TrendingUp className="h-7 w-7 text-green-500 shrink-0" /> 
+                            : <TrendingDown className="h-7 w-7 text-red-500 shrink-0" />}
+                        <div>
+                            <p className="font-bold text-base sm:text-lg font-code">{signal.target}</p>
+                            <p className="text-xs text-muted-foreground">Predicted: {signal.prediction}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center space-x-4 sm:space-x-6 text-sm w-full sm:w-auto justify-between">
+                         <div className={cn("flex items-center", signal.outcome === 'Take Profit Hit' ? 'text-green-400' : 'text-red-400')}>
+                            {signal.outcome === 'Take Profit Hit' ? <CheckCircle className="h-4 w-4 mr-1.5" /> : <XCircle className="h-4 w-4 mr-1.5" />}
+                            <span className="font-medium">{signal.outcome}</span>
+                        </div>
+                        <div className="flex items-center text-primary font-semibold">
+                            <Award className="h-4 w-4 mr-1.5 text-yellow-500"/>
+                            <span>{signal.reward} BSAI</span>
+                        </div>
+                    </div>
+                </Card>
+            )) : (
+                 <p className="text-center text-muted-foreground py-4">No signals generated yet. Go to the Mind tab to deploy your first signal!</p>
+            )}
         </CardContent>
       </Card>
+
     </div>
   );
 }
