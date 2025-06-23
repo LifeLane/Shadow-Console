@@ -52,10 +52,10 @@
   }
 
   .dark {
-    --background: 231 28% 11%; /* Deep Navy from image */
+    --background: 240 30% 6%; /* Even Darker Navy */
     --foreground: 180 70% 92%; /* Pale Cyan/Off-White */
 
-    --card: 231 28% 13%; /* Slightly Lighter Navy for cards */
+    --card: 231 28% 11%; /* Deep Navy from image */
     --card-foreground: 180 70% 92%; /* Pale Cyan/Off-White */
 
     --popover: 240 30% 6%; /* Even Darker Navy for Popovers */

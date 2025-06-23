@@ -10,7 +10,7 @@ import { generateMarketInsights, MarketInsightsInput, MarketInsightsOutput } fro
 import { getLivePrice } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import TerminalExecutionAnimation from '@/components/TerminalExecutionAnimation';
-import { Loader2, Activity, Brain, ShieldCheck, TrendingUp, Zap, BarChart, HardDrive } from 'lucide-react';
+import { Loader2, Activity, Brain, ShieldCheck, TrendingUp, Zap, BarChart, HardDrive, History, CheckCircle, XCircle, TrendingDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,7 +22,7 @@ type CoreState = 'dormant' | 'activating' | 'idle' | 'simulating' | 'tracking' |
 
 const initialFormState: MarketInsightsInput = {
   target: 'BTCUSDT',
-  timeframe: 'Intraday',
+  tradeMode: 'Intraday',
   risk: 'Medium',
 };
 
@@ -34,6 +34,20 @@ const cardVariants = {
   animate: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4, ease: "easeOut" } },
   exit: { opacity: 0, y: -20, scale: 0.98, transition: { duration: 0.3, ease: "easeIn" } },
 };
+
+const mockSignalHistory: {
+    id: string;
+    asset: string;
+    prediction: 'BUY' | 'SELL';
+    outcome: 'TP_HIT' | 'SL_HIT';
+    reward: number;
+}[] = [
+    { id: 'sig1', asset: 'BTCUSDT', prediction: 'BUY', outcome: 'TP_HIT', reward: 50 },
+    { id: 'sig2', asset: 'ETHUSDT', prediction: 'SELL', outcome: 'SL_HIT', reward: 10 },
+    { id: 'sig3', asset: 'SOLUSDT', prediction: 'BUY', outcome: 'TP_HIT', reward: 120 },
+    { id: 'sig4', asset: 'ADAUSDT', prediction: 'BUY', outcome: 'SL_HIT', reward: 5 },
+    { id: 'sig5', asset: 'DOGEUSDT', prediction: 'SELL', outcome: 'TP_HIT', reward: 25 },
+];
 
 export default function MindTab() {
   const [formState, setFormState] = useState<MarketInsightsInput>(initialFormState);
@@ -125,16 +139,12 @@ export default function MindTab() {
     setFormState(prevState => ({ ...prevState, [name]: value.toUpperCase() }));
   };
 
-  const handleSelectChange = (name: keyof MarketInsightsInput) => (value: string) => {
-    setFormState(prevState => ({ ...prevState, [name]: value }));
-  };
-  
   const handleRiskTabChange = (value: string) => {
     setFormState(prevState => ({ ...prevState, risk: value }));
   };
   
   const handleTradeModeTabChange = (value: string) => {
-      setFormState(prevState => ({ ...prevState, timeframe: value }));
+      setFormState(prevState => ({ ...prevState, tradeMode: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -149,7 +159,7 @@ export default function MindTab() {
     try {
       const payload: MarketInsightsInput = {
         target: formState.target,
-        timeframe: formState.timeframe,
+        tradeMode: formState.tradeMode,
         risk: formState.risk,
       };
       const result = await generateMarketInsights(payload);
@@ -170,7 +180,7 @@ export default function MindTab() {
   };
 
   const resetCore = () => {
-    setCoreState('dormant');
+    setCoreState('idle'); // Go back to idle, not dormant
     setActivationStep(0);
     setInsights(null);
     setSimulationResult(null);
@@ -197,7 +207,7 @@ export default function MindTab() {
             <Card className="glow-border-primary shadow-2xl bg-card text-center p-8">
               <CardTitle className="font-headline text-3xl text-primary mb-2">Core is Dormant</CardTitle>
               <CardDescription className="font-code text-base mb-6">Your thoughts feed the Mind. Your signals guide the chain.</CardDescription>
-              <Button onClick={() => setCoreState('activating')} className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg py-3 px-6 animate-pulse-glow-primary">
+              <Button onClick={() => setCoreState('activating')} className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg py-3 px-6 glow-border-primary">
                 Activate Shadow Core
               </Button>
             </Card>
@@ -226,7 +236,7 @@ export default function MindTab() {
           <motion.div key="simulating" {...cardVariants}>
             <TerminalExecutionAnimation
               target={formState.target}
-              tradeMode={formState.timeframe}
+              tradeMode={formState.tradeMode}
               risk={formState.risk}
             />
           </motion.div>
@@ -235,7 +245,6 @@ export default function MindTab() {
       case 'resolved':
          return (
           <motion.div key="tracking" className="space-y-6" {...cardVariants}>
-              {/* This is the new card for live price */}
               <Card className="glow-border-primary shadow-2xl bg-card/80">
                 <CardHeader className="p-4 border-b border-border/20">
                   <CardTitle className="font-headline text-2xl text-primary flex items-center justify-between">
@@ -258,7 +267,7 @@ export default function MindTab() {
                     </div>
                 </CardHeader>
                  {simulationResult && (
-                    <CardContent className="pt-4 space-y-4 font-code text-sm md:text-base">
+                    <CardContent className="p-4 space-y-4 font-code text-sm md:text-base">
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                             <OutputItem label="Signal Protocol" value={simulationResult.prediction} valueClassName={getPredictionColor(simulationResult.prediction)} />
                             <OutputItem label="Confidence" value={`${simulationResult.confidence}%`} />
@@ -271,15 +280,17 @@ export default function MindTab() {
                              <div className="pt-2">
                                 <Label className="text-accent font-semibold text-base">Oracle's Whisper:</Label>
                                 <div className="p-3 mt-1 border border-accent/30 rounded-lg bg-black/70 shadow-inner">
-                                    <TypewriterText text={`"${insights.thought}"`} speed={10} className="text-accent-foreground italic text-sm text-center" showCaret={false} />
+                                    <TypewriterText text={`"${insights.thought}"`} speed={10} className="text-foreground italic text-sm text-center" showCaret={false} />
                                 </div>
                             </div>
                         )}
                         {coreState === 'resolved' && rewardData && (
-                            <div className="pt-2 text-center">
+                            <div className="pt-4 text-center border-t border-accent/20 mt-4">
                                 <h3 className="font-headline text-xl text-accent mb-2">{signalStatusMessage}</h3>
-                                <p className="text-lg">BSAI Reward: <span className="font-bold text-primary">{rewardData.bsaid}</span></p>
-                                <p className="text-lg">XP Gained: <span className="font-bold text-primary">{rewardData.xp}</span></p>
+                                <div className="flex justify-center items-center gap-6">
+                                  <p className="text-lg">BSAI Reward: <span className="font-bold text-primary">{rewardData.bsaid}</span></p>
+                                  <p className="text-lg">XP Gained: <span className="font-bold text-primary">{rewardData.xp}</span></p>
+                                </div>
                                  <Button onClick={resetCore} className="mt-4 bg-accent text-accent-foreground hover:bg-accent/90">
                                     Acknowledge & Reset Core
                                 </Button>
@@ -294,7 +305,7 @@ export default function MindTab() {
       case 'idle':
       default:
         return (
-          <motion.div key="idle" {...cardVariants}>
+          <motion.div key="idle" className="space-y-6" {...cardVariants}>
             <Card className="glow-border-primary shadow-2xl bg-card">
               <CardHeader className="border-b border-border/20 p-4 sm:p-6">
                 <div className="flex items-center space-x-3">
@@ -315,14 +326,14 @@ export default function MindTab() {
                         name="target"
                         value={formState.target}
                         onChange={handleInputChange}
-                        className="font-code text-lg py-2.5 h-11 dark:bg-black/80"
+                        className="font-code text-lg py-2.5 h-11 bg-input"
                         placeholder="e.g., BTCUSDT"
                       />
                     </div>
                      <div>
                         <Label htmlFor="tradeMode" className="font-code text-sm text-muted-foreground mb-2 block">Select Trade Mode</Label>
-                        <Tabs value={formState.timeframe} onValueChange={handleTradeModeTabChange} className="w-full">
-                            <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 bg-muted/50 border-primary/20 border">
+                        <Tabs value={formState.tradeMode} onValueChange={handleTradeModeTabChange} className="w-full">
+                            <TabsList className="grid w-full grid-cols-3 bg-muted/50 border-primary/20 border">
                                 {tradeModes.slice(0,3).map(mode => (
                                     <TabsTrigger key={mode} value={mode} className="font-code text-xs sm:text-sm data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-md py-2 transition-all">
                                         {mode}
@@ -372,17 +383,33 @@ export default function MindTab() {
               </CardContent>
             </Card>
 
-            <Card className="glow-border-primary shadow-xl mt-8">
-                <CardHeader className="p-4">
-                    <CardTitle className="font-headline text-primary text-2xl flex items-center">
-                        <HardDrive className="mr-2 h-6 w-6"/> Core Data Streams
+            <Card className="glow-border-accent shadow-xl mt-8">
+                <CardHeader className="p-4 sm:p-6 border-b border-border/20">
+                    <CardTitle className="font-headline text-accent text-xl sm:text-2xl flex items-center">
+                        <History className="mr-2 h-5 w-5 sm:h-6 sm:h-6"/> Signal History
                     </CardTitle>
+                    <CardDescription>A record of previously generated signals from the Shadow Core.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3 text-base p-4 pt-0">
-                    <p><span className="font-semibold text-primary">Price Feed & Volume (Live):</span> Binance API</p>
-                    <p><span className="font-semibold text-primary">Market Sentiment & News (Conceptual):</span> CoinDesk API</p>
-                    <p><span className="font-semibold text-primary">AI Thought Generation:</span> Gemini Pro API via Genkit</p>
-                    <p><span className="font-semibold text-primary">On-Chain Wallet Activity (Live):</span> PolygonScan API</p>
+                <CardContent className="p-0">
+                    <ul className="divide-y divide-border/20">
+                       {mockSignalHistory.map((signal) => (
+                           <li key={signal.id} className="p-3 sm:p-4 flex justify-between items-center hover:bg-muted/30 transition-colors">
+                               <div className="flex items-center space-x-3">
+                                   {signal.prediction === 'BUY' ? <TrendingUp className="h-6 w-6 text-primary" /> : <TrendingDown className="h-6 w-6 text-destructive" />}
+                                   <div>
+                                      <p className="font-bold font-code text-sm sm:text-base">{signal.asset} <span className={cn("font-medium", signal.prediction === 'BUY' ? 'text-primary' : 'text-destructive')}>({signal.prediction})</span></p>
+                                      <p className="text-xs text-muted-foreground">Reward: {signal.reward} BSAI</p>
+                                   </div>
+                               </div>
+                               <div className="flex items-center space-x-2">
+                                  <span className={cn("text-xs font-semibold", signal.outcome === 'TP_HIT' ? 'text-green-500' : 'text-red-500')}>
+                                      {signal.outcome === 'TP_HIT' ? 'TP Hit' : 'SL Hit'}
+                                  </span>
+                                  {signal.outcome === 'TP_HIT' ? <CheckCircle className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-red-500" />}
+                               </div>
+                           </li>
+                       ))}
+                    </ul>
                 </CardContent>
             </Card>
           </motion.div>
