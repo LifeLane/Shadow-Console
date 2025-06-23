@@ -237,7 +237,7 @@ export default function SettingsTab() {
                     <Label htmlFor="binance-secret-key" className="font-code text-xs sm:text-sm">Binance Secret Key</Label>
                     <div className="relative mt-1">
                         <Input id="binance-secret-key" type={showApiKey ? "text" : "password"} placeholder="Enter your Binance Secret Key" className="font-code bg-card border-primary/50 focus:border-primary focus:ring-primary pr-10 h-9 sm:h-10 text-sm" />
-                        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 sm:h-7 sm:w-7 text-muted-foreground hover:text-primary" onClick={() => setShowApiKey(!showApiKey)}>
+                        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 sm:h-7 sm:h-7 text-muted-foreground hover:text-primary" onClick={() => setShowApiKey(!showApiKey)}>
                             {showApiKey ? <EyeOff className="h-3.5 w-3.5 sm:h-4 sm:h-4"/> : <Eye className="h-3.5 w-3.5 sm:h-4 sm:h-4"/>}
                     </Button>
                     </div>

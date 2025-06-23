@@ -378,7 +378,7 @@ export default function MindTab() {
                    ) : signalHistory.length > 0 ? (
                         <div className="font-code text-sm space-y-1 h-32 overflow-y-auto">
                             {signalHistory.map((signal, index) => {
-                                const isPreviousLineCompleted = index === 0 || completedHistoryLines.includes(signalHistory[index - 1].id!.toString());
+                                const isPreviousLineCompleted = index === 0 || completedHistoryLines.includes(signal.id!.toString());
                                 if (!isPreviousLineCompleted) {
                                     return null;
                                 }
