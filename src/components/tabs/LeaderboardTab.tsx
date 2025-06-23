@@ -22,11 +22,11 @@ interface LeaderboardUser {
 }
 
 const mockLeaderboardData: LeaderboardUser[] = [
-  { id: '1', rank: 1, name: 'CryptoKingX', avatarUrl: 'https://placehold.co/100x100.png', shadowXp: 9200, missionsCompleted: 50, airdropContribution: 12000, tags: ['🔮 Signal Oracle', '⚡ Chain Whisperer'] },
-  { id: '2', rank: 2, name: 'NovaTrader7', avatarUrl: 'https://placehold.co/100x100.png', shadowXp: 8800, missionsCompleted: 45, airdropContribution: 9500, tags: ['⚡ Chain Whisperer'] },
+  { id: '1', rank: 1, name: 'CryptoKingX', shadowXp: 9200, missionsCompleted: 50, airdropContribution: 12000, tags: ['🔮 Signal Oracle', '⚡ Chain Whisperer'] },
+  { id: '2', rank: 2, name: 'NovaTrader7', shadowXp: 8800, missionsCompleted: 45, airdropContribution: 9500, tags: ['⚡ Chain Whisperer'] },
   { id: '3', rank: 3, name: 'My ETH Momentum Bot', isBot: true, shadowXp: 8750, missionsCompleted: 40, airdropContribution: 8200, tags: ['📈 Momentum Master'] },
   { id: '4', rank: 4, name: 'ShadowScout', shadowXp: 8500, missionsCompleted: 40, airdropContribution: 8000, tags: ['🔮 Signal Oracle'] },
-  { id: '5', rank: 5, name: 'PixelProphet', avatarUrl: 'https://placehold.co/100x100.png', shadowXp: 8200, missionsCompleted: 38, airdropContribution: 7500, tags: [] },
+  { id: '5', rank: 5, name: 'PixelProphet', shadowXp: 8200, missionsCompleted: 38, airdropContribution: 7500, tags: [] },
   { id: '6', rank: 6, name: 'ByteBard', shadowXp: 7900, missionsCompleted: 35, airdropContribution: 6000, tags: ['⚡ Chain Whisperer'] },
 ];
 
@@ -42,7 +42,7 @@ export default function LeaderboardTab() {
       <Card className="glow-border-primary">
         <CardHeader className="p-4 sm:p-6">
           <div className="flex items-center space-x-2 sm:space-x-3">
-            <Trophy className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />
+            <Trophy className="h-7 w-7 sm:h-8 sm:h-8 text-primary" />
             <div>
               <CardTitle className="font-headline text-xl sm:text-3xl text-primary">Top Shadow Agents</CardTitle>
               <TypewriterText 
