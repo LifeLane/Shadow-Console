@@ -17,6 +17,7 @@ interface EligibilityItem {
   id: string;
   label: string;
   isEligible: boolean;
+  points: number;
   details?: string;
   action?: () => void;
   actionLabel?: string;
@@ -27,10 +28,10 @@ const BSAI_CONTRACT_ADDRESS = "CY1LMCWHZiQHf675QJ2uGwSE1w2fD5MYVWUQzgYyEpRS";
 const BSAI_TRADING_LINK = "https://birdeye.so/token/CY1LMCWHZiQHf675QJ2uGwSE1w2fD5MYVWUQzgYyEpRS?chain=solana";
 
 const initialEligibilityData: Omit<EligibilityItem, 'action' | 'actionLabel' | 'disabled'>[] = [
-  { id: 'walletSubmitted', label: 'Primary Wallet Synced', isEligible: false, details: 'Sync your ETH, SOL, or TON wallet to confirm.' },
-  { id: 'bsaiHolder', label: 'BSAI Holder Status (Simulated)', isEligible: false, details: 'Sync wallet to verify contribution.' },
-  { id: 'trials', label: 'Shadow Core Signal Trials Completed', isEligible: false, details: '0/1 trial completed. Your analysis aids the Core!' },
-  { id: 'invite', label: 'Genesis Invite Code Used (Simulated)', isEligible: true, details: 'Code: SHADOW2024 (Welcome, Agent!)' },
+  { id: 'walletSubmitted', label: 'Primary Wallet Synced', isEligible: false, points: 100, details: 'Sync your ETH, SOL, or TON wallet to confirm.' },
+  { id: 'bsaiHolder', label: 'BSAI Holder Status (Simulated)', isEligible: false, points: 150, details: 'Sync wallet to verify contribution.' },
+  { id: 'trials', label: 'Shadow Core Signal Trials Completed', isEligible: false, points: 50, details: '0/1 trial completed. Your analysis aids the Core!' },
+  { id: 'invite', label: 'Genesis Invite Code Used (Simulated)', isEligible: true, points: 25, details: 'Code: SHADOW2024 (Welcome, Agent!)' },
 ];
 
 const mockTransactions = [
@@ -98,9 +99,12 @@ export default function AirdropTab() {
     }
   };
 
-  const eligibleCount = eligibilityItems.filter(item => item.isEligible).length;
+  const eligibleChecklistItems = eligibilityItems.filter(item => item.isEligible);
+  const totalAirdropPoints = eligibleChecklistItems.reduce((sum, item) => sum + item.points, 0);
+  const eligibleCount = eligibleChecklistItems.length;
   const progressPercentage = eligibilityItems.length > 0 ? (eligibleCount / eligibilityItems.length) * 100 : 0;
   const allEligible = eligibilityItems.length > 0 && eligibleCount === eligibilityItems.length;
+
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -154,6 +158,11 @@ export default function AirdropTab() {
             </Card>
           )}
 
+          <div className="text-center bg-card/80 p-4 rounded-lg shadow-inner border border-primary/30">
+            <Label className="text-sm text-muted-foreground uppercase tracking-wider font-code">Eligible Airdrop Allocation</Label>
+            <p className="text-4xl font-bold text-primary font-headline mt-1">{totalAirdropPoints.toLocaleString()} Points</p>
+          </div>
+
           <div className="pt-2 sm:pt-4">
             <h3 className="text-lg sm:text-xl font-semibold mb-1 sm:mb-2 text-foreground font-headline">Airdrop Eligibility Progress</h3>
             <Progress value={progressPercentage} className="w-full h-2.5 sm:h-3 mb-1 [&>div]:bg-gradient-to-r [&>div]:from-primary [&>div]:to-accent" />
@@ -171,7 +180,7 @@ export default function AirdropTab() {
                 <div className="flex items-center w-full sm:w-auto">
                   {item.isEligible ? <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 text-accent shrink-0" /> : <XCircle className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 text-destructive shrink-0" />}
                   <div className="flex-grow">
-                    <p className="font-semibold text-sm sm:text-base text-foreground">{item.label}</p>
+                    <p className="font-semibold text-sm sm:text-base text-foreground">{item.label} <span className="font-normal text-muted-foreground">({item.points} pts)</span></p>
                     {item.details && <TypewriterText key={`detail-${item.id}-${descriptionKey}`} text={item.details} className="text-xs text-muted-foreground" speed={10} showCaret={false} />}
                   </div>
                 </div>
