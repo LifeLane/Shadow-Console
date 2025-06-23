@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { generateMarketInsights, MarketInsightsInput, MarketInsightsOutput } from '@/ai/flows/generate-market-insights';
+import { getLivePrice } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import TerminalExecutionAnimation from '@/components/TerminalExecutionAnimation';
 import TypewriterText from '@/components/TypewriterText';
@@ -53,84 +54,82 @@ export default function MindTab() {
   const { toast } = useToast();
   const [descriptionKey, setDescriptionKey] = useState(0);
   const [thoughtKey, setThoughtKey] = useState(0);
-  const [marketPriceIntervalId, setMarketPriceIntervalId] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setDescriptionKey(prev => prev + 1);
-    return () => { // Cleanup on unmount
-      if (marketPriceIntervalId) clearInterval(marketPriceIntervalId);
-    };
   }, []);
 
   useEffect(() => {
-    if (coreState === 'tracking' && simulationResult) {
-      let entryTimeoutId: NodeJS.Timeout;
-      let outcomeTimeoutId: NodeJS.Timeout;
-      let priceUpdateInterval: NodeJS.Timeout;
+    let priceCheckInterval: NodeJS.Timeout | undefined;
+    let entryTimeoutId: NodeJS.Timeout | undefined;
+  
+    if (coreState === 'tracking' && simulationResult && currentSignalParams) {
+      
+      const cleanAndParsePrice = (priceString: string): number => {
+        return parseFloat(priceString.replace(/[^0-9.-]+/g, ""));
+      };
+
+      const stopLoss = cleanAndParsePrice(simulationResult.stopLoss);
+      const takeProfit = cleanAndParsePrice(simulationResult.takeProfit);
 
       setSignalStatusMessage(`On Hold: Monitoring Entry at ${simulationResult.entryRange}`);
-      // Simulate initial market price based on entry range
-      const entryParts = simulationResult.entryRange.replace(/[^0-9.-]+/g," ").trim().split(" ");
-      const basePrice = entryParts.length > 0 ? parseFloat(entryParts[0]) : 50000;
-      setSimulatedMarketPrice(basePrice.toLocaleString(undefined, { style: 'currency', currency: 'USD' }));
-      setSimulatedMarketVolume((Math.random() * 1000 + 500).toFixed(2) + " BTC"); // Example volume
-
-      priceUpdateInterval = setInterval(() => {
-        setSimulatedMarketPrice(prevPrice => {
-          if (!prevPrice) return basePrice.toLocaleString(undefined, { style: 'currency', currency: 'USD' });
-          const currentNumericPrice = parseFloat(prevPrice.replace(/[^0-9.-]+/g,""));
-          const change = (Math.random() - 0.5) * (basePrice * 0.001); // Small random fluctuation
-          return (currentNumericPrice + change).toLocaleString(undefined, { style: 'currency', currency: 'USD' });
-        });
-        setSimulatedMarketVolume((Math.random() * 1000 + 500).toFixed(2) + ` ${formState.target.replace('USDT','')}`);
-      }, 3000);
-      setMarketPriceIntervalId(priceUpdateInterval);
-
+      setSimulatedMarketVolume((Math.random() * 1000 + 500).toFixed(2) + ` ${formState.target.replace('USDT', '')}`);
       setDescriptionKey(prev => prev + 1);
 
       entryTimeoutId = setTimeout(() => {
-        setSignalStatusMessage(`Order Executed near ${simulationResult.entryRange}. Monitoring TP/SL.`);
+        setSignalStatusMessage(`Order Executed near ${simulationResult.entryRange}. Now tracking TP/SL levels live.`);
         setDescriptionKey(prev => prev + 1);
 
-        outcomeTimeoutId = setTimeout(() => {
-          if (priceUpdateInterval) clearInterval(priceUpdateInterval);
-          setMarketPriceIntervalId(null);
-          const outcomes = ["Target Hit", "Stop Loss Triggered"];
-          const randomOutcome = outcomes[Math.floor(Math.random() * outcomes.length)];
-          let finalMessage = "";
-          let bsaiReward = 0;
-          let xpReward = 0;
-          let badgeReward: string | undefined = undefined;
-
-          if (randomOutcome === "Target Hit") {
-            finalMessage = `Take Profit Hit at ${simulationResult.takeProfit}!`;
-            bsaiReward = Math.floor((simulationResult.confidence / 100) * (Math.random() * 500 + 500));
-            xpReward = Math.floor(Math.random() * 50 + 50);
-            if (simulationResult.confidence > 85) badgeReward = "Precision Analyst Badge";
-          } else { 
-            finalMessage = `Stop Loss Hit at ${simulationResult.stopLoss}!`;
-            xpReward = Math.floor(Math.random() * 20 + 10);
-          }
+        priceCheckInterval = setInterval(async () => {
+          const livePriceString = await getLivePrice(currentSignalParams.target);
           
-          setSignalStatusMessage(finalMessage);
-          setRewardData({ outcome: randomOutcome, bsai: bsaiReward, xp: xpReward, badge: badgeReward });
-          setCoreState('resolved');
-          setDescriptionKey(prev => prev + 1); 
+          if (livePriceString) {
+            const livePrice = parseFloat(livePriceString);
+            setSimulatedMarketPrice(livePrice.toLocaleString(undefined, { style: 'currency', currency: 'USD' }));
 
-        }, 8000); // Increased delay for outcome
-      }, 4000); // Increased delay for entry
+            const resolveSignal = (outcome: "Take Profit Hit" | "Stop Loss Triggered") => {
+              if (priceCheckInterval) clearInterval(priceCheckInterval);
+              
+              let finalMessage = "";
+              let bsaiReward = 0;
+              let xpReward = 0;
+              let badgeReward: string | undefined = undefined;
 
-      return () => {
-        clearTimeout(entryTimeoutId);
-        clearTimeout(outcomeTimeoutId);
-        if (priceUpdateInterval) clearInterval(priceUpdateInterval);
-        setMarketPriceIntervalId(null);
-      };
-    } else if (coreState !== 'tracking' && marketPriceIntervalId) {
-        clearInterval(marketPriceIntervalId);
-        setMarketPriceIntervalId(null);
+              if (outcome === "Take Profit Hit") {
+                finalMessage = `Take Profit Hit at ${simulationResult.takeProfit}!`;
+                bsaiReward = Math.floor((simulationResult.confidence / 100) * (Math.random() * 500 + 500));
+                xpReward = Math.floor(Math.random() * 50 + 50);
+                if (simulationResult.confidence > 85) badgeReward = "Precision Analyst Badge";
+              } else {
+                finalMessage = `Stop Loss Hit at ${simulationResult.stopLoss}!`;
+                xpReward = Math.floor(Math.random() * 20 + 10);
+              }
+              
+              setSignalStatusMessage(finalMessage);
+              setRewardData({ outcome, bsai: bsaiReward, xp: xpReward, badge: badgeReward });
+              setCoreState('resolved');
+              setDescriptionKey(prev => prev + 1);
+            };
+            
+            // Assuming a "BUY" signal for this logic. A "SELL" signal would invert this.
+            if (simulationResult.prediction.toUpperCase() === 'BUY') {
+                if (livePrice >= takeProfit) resolveSignal("Take Profit Hit");
+                else if (livePrice <= stopLoss) resolveSignal("Stop Loss Triggered");
+            } else { // Assuming SELL
+                if (livePrice <= takeProfit) resolveSignal("Take Profit Hit");
+                else if (livePrice >= stopLoss) resolveSignal("Stop Loss Triggered");
+            }
+
+          }
+        }, 5000); // Check price every 5 seconds
+      }, 4000);
     }
-  }, [coreState, simulationResult, formState.target]);
+  
+    return () => {
+      if (entryTimeoutId) clearTimeout(entryTimeoutId);
+      if (priceCheckInterval) clearInterval(priceCheckInterval);
+    };
+  }, [coreState, simulationResult, currentSignalParams, formState.target]);
 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -201,8 +200,6 @@ export default function MindTab() {
     setSignalStatusMessage('');
     setSimulatedMarketPrice(null);
     setSimulatedMarketVolume(null);
-    if (marketPriceIntervalId) clearInterval(marketPriceIntervalId);
-    setMarketPriceIntervalId(null);
     setDescriptionKey(prev => prev + 1);
     setThoughtKey(prev => prev + 1);
     toast({ title: "Shadow Core Reset", description: "Ready for new signal deployment." });
@@ -219,7 +216,7 @@ export default function MindTab() {
   };
 
   const renderMarketPulse = () => {
-    if (!currentSignalParams || (!simulatedMarketPrice && !simulatedMarketVolume)) return null;
+    if (!currentSignalParams || (coreState !== 'tracking' && coreState !== 'resolved')) return null;
 
     return (
       <motion.div key="market-pulse" {...cardVariants} className="mb-6 sm:mb-8">
@@ -231,8 +228,8 @@ export default function MindTab() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 font-code">
-            <OutputItem label="Simulated Current Price" value={simulatedMarketPrice || "Calculating..."} valueClassName="text-lg sm:text-xl" />
-            <OutputItem label="Simulated Volume" value={simulatedMarketVolume || "Calculating..."} valueClassName="text-lg sm:text-xl" />
+            <OutputItem label="Live Price" value={simulatedMarketPrice || "Fetching..."} valueClassName="text-lg sm:text-xl" />
+            <OutputItem label="Simulated 24h Volume" value={simulatedMarketVolume || "Calculating..."} valueClassName="text-lg sm:text-xl" />
           </CardContent>
         </Card>
       </motion.div>
@@ -319,6 +316,7 @@ export default function MindTab() {
                     {riskLevels.map(level => (
                         <Button
                             key={level}
+                            type="button"
                             variant={formState.risk === level ? "default" : "ghost"}
                             onClick={() => handleRiskTabChange(level)}
                             className={cn(
@@ -477,7 +475,7 @@ export default function MindTab() {
             variants={cardVariants} 
             className={cn(
               "mt-6 sm:mt-8", 
-              (coreState === 'tracking' || coreState === 'resolved') ? 'mt-0' : '' // No top margin if MarketPulse is shown
+              (coreState === 'tracking' || coreState === 'resolved') ? 'mt-0' : ''
             )}
           >
             <Card className="glow-border-primary shadow-xl p-4 sm:p-6">
@@ -510,5 +508,3 @@ const OutputItem: React.FC<OutputItemProps> = ({ label, value, valueClassName })
     <p className={cn("text-base sm:text-xl font-semibold mt-1 truncate", valueClassName)}>{value}</p>
   </div>
 );
-
-    

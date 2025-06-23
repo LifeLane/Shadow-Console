@@ -22,6 +22,30 @@ interface Kline {
 }
 
 /**
+ * Fetches the latest ticker price for a given symbol.
+ * @param symbol Trading symbol, e.g., BTCUSDT
+ * @returns An object containing the price or null if an error occurs.
+ */
+export async function fetchLatestPrice(symbol: string): Promise<{ price: string } | null> {
+  try {
+    const formattedSymbol = symbol.toUpperCase();
+    const response = await fetch(
+      `${BINANCE_API_BASE_URL}/ticker/price?symbol=${formattedSymbol}`
+    );
+    if (!response.ok) {
+      console.error(`Binance API error for ticker ${formattedSymbol}: ${response.status}`);
+      return null;
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(`Failed to fetch latest price from Binance for ${symbol}:`, error);
+    return null;
+  }
+}
+
+
+/**
  * Fetches recent Klines (candlestick data) for a given symbol.
  * @param symbol Trading symbol, e.g., BTCUSDT
  * @param interval Kline interval, e.g., 1h, 4h, 1d
@@ -31,19 +55,18 @@ interface Kline {
 export async function fetchPriceData(symbol: string, interval: string = '1h', limit: number = 5): Promise<string> {
   const apiKey = process.env.BINANCE_API_KEY;
   if (!apiKey) {
-    return "Binance API key not configured. Price data unavailable.";
+    // Public endpoints like klines don't strictly need a key, but it's good practice for rate limits.
+    // We'll proceed but log a warning. For private endpoints, this would be a hard error.
+    console.warn("Binance API key not configured. Proceeding with public request.");
   }
 
   try {
-    // Ensure symbol is uppercase as Binance API expects it
     const formattedSymbol = symbol.toUpperCase();
+    const url = `${BINANCE_API_BASE_URL}/klines?symbol=${formattedSymbol}&interval=${interval}&limit=${limit}`;
+    
     const response = await fetch(
-      `${BINANCE_API_BASE_URL}/klines?symbol=${formattedSymbol}&interval=${interval}&limit=${limit}`,
-      {
-        headers: {
-          'X-MBX-APIKEY': apiKey,
-        },
-      }
+      url,
+      apiKey ? { headers: { 'X-MBX-APIKEY': apiKey } } : {}
     );
 
     if (!response.ok) {
