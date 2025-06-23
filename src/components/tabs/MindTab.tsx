@@ -118,20 +118,29 @@ export default function MindTab() {
                   const xp = outcome === 'TP_HIT' ? Math.floor(Math.random() * 100) + 50 : 10;
                   setRewardData({ bsaid, xp });
 
-                  await saveSignalAction({
-                      asset: formState.target,
-                      prediction: simulationResult.prediction as 'BUY' | 'SELL' | 'HOLD',
-                      trade_mode: formState.tradeMode,
-                      outcome: outcome,
-                      reward_bsai: bsaid,
-                      reward_xp: xp,
-                      gas_paid: Math.floor(Math.random() * 5) + 1,
-                      entryRange: simulationResult.entryRange,
-                      stopLoss: simulationResult.stopLoss,
-                      takeProfit: simulationResult.takeProfit,
-                      confidence: simulationResult.confidence,
-                      shadowScore: simulationResult.shadowScore,
-                  });
+                  try {
+                    await saveSignalAction({
+                        asset: formState.target,
+                        prediction: simulationResult.prediction as 'BUY' | 'SELL' | 'HOLD',
+                        trade_mode: formState.tradeMode,
+                        outcome: outcome,
+                        reward_bsai: bsaid,
+                        reward_xp: xp,
+                        gas_paid: Math.floor(Math.random() * 5) + 1,
+                        entryRange: simulationResult.entryRange,
+                        stopLoss: simulationResult.stopLoss,
+                        takeProfit: simulationResult.takeProfit,
+                        confidence: simulationResult.confidence,
+                        shadowScore: simulationResult.shadowScore,
+                    });
+                  } catch(error) {
+                    console.error("Failed to save signal:", error);
+                    toast({
+                        title: "Save Error",
+                        description: "Could not save the signal results.",
+                        variant: "destructive",
+                    });
+                  }
 
                   setSignalStatusMessage(outcome === 'TP_HIT' ? `Take Profit Hit at ${priceStr}!` : `Stop Loss Hit at ${priceStr}!`);
                   setCoreState('resolved');
@@ -147,7 +156,7 @@ export default function MindTab() {
           }
       };
     }
-  }, [coreState, simulationResult, formState.target]);
+  }, [coreState, simulationResult, formState.target, toast]);
 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

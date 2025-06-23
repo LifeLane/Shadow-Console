@@ -1,3 +1,4 @@
+
 'use server';
 
 import { promises as fs } from 'fs';
@@ -34,9 +35,9 @@ async function writeData<T>(filePath: string, data: T) {
  */
 export async function getSignalsForUser(userId: string, limit = 10): Promise<Signal[]> {
     const allSignals = await readData<Signal[]>(signalsFilePath, []);
+    // Data is pre-sorted on write, just filter and slice
     return allSignals
         .filter(s => s.user_id === userId)
-        .sort((a, b) => new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime())
         .slice(0, limit);
 }
 
@@ -54,6 +55,10 @@ export async function saveSignal(signal: Omit<Signal, 'id' | 'created_at'>): Pro
         created_at: new Date().toISOString(),
     };
     allSignals.push(newSignal);
+    
+    // Sort all signals by date before writing to ensure consistent order
+    allSignals.sort((a, b) => new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime());
+
     await writeData(signalsFilePath, allSignals);
 
     // 2. Update user stats
