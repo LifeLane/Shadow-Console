@@ -1,14 +1,21 @@
 'use server';
 
-import { getAgents } from '@/services/agentService';
-import type { Agent } from '@/lib/types';
+import { getAllAgents } from '@/services/agentService';
+import { getUsers } from '@/services/userService';
+import type { Agent, User } from '@/lib/types';
 
-export async function getAllAgentsForExport(): Promise<Agent[]> {
+export async function exportAllData() {
     try {
-        const agents = await getAgents();
-        return agents;
+        const agents = await getAllAgents();
+        const users = await getUsers();
+        // In the future, you could also export missions and signals here.
+        return {
+            agents,
+            users,
+            timestamp: new Date().toISOString(),
+        };
     } catch (error) {
-        console.error('Failed to fetch agents for export', error);
-        return [];
+        console.error('Failed to fetch data for export', error);
+        throw new Error('Data export failed');
     }
 }
