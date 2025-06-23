@@ -13,7 +13,7 @@ import TerminalExecutionAnimation from '@/components/TerminalExecutionAnimation'
 import { Loader2, Activity, Brain, ShieldCheck, TrendingUp, Zap, BarChart, History, CheckCircle, XCircle, TrendingDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import PulsingText from '@/components/PulsingText';
 import TypewriterText from '@/components/TypewriterText';
 
@@ -39,14 +39,16 @@ const mockSignalHistory: {
     id: string;
     asset: string;
     prediction: 'BUY' | 'SELL';
+    mode: string;
     outcome: 'TP_HIT' | 'SL_HIT';
     reward: number;
+    gasPaid: number;
 }[] = [
-    { id: 'sig1', asset: 'BTCUSDT', prediction: 'BUY', outcome: 'TP_HIT', reward: 50 },
-    { id: 'sig2', asset: 'ETHUSDT', prediction: 'SELL', outcome: 'SL_HIT', reward: 10 },
-    { id: 'sig3', asset: 'SOLUSDT', prediction: 'BUY', outcome: 'TP_HIT', reward: 120 },
-    { id: 'sig4', asset: 'ADAUSDT', prediction: 'BUY', outcome: 'SL_HIT', reward: 5 },
-    { id: 'sig5', asset: 'DOGEUSDT', prediction: 'SELL', outcome: 'TP_HIT', reward: 25 },
+    { id: 'sig1', asset: 'BTCUSDT', prediction: 'BUY', mode: 'Intraday', outcome: 'TP_HIT', reward: 50, gasPaid: 2 },
+    { id: 'sig2', asset: 'ETHUSDT', prediction: 'SELL', mode: 'Scalping', outcome: 'SL_HIT', reward: 10, gasPaid: 1 },
+    { id: 'sig3', asset: 'SOLUSDT', prediction: 'BUY', mode: 'Swing Trading', outcome: 'TP_HIT', reward: 120, gasPaid: 5 },
+    { id: 'sig4', asset: 'ADAUSDT', prediction: 'BUY', mode: 'Intraday', outcome: 'SL_HIT', reward: 5, gasPaid: 1 },
+    { id: 'sig5', asset: 'DOGEUSDT', prediction: 'SELL', mode: 'Scalping', outcome: 'TP_HIT', reward: 25, gasPaid: 2 },
 ];
 
 export default function MindTab() {
@@ -291,12 +293,12 @@ export default function MindTab() {
                         )}
                         {coreState === 'resolved' && rewardData && (
                             <div className="pt-4 text-center border-t border-accent/20 mt-4">
-                                <h3 className="font-headline text-xl text-accent mb-2">{signalStatusMessage}</h3>
+                                <h3 className="font-headline text-xl text-yellow-400 mb-2">{signalStatusMessage}</h3>
                                 <div className="flex justify-center items-center gap-6">
                                   <p className="text-lg">BSAI Reward: <span className="font-bold text-primary">{rewardData.bsaid}</span></p>
                                   <p className="text-lg">XP Gained: <span className="font-bold text-primary">{rewardData.xp}</span></p>
                                 </div>
-                                 <Button onClick={resetCore} className="mt-4 bg-accent text-accent-foreground hover:bg-accent/90">
+                                 <Button onClick={resetCore} className="mt-4 bg-yellow-500 text-black hover:bg-yellow-600">
                                     Acknowledge & Reset Core
                                 </Button>
                             </div>
@@ -395,26 +397,69 @@ export default function MindTab() {
                     </CardTitle>
                     <CardDescription>A record of previously generated signals from the Shadow Core.</CardDescription>
                 </CardHeader>
-                <CardContent className="p-0">
-                    <ul className="divide-y divide-border/20">
-                       {mockSignalHistory.map((signal) => (
-                           <li key={signal.id} className="p-3 sm:p-4 flex justify-between items-center hover:bg-muted/30 transition-colors">
-                               <div className="flex items-center space-x-3">
-                                   {signal.prediction === 'BUY' ? <TrendingUp className="h-6 w-6 text-primary" /> : <TrendingDown className="h-6 w-6 text-destructive" />}
-                                   <div>
-                                      <p className="font-bold font-code text-sm sm:text-base">{signal.asset} <span className={cn("font-medium", signal.prediction === 'BUY' ? 'text-primary' : 'text-destructive')}>({signal.prediction})</span></p>
-                                      <p className="text-xs text-muted-foreground">Reward: {signal.reward} BSAI</p>
+                <CardContent className="p-4 sm:p-6">
+                   {mockSignalHistory.length > 0 ? (
+                    <Tabs defaultValue={mockSignalHistory[0].id} className="w-full">
+                        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 h-auto bg-transparent p-0">
+                            {mockSignalHistory.map((signal) => {
+                                const isWin = signal.outcome === 'TP_HIT';
+                                return (
+                                    <TabsTrigger 
+                                        key={signal.id} 
+                                        value={signal.id} 
+                                        className={cn(
+                                            "h-auto flex flex-col items-center justify-center p-2 space-y-1 rounded-md border data-[state=active]:shadow-lg data-[state=active]:scale-105 transition-all",
+                                            isWin ? "border-green-500/30 data-[state=active]:glow-border-primary data-[state=active]:bg-primary/10" : "border-red-500/30 data-[state=active]:glow-border-destructive data-[state=active]:bg-destructive/10"
+                                        )}
+                                    >
+                                        <span className="font-bold font-code text-sm text-foreground">{signal.asset}</span>
+                                        <span className={cn("text-xs flex items-center gap-1", isWin ? "text-green-400" : "text-red-400")}>
+                                            {isWin ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                                            {isWin ? "Win" : "Loss"}
+                                        </span>
+                                    </TabsTrigger>
+                                );
+                            })}
+                        </TabsList>
+
+                        {mockSignalHistory.map((signal) => {
+                             const isWin = signal.outcome === 'TP_HIT';
+                             const isLong = signal.prediction === 'BUY';
+                             return (
+                                <TabsContent key={signal.id} value={signal.id} className="mt-4 p-4 border border-border/20 rounded-lg bg-card/50 font-code">
+                                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 text-sm">
+                                        <div className="space-y-1">
+                                            <p className="text-muted-foreground text-xs">Symbol</p>
+                                            <p className="font-semibold text-foreground">{signal.asset}</p>
+                                        </div>
+                                         <div className="space-y-1">
+                                            <p className="text-muted-foreground text-xs">Mode</p>
+                                            <p className="font-semibold text-foreground">{signal.mode}</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-muted-foreground text-xs">Direction</p>
+                                            <p className={cn("font-semibold", isLong ? 'text-primary' : 'text-destructive')}>{isLong ? 'Long' : 'Short'}</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-muted-foreground text-xs">Outcome</p>
+                                            <p className={cn("font-semibold", isWin ? 'text-green-400' : 'text-red-400')}>{isWin ? 'Win' : 'Loss'}</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-muted-foreground text-xs">Reward Earned</p>
+                                            <p className="font-semibold text-green-400">+{signal.reward} BSAI</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-muted-foreground text-xs">Gas Paid</p>
+                                            <p className="font-semibold text-red-400">-{signal.gasPaid} BSAI</p>
+                                        </div>
                                    </div>
-                               </div>
-                               <div className="flex items-center space-x-2">
-                                  <span className={cn("text-xs font-semibold", signal.outcome === 'TP_HIT' ? 'text-green-500' : 'text-red-500')}>
-                                      {signal.outcome === 'TP_HIT' ? 'TP Hit' : 'SL Hit'}
-                                  </span>
-                                  {signal.outcome === 'TP_HIT' ? <CheckCircle className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-red-500" />}
-                               </div>
-                           </li>
-                       ))}
-                    </ul>
+                                </TabsContent>
+                            )
+                        })}
+                    </Tabs>
+                   ) : (
+                     <p className="text-center text-muted-foreground">No signal history found. Generate a signal to begin.</p>
+                   )}
                 </CardContent>
             </Card>
           </motion.div>
