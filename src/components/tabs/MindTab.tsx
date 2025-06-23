@@ -10,7 +10,7 @@ import { generateMarketInsights, MarketInsightsInput, MarketInsightsOutput } fro
 import { getLivePrice } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import TerminalExecutionAnimation from '@/components/TerminalExecutionAnimation';
-import { Loader2, Activity, Brain, ShieldCheck, TrendingUp, Zap, BarChart, HardDrive, History, CheckCircle, XCircle, TrendingDown } from 'lucide-react';
+import { Loader2, Activity, Brain, ShieldCheck, TrendingUp, Zap, BarChart, History, CheckCircle, XCircle, TrendingDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -101,12 +101,17 @@ export default function MindTab() {
             const stopLossPrice = parseFloat(simulationResult.stopLoss.replace(/[^0-9.-]+/g,""));
             const takeProfitPrice = parseFloat(simulationResult.takeProfit.replace(/[^0-9.-]+/g,""));
 
+            const isBuySignal = simulationResult.prediction.toUpperCase() === 'BUY';
             let outcome: 'TP' | 'SL' | null = null;
-            if (currentPrice >= takeProfitPrice) {
-                outcome = 'TP';
-            } else if (currentPrice <= stopLossPrice) {
-                outcome = 'SL';
+            
+            if (isBuySignal) {
+                if (currentPrice >= takeProfitPrice) outcome = 'TP';
+                else if (currentPrice <= stopLossPrice) outcome = 'SL';
+            } else { // It's a SELL signal
+                if (currentPrice <= takeProfitPrice) outcome = 'TP'; // TP is lower for a sell
+                else if (currentPrice >= stopLossPrice) outcome = 'SL'; // SL is higher for a sell
             }
+
 
             if (outcome) {
                 if (trackingIntervalRef.current) clearInterval(trackingIntervalRef.current);
@@ -253,21 +258,21 @@ export default function MindTab() {
                   </CardTitle>
                 </CardHeader>
               </Card>
-
-              <Card className="glow-border-accent shadow-2xl">
-                <CardHeader className="p-4 border-b border-border/20">
-                    <div className="flex items-center space-x-3">
-                        <Activity className="h-8 w-8 text-accent" />
-                        <div>
-                            <CardTitle className="font-headline text-2xl text-accent">Signal Monitor</CardTitle>
-                             <CardDescription className="font-code text-sm">
-                                <PulsingText text={signalStatusMessage} />
-                            </CardDescription>
+                
+              {simulationResult && (
+                <Card className="glow-border-accent shadow-2xl">
+                    <CardHeader className="p-4">
+                        <div className="flex items-center space-x-3">
+                            <Activity className="h-8 w-8 text-accent" />
+                            <div>
+                                <CardTitle className="font-headline text-2xl text-accent">Signal Monitor</CardTitle>
+                                <CardDescription className="font-code text-sm">
+                                    <PulsingText text={coreState === 'resolved' ? signalStatusMessage : signalStatusMessage} />
+                                </CardDescription>
+                            </div>
                         </div>
-                    </div>
-                </CardHeader>
-                 {simulationResult && (
-                    <CardContent className="p-4 space-y-4 font-code text-sm md:text-base">
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0 space-y-4 font-code text-sm md:text-base">
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                             <OutputItem label="Signal Protocol" value={simulationResult.prediction} valueClassName={getPredictionColor(simulationResult.prediction)} />
                             <OutputItem label="Confidence" value={`${simulationResult.confidence}%`} />
@@ -277,7 +282,7 @@ export default function MindTab() {
                             <OutputItem label="Take Profit" value={simulationResult.takeProfit} />
                         </div>
                         {insights && (
-                             <div className="pt-2">
+                             <div className="pt-4 mt-4 border-t border-accent/20">
                                 <Label className="text-accent font-semibold text-base">Oracle's Whisper:</Label>
                                 <div className="p-3 mt-1 border border-accent/30 rounded-lg bg-black/70 shadow-inner">
                                     <TypewriterText text={`"${insights.thought}"`} speed={10} className="text-foreground italic text-sm text-center" showCaret={false} />
@@ -297,8 +302,8 @@ export default function MindTab() {
                             </div>
                         )}
                     </CardContent>
-                 )}
-              </Card>
+                </Card>
+              )}
           </motion.div>
         );
 
@@ -439,3 +444,5 @@ const OutputItem: React.FC<OutputItemProps> = ({ label, value, valueClassName })
     <p className={cn("text-base sm:text-xl font-semibold mt-1 truncate", valueClassName)}>{value}</p>
   </div>
 );
+
+    
