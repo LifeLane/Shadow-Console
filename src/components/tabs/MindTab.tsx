@@ -16,6 +16,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import PulsingText from '@/components/PulsingText';
 import TypewriterText from '@/components/TypewriterText';
+import { getSignalHistoryAction, saveSignalAction } from '@/app/mind/actions';
+import type { Signal } from '@/lib/types';
 
 
 type CoreState = 'dormant' | 'activating' | 'idle' | 'simulating' | 'tracking' | 'resolved';
@@ -35,21 +37,6 @@ const cardVariants = {
   exit: { opacity: 0, y: -20, scale: 0.98, transition: { duration: 0.3, ease: "easeIn" } },
 };
 
-const mockSignalHistory: {
-    id: string;
-    asset: string;
-    prediction: 'BUY' | 'SELL';
-    mode: string;
-    outcome: 'TP_HIT' | 'SL_HIT';
-    reward: number;
-    gasPaid: number;
-}[] = [
-    { id: 'sig1', asset: 'BTCUSDT', prediction: 'BUY', mode: 'Intraday', outcome: 'TP_HIT', reward: 50, gasPaid: 2 },
-    { id: 'sig2', asset: 'ETHUSDT', prediction: 'SELL', mode: 'Scalping', outcome: 'SL_HIT', reward: 10, gasPaid: 1 },
-    { id: 'sig3', asset: 'SOLUSDT', prediction: 'BUY', mode: 'Swing Trading', outcome: 'TP_HIT', reward: 120, gasPaid: 5 },
-    { id: 'sig4', asset: 'ADAUSDT', prediction: 'BUY', mode: 'Intraday', outcome: 'SL_HIT', reward: 5, gasPaid: 1 },
-    { id: 'sig5', asset: 'DOGEUSDT', prediction: 'SELL', mode: 'Scalping', outcome: 'TP_HIT', reward: 25, gasPaid: 2 },
-];
 
 export default function MindTab() {
   const [formState, setFormState] = useState<MarketInsightsInput>(initialFormState);
@@ -62,7 +49,9 @@ export default function MindTab() {
   const [rewardData, setRewardData] = useState<{ bsaid: number; xp: number } | null>(null);
   const [simulationResult, setSimulationResult] = useState<MarketInsightsOutput | null>(null);
   const [livePrice, setLivePrice] = useState<string | null>(null);
+  const [signalHistory, setSignalHistory] = useState<Signal[]>([]);
   const [completedHistoryLines, setCompletedHistoryLines] = useState<string[]>([]);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(true);
 
   const trackingIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
 
@@ -75,6 +64,18 @@ export default function MindTab() {
     };
   }, []);
 
+  const fetchSignalHistory = async () => {
+    setIsHistoryLoading(true);
+    try {
+      const history = await getSignalHistoryAction();
+      setSignalHistory(history);
+    } catch (error) {
+      toast({ title: "Error", description: "Could not load signal history.", variant: "destructive" });
+    } finally {
+      setIsHistoryLoading(false);
+    }
+  };
+
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
 
@@ -84,62 +85,75 @@ export default function MindTab() {
       } else {
         timeoutId = setTimeout(() => {
             setCoreState('idle');
+            fetchSignalHistory(); // Fetch history when core is ready
             setCompletedHistoryLines([]); // Reset for animation
         }, 700);
       }
     }
 
-    if (coreState === 'tracking' && simulationResult) {
-      // Phase 1: On Hold
-      setLivePrice(null);
-      setSignalStatusMessage(`On Hold: Awaiting optimal entry near ${simulationResult.entryRange}...`);
-      
-      const entryTimeout = setTimeout(() => {
-        // Phase 2: Order Executed & Start Tracking
-        setSignalStatusMessage(`Order Executed! Monitoring Take Profit (${simulationResult.takeProfit}) / Stop Loss (${simulationResult.stopLoss})...`);
-        
-        trackingIntervalRef.current = setInterval(async () => {
-          const priceStr = await getLivePrice(formState.target);
-          if (priceStr) {
-            const currentPrice = parseFloat(priceStr);
-            setLivePrice(priceStr);
-
-            const stopLossPrice = parseFloat(simulationResult.stopLoss.replace(/[^0-9.-]+/g,""));
-            const takeProfitPrice = parseFloat(simulationResult.takeProfit.replace(/[^0-9.-]+/g,""));
-
-            const isBuySignal = simulationResult.prediction.toUpperCase() === 'BUY';
-            let outcome: 'TP' | 'SL' | null = null;
+    const handleTracking = async () => {
+       if (coreState === 'tracking' && simulationResult) {
+            // Phase 1: On Hold
+            setLivePrice(null);
+            setSignalStatusMessage(`On Hold: Awaiting optimal entry near ${simulationResult.entryRange}...`);
             
-            if (isBuySignal) {
-                if (currentPrice >= takeProfitPrice) outcome = 'TP';
-                else if (currentPrice <= stopLossPrice) outcome = 'SL';
-            } else { // It's a SELL signal
-                if (currentPrice <= takeProfitPrice) outcome = 'TP'; // TP is lower for a sell
-                else if (currentPrice >= stopLossPrice) outcome = 'SL'; // SL is higher for a sell
-            }
-
-
-            if (outcome) {
-                if (trackingIntervalRef.current) clearInterval(trackingIntervalRef.current);
+            const entryTimeout = setTimeout(() => {
+                // Phase 2: Order Executed & Start Tracking
+                setSignalStatusMessage(`Order Executed! Monitoring Take Profit (${simulationResult.takeProfit}) / Stop Loss (${simulationResult.stopLoss})...`);
                 
-                const bsaid = outcome === 'TP' ? Math.floor(Math.random() * 500) + 250 : 0;
-                const xp = outcome === 'TP' ? Math.floor(Math.random() * 100) + 50 : 10;
-                setRewardData({ bsaid, xp });
+                trackingIntervalRef.current = setInterval(async () => {
+                const priceStr = await getLivePrice(formState.target);
+                if (priceStr) {
+                    const currentPrice = parseFloat(priceStr);
+                    setLivePrice(priceStr);
 
-                setSignalStatusMessage(outcome === 'TP' ? `Take Profit Hit at ${priceStr}!` : `Stop Loss Hit at ${priceStr}!`);
-                setCoreState('resolved');
-            }
-          }
-        }, 5000); // Check price every 5 seconds
-      }, 4000); // 4 second "On Hold" delay
+                    const stopLossPrice = parseFloat(simulationResult.stopLoss.replace(/[^0-9.-]+/g,""));
+                    const takeProfitPrice = parseFloat(simulationResult.takeProfit.replace(/[^0-9.-]+/g,""));
 
-      return () => {
-        clearTimeout(entryTimeout);
-        if (trackingIntervalRef.current) {
-          clearInterval(trackingIntervalRef.current);
-        }
-      };
-    }
+                    const isBuySignal = simulationResult.prediction.toUpperCase() === 'BUY';
+                    let outcome: 'TP_HIT' | 'SL_HIT' | null = null;
+                    
+                    if (isBuySignal) {
+                        if (currentPrice >= takeProfitPrice) outcome = 'TP_HIT';
+                        else if (currentPrice <= stopLossPrice) outcome = 'SL_HIT';
+                    } else { // It's a SELL signal
+                        if (currentPrice <= takeProfitPrice) outcome = 'TP_HIT';
+                        else if (currentPrice >= stopLossPrice) outcome = 'SL_HIT';
+                    }
+
+                    if (outcome) {
+                        if (trackingIntervalRef.current) clearInterval(trackingIntervalRef.current);
+                        
+                        const bsaid = outcome === 'TP_HIT' ? Math.floor(Math.random() * 500) + 250 : 0;
+                        const xp = outcome === 'TP_HIT' ? Math.floor(Math.random() * 100) + 50 : 10;
+                        setRewardData({ bsaid, xp });
+
+                        await saveSignalAction({
+                            asset: formState.target,
+                            prediction: simulationResult.prediction as 'BUY' | 'SELL' | 'HOLD',
+                            trade_mode: formState.tradeMode,
+                            outcome: outcome,
+                            reward_bsai: bsaid,
+                            reward_xp: xp,
+                            gas_paid: Math.floor(Math.random() * 5) + 1,
+                        });
+
+                        setSignalStatusMessage(outcome === 'TP_HIT' ? `Take Profit Hit at ${priceStr}!` : `Stop Loss Hit at ${priceStr}!`);
+                        setCoreState('resolved');
+                    }
+                }
+                }, 5000); // Check price every 5 seconds
+            }, 4000); // 4 second "On Hold" delay
+
+            return () => {
+                clearTimeout(entryTimeout);
+                if (trackingIntervalRef.current) {
+                clearInterval(trackingIntervalRef.current);
+                }
+            };
+       }
+    };
+    handleTracking();
 
     return () => clearTimeout(timeoutId);
   }, [coreState, activationStep, simulationResult, formState.target]);
@@ -198,6 +212,7 @@ export default function MindTab() {
     setRewardData(null);
     setSignalStatusMessage('');
     setLivePrice(null);
+    fetchSignalHistory(); // Refresh history
     setCompletedHistoryLines([]); // Reset for animation
   };
   
@@ -274,7 +289,7 @@ export default function MindTab() {
                             <div>
                                 <CardTitle className="font-headline text-2xl text-accent">Signal Monitor</CardTitle>
                                 <CardDescription className="font-code text-sm">
-                                    <PulsingText text={coreState === 'resolved' ? signalStatusMessage : signalStatusMessage} />
+                                    <PulsingText text={signalStatusMessage} />
                                 </CardDescription>
                             </div>
                         </div>
@@ -403,17 +418,21 @@ export default function MindTab() {
                     <CardDescription>A record of previously generated signals from the Shadow Core.</CardDescription>
                 </CardHeader>
                 <CardContent className="p-4 sm:p-6 bg-black/70 rounded-b-lg">
-                   {mockSignalHistory.length > 0 ? (
+                   {isHistoryLoading ? (
+                        <div className="flex items-center justify-center h-32">
+                           <Loader2 className="h-6 w-6 animate-spin text-accent" />
+                        </div>
+                   ) : signalHistory.length > 0 ? (
                         <div className="font-code text-sm space-y-1 h-32 overflow-y-auto">
-                            {mockSignalHistory.map((signal, index) => {
-                                const isPreviousLineCompleted = index === 0 || completedHistoryLines.includes(mockSignalHistory[index - 1].id);
+                            {signalHistory.map((signal, index) => {
+                                const isPreviousLineCompleted = index === 0 || completedHistoryLines.includes(signalHistory[index - 1].id!.toString());
                                 if (!isPreviousLineCompleted) {
                                     return null;
                                 }
 
                                 const isWin = signal.outcome === 'TP_HIT';
                                 const isLong = signal.prediction === 'BUY';
-                                const lineText = `[${isWin ? 'WIN' : 'LOSS'}] ${signal.asset} | ${isLong ? 'LONG' : 'SHORT'} | +${signal.reward} BSAI (Gas: -${signal.gasPaid})`;
+                                const lineText = `[${isWin ? 'WIN' : 'LOSS'}] ${signal.asset} | ${isLong ? 'LONG' : 'SHORT'} | +${signal.reward_bsai} BSAI (Gas: -${signal.gas_paid})`;
                                 
                                 return (
                                     <TypewriterText
@@ -421,8 +440,8 @@ export default function MindTab() {
                                         text={lineText}
                                         speed={10}
                                         className={cn("whitespace-pre-wrap break-words", isWin ? 'text-green-400' : 'text-red-400')}
-                                        onComplete={() => setCompletedHistoryLines(prev => [...prev, signal.id])}
-                                        showCaret={!completedHistoryLines.includes(signal.id)} 
+                                        onComplete={() => setCompletedHistoryLines(prev => [...prev, signal.id!.toString()])}
+                                        showCaret={!completedHistoryLines.includes(signal.id!.toString())} 
                                         caretClassName="bg-accent animate-blink-block-caret opacity-100"
                                     />
                                 );
@@ -460,6 +479,3 @@ const OutputItem: React.FC<OutputItemProps> = ({ label, value, valueClassName })
     <p className={cn("text-base sm:text-xl font-semibold mt-1 truncate", valueClassName)}>{value}</p>
   </div>
 );
-
-
-    

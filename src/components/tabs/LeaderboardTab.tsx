@@ -5,37 +5,54 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Flame, Zap, Eye, Award as RankIcon, Trophy, Bot } from 'lucide-react';
+import { Flame, Zap, Eye, Award as RankIcon, Trophy, Bot, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import TypewriterText from '@/components/TypewriterText';
+import { getLeaderboardAction } from '@/app/leaderboard/actions';
+import type { User } from '@/lib/types';
 
-interface LeaderboardUser {
-  id: string;
-  rank: number;
-  name: string;
-  isBot?: boolean;
-  avatarUrl?: string;
-  shadowXp: number;
-  missionsCompleted: number;
-  airdropContribution: number;
-  tags: string[];
+
+interface LeaderboardUser extends User {
+    rank: number;
+    isBot?: boolean;
+    tags?: string[];
 }
 
-const mockLeaderboardData: LeaderboardUser[] = [
-  { id: '1', rank: 1, name: 'CryptoKingX', shadowXp: 9200, missionsCompleted: 50, airdropContribution: 12000, tags: ['🔮 Signal Oracle', '⚡ Chain Whisperer'] },
-  { id: '2', rank: 2, name: 'NovaTrader7', shadowXp: 8800, missionsCompleted: 45, airdropContribution: 9500, tags: ['⚡ Chain Whisperer'] },
-  { id: '3', rank: 3, name: 'My ETH Momentum Bot', isBot: true, shadowXp: 8750, missionsCompleted: 40, airdropContribution: 8200, tags: ['📈 Momentum Master'] },
-  { id: '4', rank: 4, name: 'ShadowScout', shadowXp: 8500, missionsCompleted: 40, airdropContribution: 8000, tags: ['🔮 Signal Oracle'] },
-  { id: '5', rank: 5, name: 'PixelProphet', shadowXp: 8200, missionsCompleted: 38, airdropContribution: 7500, tags: [] },
-  { id: '6', rank: 6, name: 'ByteBard', shadowXp: 7900, missionsCompleted: 35, airdropContribution: 6000, tags: ['⚡ Chain Whisperer'] },
-];
-
 export default function LeaderboardTab() {
+  const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [descriptionKey, setDescriptionKey] = useState(0);
 
   useEffect(() => {
-    setDescriptionKey(prev => prev + 1);
+    async function loadLeaderboard() {
+        setIsLoading(true);
+        try {
+            const users = await getLeaderboardAction();
+            const rankedUsers = users.map((user, index) => ({
+                ...user,
+                rank: index + 1,
+                // Add some dynamic tags for flair
+                tags: user.xp > 8000 ? ['🔮 Signal Oracle'] : user.xp > 5000 ? ['⚡ Chain Whisperer'] : []
+            }));
+            setLeaderboard(rankedUsers);
+        } catch (error) {
+            console.error("Failed to load leaderboard", error);
+        } finally {
+            setIsLoading(false);
+            setDescriptionKey(prev => prev + 1);
+        }
+    }
+    loadLeaderboard();
   }, []);
+
+  if (isLoading) {
+    return (
+        <div className="flex justify-center items-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="ml-4 text-lg text-muted-foreground">Loading Top Agent Rankings...</p>
+        </div>
+    );
+  }
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -56,7 +73,7 @@ export default function LeaderboardTab() {
           </div>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4">
-          {mockLeaderboardData.map((user, index) => (
+          {leaderboard.map((user, index) => (
             <Card 
               key={user.id} 
               className={cn(
@@ -75,7 +92,7 @@ export default function LeaderboardTab() {
                 <Avatar className={cn("h-10 w-10 sm:h-14 sm:w-14 border-2 shrink-0", index < 3 ? "border-accent" : "border-primary")}>
                   {user.avatarUrl && <AvatarImage src={user.avatarUrl} data-ai-hint="profile avatar" alt={user.name} />}
                   <AvatarFallback className="text-sm sm:text-lg bg-muted text-foreground">
-                    {user.isBot ? <Bot className="w-6 h-6" /> : user.name.substring(0, 2).toUpperCase()}
+                    {user.isBot ? <Bot className="w-6 h-6" /> : user.name!.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-grow min-w-0">
@@ -84,7 +101,7 @@ export default function LeaderboardTab() {
                       {user.isBot && <Badge variant="secondary" className="ml-2 text-xs">Bot</Badge>}
                   </h3>
                   <div className="flex flex-wrap gap-1 mt-0.5 sm:mt-1">
-                    {user.tags.map(tag => (
+                    {user.tags?.map(tag => (
                       <Badge 
                         key={tag} 
                         variant={tag.includes('Oracle') ? 'default' : 'secondary'} 
@@ -101,9 +118,9 @@ export default function LeaderboardTab() {
                   </div>
                 </div>
                 <div className="text-right space-y-0.5 text-[0.65rem] sm:text-xs hidden md:block shrink-0 min-w-[120px]">
-                  <p className="flex items-center justify-end text-muted-foreground"><Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 text-primary/80" /> Shadow XP: <span className="font-semibold ml-1 text-foreground">{user.shadowXp.toLocaleString()}</span></p>
-                  <p className="flex items-center justify-end text-muted-foreground"><Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 text-orange-500" /> Missions: <span className="font-semibold ml-1 text-foreground">{user.missionsCompleted}</span></p>
-                  <p className="flex items-center justify-end text-muted-foreground"><Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 text-yellow-500" /> Airdrop Pts: <span className="font-semibold ml-1 text-foreground">{user.airdropContribution.toLocaleString()}</span></p>
+                  <p className="flex items-center justify-end text-muted-foreground"><Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 text-primary/80" /> Shadow XP: <span className="font-semibold ml-1 text-foreground">{user.xp.toLocaleString()}</span></p>
+                  <p className="flex items-center justify-end text-muted-foreground"><Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 text-orange-500" /> Signals: <span className="font-semibold ml-1 text-foreground">{user.signals_generated}</span></p>
+                  <p className="flex items-center justify-end text-muted-foreground"><Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 text-yellow-500" /> Airdrop Pts: <span className="font-semibold ml-1 text-foreground">{user.bsai_earned.toLocaleString()}</span></p>
                 </div>
               </CardContent>
             </Card>

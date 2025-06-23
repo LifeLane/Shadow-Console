@@ -15,18 +15,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Bot, History, CheckCircle, Award, Star, Power, PlusCircle, Edit, Rocket, BrainCircuit, Activity, BarChart, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import type { Agent, AgentParameters } from '@/lib/types';
+import type { Agent, AgentParameters, User } from '@/lib/types';
 import { getAgentsAction, saveAgentAction, updateAgentStatusAction, setupDatabaseAndSeed } from '@/app/agents/actions';
+import { getUser } from '@/services/userService'; // We can call a service directly here for read-only ops
 
 // --- INITIAL DATA & TYPES ---
-
-const userStats = {
-    signalsGenerated: 78,
-    signalsWon: 62,
-    totalBsaiEarned: 12450,
-    currentXp: 1850,
-    xpForNextLevel: 2500,
-};
 
 const initialAgentsData: Agent[] = [
     { id: 'agent-custom-1', name: 'My ETH Momentum Bot', description: 'Custom agent focusing on ETH/USDT momentum.', status: 'Active', is_custom: true, parameters: { symbol: 'ETHUSDT', tradeMode: 'Intraday', risk: 'Medium', indicators: ['RSI', 'MACD'] }, code: `// Strategy: Momentum\n// Indicators: RSI, MACD\n\nif (crossover(rsi, 70)) {\n  sell();\n} else if (crossover(rsi, 30)) {\n  buy();\n}`, performance: { signals: 40, winRate: 85 } },
@@ -69,6 +62,7 @@ const StatCard = ({ title, value, children }: { title: string; value: string | n
 const AgentEditorDialog: React.FC<{ agent: Omit<Agent, 'id'> | Agent, onSave: (agent: Agent) => void, children: React.ReactNode }> = ({ agent, onSave, children }) => {
     const [editedAgent, setEditedAgent] = useState(agent);
     const [isSaving, setIsSaving] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -78,6 +72,7 @@ const AgentEditorDialog: React.FC<{ agent: Omit<Agent, 'id'> | Agent, onSave: (a
 
         try {
             await onSave(agentToSave);
+            setIsOpen(false); // Close dialog on successful save
         } finally {
             setIsSaving(false);
         }
@@ -96,8 +91,8 @@ const AgentEditorDialog: React.FC<{ agent: Omit<Agent, 'id'> | Agent, onSave: (a
     };
 
     return (
-        <Dialog>
-            <DialogTrigger asChild>{children}</DialogTrigger>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild onClick={() => setIsOpen(true)}>{children}</DialogTrigger>
             <DialogContent className="sm:max-w-[600px] bg-background border-primary glow-border-primary text-foreground font-code">
                 <DialogHeader>
                     <DialogTitle className="font-headline text-2xl text-primary">{editedAgent.is_custom ? 'Configure Custom Agent' : 'View Premade Agent'}</DialogTitle>
@@ -159,25 +154,32 @@ const AgentEditorDialog: React.FC<{ agent: Omit<Agent, 'id'> | Agent, onSave: (a
 
 export default function AgentsTab() {
     const [agents, setAgents] = useState<Agent[]>([]);
+    const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
 
     useEffect(() => {
-        async function loadAgents() {
+        async function loadInitialData() {
             setIsLoading(true);
             try {
                 // This ensures the table exists and seeds it on first run
                 await setupDatabaseAndSeed(initialAgentsData);
-                const dbAgents = await getAgentsAction();
+                
+                const [dbAgents, dbUser] = await Promise.all([
+                    getAgentsAction(),
+                    getUser('default_user')
+                ]);
+
                 setAgents(dbAgents);
+                setUser(dbUser);
             } catch (error) {
-                console.error("Failed to load agents from database", error);
-                toast({ title: "Error", description: "Could not load agent data.", variant: "destructive" });
+                console.error("Failed to load data from database", error);
+                toast({ title: "Error", description: "Could not load agent & user data.", variant: "destructive" });
             } finally {
                 setIsLoading(false);
             }
         }
-        loadAgents();
+        loadInitialData();
     }, [toast]);
 
     const handleSaveAgent = async (agentToSave: Agent) => {
@@ -216,13 +218,15 @@ export default function AgentsTab() {
     };
 
     const winRate = useMemo(() => {
-        if (userStats.signalsGenerated === 0) return "0.00%";
-        return ((userStats.signalsWon / userStats.signalsGenerated) * 100).toFixed(2) + "%";
-    }, []);
+        if (!user || user.signals_generated === 0) return "0.00%";
+        return ((user.signals_won / user.signals_generated) * 100).toFixed(2) + "%";
+    }, [user]);
 
     const xpProgress = useMemo(() => {
-        return (userStats.currentXp / userStats.xpForNextLevel) * 100;
-    }, []);
+        const xpForNextLevel = 2500; // This could be dynamic later
+        if (!user) return 0;
+        return (user.xp / xpForNextLevel) * 100;
+    }, [user]);
     
     const customAgents = agents.filter(a => a.is_custom);
     const premadeAgents = agents.filter(a => !a.is_custom);
@@ -250,15 +254,15 @@ export default function AgentsTab() {
                 </CardHeader>
                 <CardContent className="p-4 sm:p-6 space-y-6">
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <StatCard title="Signals Generated" value={userStats.signalsGenerated}><History className="h-8 w-8 mx-auto" /></StatCard>
+                        <StatCard title="Signals Generated" value={user?.signals_generated.toLocaleString() ?? 0}><History className="h-8 w-8 mx-auto" /></StatCard>
                         <StatCard title="Win Rate" value={winRate}><CheckCircle className="h-8 w-8 mx-auto" /></StatCard>
-                        <StatCard title="Total BSAI Earned" value={userStats.totalBsaiEarned.toLocaleString()}><Award className="h-8 w-8 mx-auto" /></StatCard>
-                        <StatCard title="Current XP" value={userStats.currentXp.toLocaleString()}><Star className="h-8 w-8 mx-auto" /></StatCard>
+                        <StatCard title="Total BSAI Earned" value={user?.bsai_earned.toLocaleString() ?? 0}><Award className="h-8 w-8 mx-auto" /></StatCard>
+                        <StatCard title="Current XP" value={user?.xp.toLocaleString() ?? 0}><Star className="h-8 w-8 mx-auto" /></StatCard>
                     </div>
                     <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Next Milestone Progress</Label>
+                        <Label className="text-sm font-medium text-muted-foreground">Next Milestone Progress (Lvl 5)</Label>
                         <Progress value={xpProgress} className="w-full mt-2 h-3" />
-                        <p className="text-xs text-right mt-1 text-muted-foreground">{userStats.currentXp.toLocaleString()} / {userStats.xpForNextLevel.toLocaleString()} XP</p>
+                        <p className="text-xs text-right mt-1 text-muted-foreground">{user?.xp.toLocaleString() ?? 0} / 2,500 XP</p>
                     </div>
                 </CardContent>
             </Card>
@@ -324,4 +328,3 @@ export default function AgentsTab() {
         </div>
     );
 }
-

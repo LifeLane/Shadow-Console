@@ -1,4 +1,5 @@
 
+
 export interface AgentPerformance {
     signals: number;
     winRate: number; // as a percentage, e.g., 80 for 80%
@@ -46,4 +47,25 @@ export interface User {
     xp: number;
     created_at: string;
     updated_at: string;
+    name?: string; // For leaderboard
+    avatarUrl?: string; // For leaderboard
+}
+
+export interface UserMission {
+    user_id: string;
+    mission_id: string;
+    completed_at: string;
+}
+
+export interface Signal {
+    id?: number; // Optional as it's a serial in the DB
+    user_id: string;
+    asset: string;
+    prediction: 'BUY' | 'SELL' | 'HOLD';
+    trade_mode: string;
+    outcome: 'TP_HIT' | 'SL_HIT' | 'PENDING';
+    reward_bsai: number;
+    reward_xp: number;
+    gas_paid: number;
+    created_at?: string;
 }

@@ -8,35 +8,58 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useTheme } from 'next-themes';
-import { Wallet, Bell, Palette, KeyRound, Sun, Moon, Eye, EyeOff, CheckCircle, XCircle, Settings as SettingsGear, UserCircle, BarChartBig } from 'lucide-react';
+import { Wallet, Bell, Palette, KeyRound, Sun, Moon, Eye, EyeOff, CheckCircle, XCircle, Settings as SettingsGear, UserCircle, BarChartBig, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import TypewriterText from '@/components/TypewriterText';
+import { getUserData, updateWalletAction } from '@/app/settings/actions';
+import type { User } from '@/lib/types';
+
 
 export default function SettingsTab() {
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // App State
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [showApiKey, setShowApiKey] = useState(false);
+  
+  // User Data State
+  const [user, setUser] = useState<User | null>(null);
   const [isWalletConnected, setIsWalletConnected] = useState(false);
-  const [connectedWalletName, setConnectedWalletName] = useState('');
+  const [connectedWalletInfo, setConnectedWalletInfo] = useState<{address: string, chain: string} | null>(null);
+
+  // UI State
   const [signalStrength, setSignalStrength] = useState(0);
   const [descriptionKey, setDescriptionKey] = useState(0);
 
 
   useEffect(() => {
     setMounted(true);
-    setDescriptionKey(prev => prev + 1);
-    const storedWallet = localStorage.getItem("connectedWalletName_simulated");
-    if (storedWallet) {
-        setIsWalletConnected(true);
-        setConnectedWalletName(storedWallet);
-        setSignalStrength(Math.floor(Math.random() * 30) + 70); 
-    } else {
-        setSignalStrength(Math.floor(Math.random() * 50) + 20); 
+    async function loadUserData() {
+        try {
+            setIsLoading(true);
+            const userData = await getUserData();
+            setUser(userData);
+            if (userData?.wallet_address && userData.wallet_chain) {
+                setIsWalletConnected(true);
+                setConnectedWalletInfo({ address: userData.wallet_address, chain: userData.wallet_chain });
+                setSignalStrength(Math.floor(Math.random() * 30) + 70); 
+            } else {
+                 setSignalStrength(Math.floor(Math.random() * 50) + 20); 
+            }
+        } catch (error) {
+            toast({ title: "Error", description: "Could not load user data from database.", variant: "destructive" });
+        } finally {
+            setIsLoading(false);
+            setDescriptionKey(prev => prev + 1);
+        }
     }
-  }, []);
+    loadUserData();
+  }, [toast]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -59,24 +82,26 @@ export default function SettingsTab() {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
-  const handleWalletConnection = () => {
+  const handleWalletConnection = async () => {
+    setIsSaving(true);
     if (isWalletConnected) {
+      await updateWalletAction(null, null);
       setIsWalletConnected(false);
-      setConnectedWalletName('');
-      localStorage.removeItem("connectedWalletName_simulated");
+      setConnectedWalletInfo(null);
       setSignalStrength(Math.floor(Math.random() * 50) + 20);
-      toast({ title: "Wallet Disconnected", description: "Your Neural ID has been decoupled from the Shadow Core (Simulated)." });
+      toast({ title: "Wallet Disconnected", description: "Your Neural ID has been decoupled from the Shadow Core." });
     } else {
+      // In a real app, this would come from a wallet connector like RainbowKit/WAGMI
       const simulatedAddress = `0x${Array(40).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('')}`;
-      const shortAddress = `${simulatedAddress.substring(0,6)}...${simulatedAddress.substring(simulatedAddress.length - 4)}`;
-      const walletName = `Shadow Agent LX7 (${shortAddress})`;
-      
+      const simulatedChain = 'ETH';
+
+      await updateWalletAction(simulatedAddress, simulatedChain);
       setIsWalletConnected(true);
-      setConnectedWalletName(walletName);
-      localStorage.setItem("connectedWalletName_simulated", walletName);
+      setConnectedWalletInfo({ address: simulatedAddress, chain: simulatedChain });
       setSignalStrength(Math.floor(Math.random() * 30) + 70);
-      toast({ title: "Neural ID Synced!", description: `Successfully synced ${walletName} with Shadow Core. Signal strength calibrating.` });
+      toast({ title: "Neural ID Synced!", description: `Successfully synced wallet with Shadow Core.` });
     }
+    setIsSaving(false);
   };
   
   const handleSaveApiKeys = () => {
@@ -85,6 +110,19 @@ export default function SettingsTab() {
         description: "Your Binance API keys have been securely processed for simulated operations.",
     });
   };
+
+  if (isLoading) {
+    return (
+        <div className="flex justify-center items-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="ml-4 text-lg text-muted-foreground">Loading Configuration...</p>
+        </div>
+    );
+  }
+
+  const shortAddress = connectedWalletInfo?.address 
+    ? `${connectedWalletInfo.address.substring(0,6)}...${connectedWalletInfo.address.substring(connectedWalletInfo.address.length - 4)}` 
+    : '';
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -120,20 +158,21 @@ export default function SettingsTab() {
             </CardHeader>
             <CardContent className="p-0 space-y-2 sm:space-y-3">
                 <Button 
-                onClick={handleWalletConnection}
-                className={cn(
-                    "font-code transition-colors w-full sm:w-auto py-2 px-4 text-sm sm:text-base",
-                    isWalletConnected 
-                    ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground" 
-                    : "bg-accent text-accent-foreground hover:bg-accent/90"
-                )}
+                    onClick={handleWalletConnection}
+                    disabled={isSaving}
+                    className={cn(
+                        "font-code transition-colors w-full sm:w-auto py-2 px-4 text-sm sm:text-base",
+                        isWalletConnected 
+                        ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground" 
+                        : "bg-accent text-accent-foreground hover:bg-accent/90"
+                    )}
                 >
-                {isWalletConnected ? <XCircle className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> : <Wallet className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />}
-                {isWalletConnected ? 'Decouple Neural ID' : 'Sync Neural ID (Simulated)'}
+                    {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : isWalletConnected ? <XCircle className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> : <Wallet className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />}
+                    {isSaving ? "Saving..." : isWalletConnected ? 'Decouple Neural ID' : 'Sync Neural ID (Simulated)'}
                 </Button>
-                {isWalletConnected ? (
+                {isWalletConnected && connectedWalletInfo ? (
                     <div className="text-xs text-accent pt-1 sm:pt-2 space-y-0.5">
-                        <p className="flex items-center"><CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5"/>ID: {connectedWalletName}</p>
+                        <p className="flex items-center"><CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5"/>ID: Agent LX7 ({connectedWalletInfo.chain}: {shortAddress})</p>
                         <p className="flex items-center"><BarChartBig className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5"/>Status: Synchronized • Signal Strength: {signalStrength}%</p>
                     </div>
                 ) : (
@@ -160,7 +199,7 @@ export default function SettingsTab() {
                 </div>
                  <TypewriterText 
                     key={`desc-theme-${descriptionKey}`}
-                    text="Interface glow effects adapt to the active theme (Primary: Electric Purple/Neon Green, Accent: Neon Green)." 
+                    text="Interface glow effects adapt to the active theme." 
                     className="text-xs text-muted-foreground"
                     speed={15}
                     showCaret={false}
@@ -234,7 +273,7 @@ export default function SettingsTab() {
                 <Button onClick={handleSaveApiKeys} variant="outline" className="font-code border-primary text-primary hover:bg-primary/10 transition-colors text-sm py-2 px-3">Save API Keys (Simulated)</Button>
                 <TypewriterText 
                     key={`desc-apicaution-${descriptionKey}`}
-                    text="Handle API keys with extreme caution. For this simulation, keys are not stored or transmitted externally beyond local browser interactions if any." 
+                    text="Handle API keys with extreme caution. For this simulation, keys are not stored or transmitted externally." 
                     className="text-xs text-destructive pt-1"
                     speed={15}
                     showCaret={false}

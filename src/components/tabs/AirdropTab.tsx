@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, XCircle, Gift, WalletCards, History, ExternalLink, Copy, AlertTriangle, Activity, BrainCircuit } from 'lucide-react';
+import { CheckCircle, XCircle, Gift, WalletCards, History, ExternalLink, Copy, AlertTriangle, Activity, BrainCircuit, Loader2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,67 +12,63 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import TypewriterText from '@/components/TypewriterText';
-
-interface EligibilityItem {
-  id: string;
-  label: string;
-  isEligible: boolean;
-  points: number;
-  details?: string;
-  action?: () => void;
-  actionLabel?: string;
-  disabled?: boolean;
-  category: 'base' | 'activity';
-}
+import { getAirdropStatsAction, type AirdropStats } from '@/app/airdrop/actions';
+import { updateWalletAction } from '@/app/settings/actions';
 
 const BSAI_CONTRACT_ADDRESS = "CY1LMCWHZiQHf675QJ2uGwSE1w2fD5MYVWUQzgYyEpRS";
 const BSAI_TRADING_LINK = "https://birdeye.so/token/CY1LMCWHZiQHf675QJ2uGwSE1w2fD5MYVWUQzgYyEpRS?chain=solana";
 
-const initialEligibilityData: EligibilityItem[] = [
-  { id: 'walletSubmitted', label: 'Primary Wallet Synced', isEligible: false, points: 100, details: 'Sync your ETH, SOL, or TON wallet to confirm.', category: 'base' },
-  { id: 'bsaiHolder', label: 'BSAI Holder Status (Simulated)', isEligible: false, points: 150, details: 'Sync wallet to verify contribution.', category: 'base' },
-  { id: 'invite', label: 'Genesis Invite Code Used (Simulated)', isEligible: true, points: 25, details: 'Code: SHADOW2024 (Welcome, Agent!)', category: 'base' },
-  { id: 'signalRewards', label: 'Signal Trading Rewards', isEligible: true, points: 250, details: 'Points from successful signals in the Mind tab.', category: 'activity' },
-  { id: 'agentRewards', label: 'Agent Performance Bonus', isEligible: true, points: 120, details: 'Bonus from your agents\' performance.', category: 'activity' },
-  { id: 'taskRewards', label: 'Mission Completion Bonus', isEligible: true, points: 180, details: 'Rewards from completing missions.', category: 'activity' },
-];
-
-const mockTransactions = [
-  { id: 'tx1', date: '2024-07-20', type: 'Airdrop Claim', amount: '100 BSAI', status: 'Completed', txHash: '0xabc...def' },
-  { id: 'tx2', date: '2024-07-15', type: 'Task Reward', amount: '20 BSAI', status: 'Completed', txHash: '0xdef...' },
-];
+const POINTS_CONFIG = {
+    WALLET_SYNC: 100,
+    BSAI_HOLDER: 150,
+    GENESIS_INVITE: 25,
+};
 
 export default function AirdropTab() {
   const { toast } = useToast();
-  const [eligibilityItems, setEligibilityItems] = useState<EligibilityItem[]>(initialEligibilityData);
+  const [stats, setStats] = useState<AirdropStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Wallet Form State
   const [selectedChain, setSelectedChain] = useState('');
   const [walletAddress, setWalletAddress] = useState('');
-  const [isWalletFormSubmitted, setIsWalletFormSubmitted] = useState(false);
+  const [isSavingWallet, setIsSavingWallet] = useState(false);
+
   const [descriptionKey, setDescriptionKey] = useState(0);
 
+  const fetchStats = async () => {
+      try {
+          setIsLoading(true);
+          const airdropStats = await getAirdropStatsAction();
+          setStats(airdropStats);
+      } catch (e) {
+          toast({ title: "Error", description: "Could not load airdrop statistics.", variant: "destructive" });
+      } finally {
+          setIsLoading(false);
+          setDescriptionKey(prev => prev + 1);
+      }
+  };
+
   useEffect(() => {
-    setDescriptionKey(prev => prev + 1); // For typewriter
-  }, []);
+    fetchStats();
+  }, [toast]);
   
-  const handleWalletSubmit = (e: React.FormEvent) => {
+  const handleWalletSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedChain || !walletAddress) {
       toast({ title: "Wallet Sync Error", description: "Please select a chain and enter a valid wallet address.", variant: "destructive" });
       return;
     }
-    setEligibilityItems(prevItems =>
-      prevItems.map(item => {
-        if (item.id === 'walletSubmitted') {
-          return { ...item, isEligible: true, details: `Synced: ${selectedChain}: ${walletAddress.substring(0,6)}...${walletAddress.substring(walletAddress.length - 4)}` };
-        }
-        if (item.id === 'bsaiHolder') {
-          return { ...item, isEligible: true, details: 'BSAI Holder status confirmed (Simulated). Your support is valued!' };
-        }
-        return item;
-      })
-    );
-    setIsWalletFormSubmitted(true);
-    toast({ title: "Wallet Synced for Airdrop!", description: `Your ${selectedChain} wallet has been synced with the Shadow Core network.` });
+    setIsSavingWallet(true);
+    try {
+        await updateWalletAction(walletAddress, selectedChain);
+        toast({ title: "Wallet Synced for Airdrop!", description: `Your ${selectedChain} wallet has been synced with the Shadow Core network.` });
+        await fetchStats(); // Refresh stats after updating wallet
+    } catch (error) {
+        toast({ title: "Error", description: "Failed to sync wallet.", variant: "destructive" });
+    } finally {
+        setIsSavingWallet(false);
+    }
   };
 
   const handleCopyToClipboard = async (text: string, type: string) => {
@@ -84,17 +80,37 @@ export default function AirdropTab() {
     }
   };
 
-  const { totalAirdropPoints, basePoints, activityPoints } = useMemo(() => {
-    const eligibleItems = eligibilityItems.filter(item => item.isEligible);
-    const total = eligibleItems.reduce((sum, item) => sum + item.points, 0);
-    const base = eligibleItems.filter(item => item.category === 'base').reduce((sum, item) => sum + item.points, 0);
-    const activity = eligibleItems.filter(item => item.category === 'activity').reduce((sum, item) => sum + item.points, 0);
-    return { totalAirdropPoints: total, basePoints: base, activityPoints: activity };
-  }, [eligibilityItems]);
+  const { totalAirdropPoints, basePoints, activityPoints, eligibilityItems, allEligible } = useMemo(() => {
+    if (!stats) return { totalAirdropPoints: 0, basePoints: 0, activityPoints: 0, eligibilityItems: [], allEligible: false };
+
+    const items = [
+        { id: 'walletSubmitted', label: 'Primary Wallet Synced', isEligible: stats.wallet.synced, points: POINTS_CONFIG.WALLET_SYNC, details: stats.wallet.synced ? `Synced: ${stats.wallet.chain}: ${stats.wallet.address?.substring(0,6)}...` : 'Sync your wallet to confirm.', category: 'base' },
+        { id: 'bsaiHolder', label: 'BSAI Holder Status', isEligible: stats.bsaiHolder, points: POINTS_CONFIG.BSAI_HOLDER, details: 'Sync wallet to verify contribution.', category: 'base' },
+        { id: 'invite', label: 'Genesis Invite Code Used', isEligible: stats.genesisInvite, points: POINTS_CONFIG.GENESIS_INVITE, details: 'Code: SHADOW2024 (Welcome, Agent!)', category: 'base' },
+        { id: 'signalRewards', label: 'Signal Trading Rewards', isEligible: true, points: stats.signalPoints, details: `Points from ${stats.signalPoints / 5} successful signals.`, category: 'activity' },
+        { id: 'agentRewards', label: 'Agent Performance Bonus', isEligible: true, points: stats.agentPoints, details: `Bonus from your agent's total XP.`, category: 'activity' },
+        { id: 'taskRewards', label: 'Mission Completion Bonus', isEligible: true, points: stats.missionPoints, details: `Rewards from ${stats.missionPoints / 30} completed missions.`, category: 'activity' },
+    ];
+    
+    const base = items.filter(item => item.category === 'base' && item.isEligible).reduce((sum, item) => sum + item.points, 0);
+    const activity = items.filter(item => item.category === 'activity' && item.isEligible).reduce((sum, item) => sum + item.points, 0);
+    const total = base + activity;
+    const allCriteriaMet = items.every(item => item.isEligible);
+    
+    return { totalAirdropPoints: total, basePoints: base, activityPoints: activity, eligibilityItems: items, allEligible: allCriteriaMet };
+  }, [stats]);
   
   const eligibleCount = eligibilityItems.filter(item => item.isEligible).length;
   const progressPercentage = eligibilityItems.length > 0 ? (eligibleCount / eligibilityItems.length) * 100 : 0;
-  const allEligible = eligibilityItems.length > 0 && eligibleCount === eligibilityItems.length;
+  
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-4 text-lg text-muted-foreground">Fetching Airdrop Status...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -103,7 +119,7 @@ export default function AirdropTab() {
           <CardTitle className="font-headline text-xl sm:text-3xl text-primary flex items-center"><Gift className="w-6 h-6 sm:w-8 sm:h-8 mr-2 sm:mr-3" />BSAI Airdrop Hub</CardTitle>
           <TypewriterText 
             key={`desc-airdrop-${descriptionKey}`}
-            text="Sync your wallet, verify contributions to the Shadow Core, and claim your BSAI airdrop rewards! Your efforts power the collective intelligence." 
+            text="Sync your wallet, verify contributions, and check your airdrop allocation. Your efforts power the Shadow Core." 
             className="text-xs sm:text-sm text-muted-foreground mt-1"
             speed={15}
             showCaret={false}
@@ -111,7 +127,6 @@ export default function AirdropTab() {
         </CardHeader>
         <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-6">
 
-          {/* Allocation Summary Card */}
           <Card className="p-4 sm:p-6 bg-card/80 border-primary/30 shadow-inner glow-border-primary">
               <h3 className="text-lg sm:text-xl font-semibold mb-3 text-primary font-headline text-center">Your Airdrop Allocation Summary</h3>
               <div className="text-center mb-4 border-b border-primary/20 pb-4">
@@ -130,7 +145,7 @@ export default function AirdropTab() {
               </div>
           </Card>
 
-          {!isWalletFormSubmitted ? (
+          {!stats?.wallet.synced ? (
             <Card className="p-4 sm:p-6 bg-card/80 border-primary/30 shadow-inner">
               <form onSubmit={handleWalletSubmit} className="space-y-3 sm:space-y-4">
                 <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3 text-primary font-headline">Sync Wallet for Eligibility</h3>
@@ -157,14 +172,17 @@ export default function AirdropTab() {
                     className="mt-1 bg-background border-border focus:border-primary focus:ring-primary text-sm sm:text-base h-10"
                   />
                 </div>
-                <Button type="submit" className="w-full font-code bg-primary text-primary-foreground hover:bg-primary/90 py-2.5 text-sm sm:text-base">Sync Wallet & Verify</Button>
+                <Button type="submit" className="w-full font-code bg-primary text-primary-foreground hover:bg-primary/90 py-2.5 text-sm sm:text-base" disabled={isSavingWallet}>
+                    {isSavingWallet && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {isSavingWallet ? 'Syncing...' : 'Sync Wallet & Verify'}
+                </Button>
               </form>
             </Card>
           ) : (
              <Card className="p-4 sm:p-6 bg-accent/10 border-accent/50 shadow-md text-center">
                 <CheckCircle className="w-10 h-10 sm:w-12 sm:h-12 text-accent mx-auto mb-2 sm:mb-3" />
                 <h3 className="text-lg sm:text-xl font-semibold text-accent font-headline">Wallet Synced Successfully!</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">Network: {selectedChain} | Address: {walletAddress.substring(0,8)}...{walletAddress.substring(walletAddress.length - 6)}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Network: {stats.wallet.chain} | Address: {stats.wallet.address?.substring(0,8)}...{stats.wallet.address?.substring(stats.wallet.address.length - 6)}</p>
             </Card>
           )}
 
@@ -189,11 +207,6 @@ export default function AirdropTab() {
                     {item.details && <TypewriterText key={`detail-${item.id}-${descriptionKey}`} text={item.details} className="text-xs text-muted-foreground" speed={10} showCaret={false} />}
                   </div>
                 </div>
-                {item.action && !item.isEligible && !item.disabled && (
-                  <Button variant="outline" size="sm" onClick={item.action} className="font-code border-primary text-primary hover:bg-primary/10 hover:text-primary self-end sm:self-center shrink-0 mt-2 sm:mt-0 text-xs sm:text-sm py-1.5 px-3">
-                    {item.actionLabel}
-                  </Button>
-                )}
               </Card>
             ))}
           </div>
@@ -246,44 +259,6 @@ export default function AirdropTab() {
             </Button>
           </div>
            <p className="text-xs text-muted-foreground text-center pt-1 sm:pt-2">Always verify contract addresses from official Shadow Core channels before interacting.</p>
-        </CardContent>
-      </Card>
-
-      <Card className="glow-border-primary">
-        <CardHeader className="p-4 sm:p-6">
-          <CardTitle className="font-headline text-lg sm:text-2xl text-primary flex items-center"><History className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3" />Transaction Ledger (Simulated)</CardTitle>
-          <TypewriterText 
-            key={`desc-ledger-${descriptionKey}`}
-            text="Your recent simulated BSAI token transactions and reward logs." 
-            className="text-xs sm:text-sm text-muted-foreground mt-1"
-            speed={15}
-            showCaret={false}
-          />
-        </CardHeader>
-        <CardContent className="p-4 sm:p-6">
-          {mockTransactions.length > 0 ? (
-            <ul className="space-y-2 sm:space-y-3">
-              {mockTransactions.map(tx => (
-                <li key={tx.id} className="p-3 border border-border rounded-md flex flex-col sm:flex-row justify-between items-start sm:items-center bg-card hover:bg-muted/30 transition-colors duration-200 space-y-1 sm:space-y-0">
-                  <div className="flex-grow">
-                    <p className="font-semibold text-sm sm:text-base">{tx.type} - <span className="text-accent font-bold">{tx.amount}</span></p>
-                    <p className="text-xs text-muted-foreground">{tx.date} - Status: {tx.status}</p>
-                  </div>
-                  <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80 self-start sm:self-center text-xs px-2 py-1">
-                    {tx.txHash} <ExternalLink className="w-3 h-3 ml-1" />
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <TypewriterText 
-              key={`desc-no-tx-${descriptionKey}`}
-              text="No transactions logged yet. Complete missions to earn rewards!" 
-              className="text-muted-foreground text-center py-4 text-sm sm:text-base"
-              speed={20}
-              showCaret={false}
-            />
-          )}
         </CardContent>
       </Card>
     </div>
