@@ -10,7 +10,7 @@ import { generateMarketInsights, MarketInsightsInput, MarketInsightsOutput } fro
 import { getLivePrice } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import TerminalExecutionAnimation from '@/components/TerminalExecutionAnimation';
-import { Loader2, Activity, Brain, ShieldCheck, TrendingUp, Zap, History, CheckCircle, XCircle, DollarSign, Star, Fuel } from 'lucide-react';
+import { Loader2, Activity, Brain, ShieldCheck, TrendingUp, Zap, History, CheckCircle, XCircle, DollarSign, Star, Fuel, Target, Percent, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -126,6 +126,11 @@ export default function MindTab() {
                       reward_bsai: bsaid,
                       reward_xp: xp,
                       gas_paid: Math.floor(Math.random() * 5) + 1,
+                      entryRange: simulationResult.entryRange,
+                      stopLoss: simulationResult.stopLoss,
+                      takeProfit: simulationResult.takeProfit,
+                      confidence: simulationResult.confidence,
+                      shadowScore: simulationResult.shadowScore,
                   });
 
                   setSignalStatusMessage(outcome === 'TP_HIT' ? `Take Profit Hit at ${priceStr}!` : `Stop Loss Hit at ${priceStr}!`);
@@ -377,7 +382,7 @@ export default function MindTab() {
                            <Loader2 className="h-6 w-6 animate-spin text-accent" />
                         </div>
                    ) : signalHistory.length > 0 ? (
-                        <Accordion type="single" collapsible className="w-full space-y-2 max-h-80 overflow-y-auto pr-2">
+                        <Accordion type="single" collapsible className="w-full space-y-2 max-h-[400px] overflow-y-auto pr-2">
                           {signalHistory.map((signal) => {
                               const isWin = signal.outcome === 'TP_HIT';
                               const isBuy = signal.prediction === 'BUY';
@@ -395,12 +400,27 @@ export default function MindTab() {
                                           </div>
                                       </AccordionTrigger>
                                       <AccordionContent>
-                                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 pt-2 pb-2 text-sm font-code border-t border-border/20">
-                                              <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><Activity className="w-4 h-4"/>Trade Mode:</span> <span className="font-semibold">{signal.trade_mode}</span></div>
-                                              <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><DollarSign className="w-4 h-4"/>BSAI Reward:</span> <span className="font-semibold text-primary">+{signal.reward_bsai}</span></div>
-                                              <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><Star className="w-4 h-4"/>XP Gained:</span> <span className="font-semibold text-yellow-400">+{signal.reward_xp}</span></div>
-                                              <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><Fuel className="w-4 h-4"/>Gas Paid:</span> <span className="font-semibold">-{signal.gas_paid}</span></div>
-                                          </div>
+                                        <div className="space-y-4 pt-4 pb-2 text-sm font-code border-t border-border/20">
+                                            <div>
+                                                <h4 className="text-xs font-semibold mb-2 text-muted-foreground uppercase tracking-wider">Trade Parameters</h4>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
+                                                    <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><Target className="w-4 h-4"/>Entry Range:</span> <span className="font-semibold">{signal.entryRange || 'N/A'}</span></div>
+                                                    <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><Target className="w-4 h-4 text-destructive"/>Stop Loss:</span> <span className="font-semibold">{signal.stopLoss || 'N/A'}</span></div>
+                                                    <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><Target className="w-4 h-4 text-primary"/>Take Profit:</span> <span className="font-semibold">{signal.takeProfit || 'N/A'}</span></div>
+                                                    <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><Activity className="w-4 h-4"/>Trade Mode:</span> <span className="font-semibold">{signal.trade_mode}</span></div>
+                                                </div>
+                                            </div>
+                                            <div className="pt-2">
+                                                <h4 className="text-xs font-semibold mb-2 text-muted-foreground uppercase tracking-wider">Analytics & Rewards</h4>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
+                                                    <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><Percent className="w-4 h-4"/>Confidence:</span> <span className="font-semibold">{signal.confidence ? `${signal.confidence}%` : 'N/A'}</span></div>
+                                                    <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><Shield className="w-4 h-4"/>ShadowScore:</span> <span className="font-semibold">{signal.shadowScore || 'N/A'}</span></div>
+                                                    <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><DollarSign className="w-4 h-4"/>BSAI Reward:</span> <span className="font-semibold text-primary">+{signal.reward_bsai}</span></div>
+                                                    <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><Star className="w-4 h-4 text-yellow-400"/>XP Gained:</span> <span className="font-semibold text-yellow-400">+{signal.reward_xp}</span></div>
+                                                    <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><Fuel className="w-4 h-4"/>Gas Paid:</span> <span className="font-semibold">-{signal.gas_paid}</span></div>
+                                                </div>
+                                            </div>
+                                        </div>
                                       </AccordionContent>
                                   </AccordionItem>
                               );

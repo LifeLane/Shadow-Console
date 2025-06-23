@@ -68,4 +68,9 @@ export interface Signal {
     reward_xp: number;
     gas_paid: number;
     created_at?: string;
+    entryRange?: string;
+    stopLoss?: string;
+    takeProfit?: string;
+    confidence?: number;
+    shadowScore?: number;
 }
