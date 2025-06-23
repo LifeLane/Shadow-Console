@@ -24,7 +24,7 @@
   {
     "name": "SOL Scalper v2",
     "description": "High-frequency scalping for SOL/USDT on the 5m timeframe.",
-    "status": "Inactive",
+    "status": "Active",
     "is_custom": true,
     "parameters": {
       "symbol": "SOLUSDT",
@@ -46,7 +46,7 @@
   {
     "name": "BTC Sentinel Prime",
     "description": "Balanced agent for BTC/USDT, operating on the 4h chart.",
-    "status": "Inactive",
+    "status": "Active",
     "is_custom": false,
     "parameters": {
       "symbol": "BTCUSDT",

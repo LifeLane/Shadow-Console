@@ -10,14 +10,17 @@ import { generateMarketInsights, MarketInsightsInput, MarketInsightsOutput } fro
 import { getLivePrice } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import TerminalExecutionAnimation from '@/components/TerminalExecutionAnimation';
-import { Loader2, Activity, Brain, ShieldCheck, TrendingUp, Zap, BarChart, History, CheckCircle, XCircle, TrendingDown } from 'lucide-react';
+import { Loader2, Activity, Brain, ShieldCheck, TrendingUp, Zap, History, CheckCircle, XCircle, DollarSign, Star, Fuel } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PulsingText from '@/components/PulsingText';
 import TypewriterText from '@/components/TypewriterText';
 import { getSignalHistoryAction, saveSignalAction } from '@/app/mind/actions';
 import type { Signal } from '@/lib/types';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
+import { formatDistanceToNow } from 'date-fns';
 
 
 type CoreState = 'idle' | 'simulating' | 'tracking' | 'resolved';
@@ -49,7 +52,6 @@ export default function MindTab() {
   const [simulationResult, setSimulationResult] = useState<MarketInsightsOutput | null>(null);
   const [livePrice, setLivePrice] = useState<string | null>(null);
   const [signalHistory, setSignalHistory] = useState<Signal[]>([]);
-  const [completedHistoryLines, setCompletedHistoryLines] = useState<string[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(true);
 
   const trackingIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -196,7 +198,6 @@ export default function MindTab() {
     setSignalStatusMessage('');
     setLivePrice(null);
     fetchSignalHistory(); // Refresh history
-    setCompletedHistoryLines([]); // Reset for animation
   };
   
   const getPredictionColor = (prediction?: string) => {
@@ -370,38 +371,43 @@ export default function MindTab() {
                     </CardTitle>
                     <CardDescription>A record of previously generated signals from the Shadow Core.</CardDescription>
                 </CardHeader>
-                <CardContent className="p-4 sm:p-6 bg-black/70 rounded-b-lg">
+                <CardContent className="p-4 sm:p-6 bg-card/90 rounded-b-lg">
                    {isHistoryLoading ? (
-                        <div className="flex items-center justify-center h-32">
+                        <div className="flex items-center justify-center h-40">
                            <Loader2 className="h-6 w-6 animate-spin text-accent" />
                         </div>
                    ) : signalHistory.length > 0 ? (
-                        <div className="font-code text-sm space-y-1 h-32 overflow-y-auto">
-                            {signalHistory.map((signal, index) => {
-                                const isPreviousLineCompleted = index === 0 || completedHistoryLines.includes(signal.id!.toString());
-                                if (!isPreviousLineCompleted) {
-                                    return null;
-                                }
-
-                                const isWin = signal.outcome === 'TP_HIT';
-                                const isLong = signal.prediction === 'BUY';
-                                const lineText = `[${isWin ? 'WIN' : 'LOSS'}] ${signal.asset} | ${isLong ? 'LONG' : 'SHORT'} | +${signal.reward_bsai} BSAI (Gas: -${signal.gas_paid})`;
-                                
-                                return (
-                                    <TypewriterText
-                                        key={signal.id}
-                                        text={lineText}
-                                        speed={10}
-                                        className={cn("whitespace-pre-wrap break-words", isWin ? 'text-green-400' : 'text-red-400')}
-                                        onComplete={() => setCompletedHistoryLines(prev => [...prev, signal.id!.toString()])}
-                                        showCaret={!completedHistoryLines.includes(signal.id!.toString())} 
-                                        caretClassName="bg-accent animate-blink-block-caret opacity-100"
-                                    />
-                                );
-                            })}
-                        </div>
+                        <Accordion type="single" collapsible className="w-full space-y-2 max-h-80 overflow-y-auto pr-2">
+                          {signalHistory.map((signal) => {
+                              const isWin = signal.outcome === 'TP_HIT';
+                              const isBuy = signal.prediction === 'BUY';
+                              return (
+                                  <AccordionItem value={`item-${signal.id}`} key={signal.id} className="bg-card/50 border border-border/20 rounded-lg px-4 data-[state=open]:border-accent/50">
+                                      <AccordionTrigger className="hover:no-underline font-code text-sm py-3">
+                                          <div className="flex items-center gap-3 sm:gap-4 w-full">
+                                              {isWin ? <CheckCircle className="h-5 w-5 text-green-500 shrink-0" /> : <XCircle className="h-5 w-5 text-red-500 shrink-0" />}
+                                              <span className="font-bold w-20 sm:w-24 truncate">{signal.asset}</span>
+                                              <span className={cn("w-12 sm:w-16 hidden sm:inline-block", isBuy ? "text-primary" : "text-destructive")}>{isBuy ? 'LONG' : 'SHORT'}</span>
+                                              <Badge variant={isWin ? "default" : "destructive"} className={cn("text-xs", isWin ? "bg-green-600/80 border-green-500" : "bg-red-600/80 border-red-500")}>{isWin ? 'WIN' : 'LOSS'}</Badge>
+                                              <span className="flex-1 text-right text-muted-foreground text-xs">
+                                                  {formatDistanceToNow(new Date(signal.created_at!), { addSuffix: true })}
+                                              </span>
+                                          </div>
+                                      </AccordionTrigger>
+                                      <AccordionContent>
+                                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 pt-2 pb-2 text-sm font-code border-t border-border/20">
+                                              <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><Activity className="w-4 h-4"/>Trade Mode:</span> <span className="font-semibold">{signal.trade_mode}</span></div>
+                                              <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><DollarSign className="w-4 h-4"/>BSAI Reward:</span> <span className="font-semibold text-primary">+{signal.reward_bsai}</span></div>
+                                              <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><Star className="w-4 h-4"/>XP Gained:</span> <span className="font-semibold text-yellow-400">+{signal.reward_xp}</span></div>
+                                              <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><Fuel className="w-4 h-4"/>Gas Paid:</span> <span className="font-semibold">-{signal.gas_paid}</span></div>
+                                          </div>
+                                      </AccordionContent>
+                                  </AccordionItem>
+                              );
+                          })}
+                      </Accordion>
                    ) : (
-                     <p className="text-center text-muted-foreground">No signal history found. Generate a signal to begin.</p>
+                     <p className="text-center text-muted-foreground h-40 flex items-center justify-center">No signal history found. Generate a signal to begin.</p>
                    )}
                 </CardContent>
             </Card>
