@@ -9,6 +9,7 @@ import AirdropTab from '@/components/tabs/AirdropTab';
 import MissionsTab from '@/components/tabs/MissionsTab';
 import LeaderboardTab from '@/components/tabs/LeaderboardTab';
 import SettingsTab from '@/components/tabs/SettingsTab';
+import MainnetStats from '@/components/MainnetStats';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useTheme } from 'next-themes';
@@ -76,6 +77,8 @@ export default function AppLayout() {
           {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </Button>
       </header>
+
+      <MainnetStats />
 
       <main className="flex-grow overflow-y-auto pb-16 sm:pb-20">
         <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">

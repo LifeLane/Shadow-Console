@@ -16,6 +16,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import PulsingText from '@/components/PulsingText';
 import TypewriterText from '@/components/TypewriterText';
+import AnimatedCore from '@/components/AnimatedCore';
 
 
 type CoreState = 'dormant' | 'activating' | 'idle' | 'simulating' | 'tracking' | 'resolved';
@@ -210,8 +211,9 @@ export default function MindTab() {
     switch (coreState) {
       case 'dormant':
         return (
-          <motion.div key="dormant" {...cardVariants}>
-            <Card className="glow-border-primary shadow-2xl bg-card text-center p-8">
+          <motion.div key="dormant" {...cardVariants} className="flex flex-col items-center justify-center">
+            <AnimatedCore />
+            <Card className="glow-border-primary shadow-2xl bg-card text-center p-8 w-full max-w-md">
               <CardTitle className="font-headline text-3xl text-primary mb-2">Core is Dormant</CardTitle>
               <CardDescription className="font-code text-base mb-6">Your thoughts feed the Mind. Your signals guide the chain.</CardDescription>
               <Button onClick={() => setCoreState('activating')} className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg py-3 px-6 glow-border-primary">
@@ -489,5 +491,3 @@ const OutputItem: React.FC<OutputItemProps> = ({ label, value, valueClassName })
     <p className={cn("text-base sm:text-xl font-semibold mt-1 truncate", valueClassName)}>{value}</p>
   </div>
 );
-
-    

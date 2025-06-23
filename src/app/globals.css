@@ -295,5 +295,33 @@
   animation: button-ripple-pulse 2s infinite ease-in-out;
 }
       
+/* Animated Core styles */
+@keyframes core-pulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 hsl(var(--primary)/0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 10px hsl(var(--primary)/0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 hsl(var(--primary)/0); }
+}
+
+.animated-core {
+  animation: core-pulse 2s infinite ease-in-out;
+}
+
+@keyframes orbit {
+  from { transform: rotate(0deg) translateX(50px) rotate(0deg); }
+  to { transform: rotate(360deg) translateX(50px) rotate(-360deg); }
+}
+
+@keyframes orbit-reverse {
+  from { transform: rotate(0deg) translateX(70px) rotate(0deg); }
+  to { transform: rotate(-360deg) translateX(70px) rotate(360deg); }
+}
+
+.orbiting-particle {
+  position: absolute;
+  border-radius: 50%;
+  background-color: hsl(var(--primary));
+  box-shadow: 0 0 5px hsl(var(--primary)), 0 0 10px hsl(var(--primary));
+}
   
+
 
