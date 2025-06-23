@@ -1,10 +1,10 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, XCircle, Gift, WalletCards, History, ExternalLink, Copy, AlertTriangle } from 'lucide-react';
+import { CheckCircle, XCircle, Gift, WalletCards, History, ExternalLink, Copy, AlertTriangle, Activity, BrainCircuit } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,16 +22,19 @@ interface EligibilityItem {
   action?: () => void;
   actionLabel?: string;
   disabled?: boolean;
+  category: 'base' | 'activity';
 }
 
 const BSAI_CONTRACT_ADDRESS = "CY1LMCWHZiQHf675QJ2uGwSE1w2fD5MYVWUQzgYyEpRS";
 const BSAI_TRADING_LINK = "https://birdeye.so/token/CY1LMCWHZiQHf675QJ2uGwSE1w2fD5MYVWUQzgYyEpRS?chain=solana";
 
-const initialEligibilityData: Omit<EligibilityItem, 'action' | 'actionLabel' | 'disabled'>[] = [
-  { id: 'walletSubmitted', label: 'Primary Wallet Synced', isEligible: false, points: 100, details: 'Sync your ETH, SOL, or TON wallet to confirm.' },
-  { id: 'bsaiHolder', label: 'BSAI Holder Status (Simulated)', isEligible: false, points: 150, details: 'Sync wallet to verify contribution.' },
-  { id: 'trials', label: 'Shadow Core Signal Trials Completed', isEligible: false, points: 50, details: '0/1 trial completed. Your analysis aids the Core!' },
-  { id: 'invite', label: 'Genesis Invite Code Used (Simulated)', isEligible: true, points: 25, details: 'Code: SHADOW2024 (Welcome, Agent!)' },
+const initialEligibilityData: EligibilityItem[] = [
+  { id: 'walletSubmitted', label: 'Primary Wallet Synced', isEligible: false, points: 100, details: 'Sync your ETH, SOL, or TON wallet to confirm.', category: 'base' },
+  { id: 'bsaiHolder', label: 'BSAI Holder Status (Simulated)', isEligible: false, points: 150, details: 'Sync wallet to verify contribution.', category: 'base' },
+  { id: 'invite', label: 'Genesis Invite Code Used (Simulated)', isEligible: true, points: 25, details: 'Code: SHADOW2024 (Welcome, Agent!)', category: 'base' },
+  { id: 'signalRewards', label: 'Signal Trading Rewards', isEligible: true, points: 250, details: 'Points from successful signals in the Mind tab.', category: 'activity' },
+  { id: 'agentRewards', label: 'Agent Performance Bonus', isEligible: true, points: 120, details: 'Bonus from your agents\' performance.', category: 'activity' },
+  { id: 'taskRewards', label: 'Mission Completion Bonus', isEligible: true, points: 180, details: 'Rewards from completing missions.', category: 'activity' },
 ];
 
 const mockTransactions = [
@@ -41,7 +44,7 @@ const mockTransactions = [
 
 export default function AirdropTab() {
   const { toast } = useToast();
-  const [eligibilityItems, setEligibilityItems] = useState<EligibilityItem[]>([]);
+  const [eligibilityItems, setEligibilityItems] = useState<EligibilityItem[]>(initialEligibilityData);
   const [selectedChain, setSelectedChain] = useState('');
   const [walletAddress, setWalletAddress] = useState('');
   const [isWalletFormSubmitted, setIsWalletFormSubmitted] = useState(false);
@@ -49,25 +52,7 @@ export default function AirdropTab() {
 
   useEffect(() => {
     setDescriptionKey(prev => prev + 1); // For typewriter
-    setEligibilityItems(
-      initialEligibilityData.map(item => ({
-        ...item,
-        action: item.id === 'trials' ? handleCompleteSignalTrial : undefined,
-        actionLabel: item.id === 'trials' ? 'Complete Signal Trial (Simulated)' : undefined,
-        disabled: item.id === 'trials' ? item.isEligible : false,
-      }))
-    );
   }, []);
-
-
-  const handleCompleteSignalTrial = () => {
-    setEligibilityItems(prevItems =>
-      prevItems.map(item =>
-        item.id === 'trials' ? { ...item, isEligible: true, details: '1/1 trial completed. Shadow Core thanks you!', disabled: true } : item
-      )
-    );
-    toast({ title: "Signal Trial Contribution Logged!", description: "Eligibility updated. The Shadow Core learns from your input." });
-  };
   
   const handleWalletSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,12 +84,17 @@ export default function AirdropTab() {
     }
   };
 
-  const eligibleChecklistItems = eligibilityItems.filter(item => item.isEligible);
-  const totalAirdropPoints = eligibleChecklistItems.reduce((sum, item) => sum + item.points, 0);
-  const eligibleCount = eligibleChecklistItems.length;
+  const { totalAirdropPoints, basePoints, activityPoints } = useMemo(() => {
+    const eligibleItems = eligibilityItems.filter(item => item.isEligible);
+    const total = eligibleItems.reduce((sum, item) => sum + item.points, 0);
+    const base = eligibleItems.filter(item => item.category === 'base').reduce((sum, item) => sum + item.points, 0);
+    const activity = eligibleItems.filter(item => item.category === 'activity').reduce((sum, item) => sum + item.points, 0);
+    return { totalAirdropPoints: total, basePoints: base, activityPoints: activity };
+  }, [eligibilityItems]);
+  
+  const eligibleCount = eligibilityItems.filter(item => item.isEligible).length;
   const progressPercentage = eligibilityItems.length > 0 ? (eligibleCount / eligibilityItems.length) * 100 : 0;
   const allEligible = eligibilityItems.length > 0 && eligibleCount === eligibilityItems.length;
-
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -120,10 +110,30 @@ export default function AirdropTab() {
           />
         </CardHeader>
         <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+
+          {/* Allocation Summary Card */}
+          <Card className="p-4 sm:p-6 bg-card/80 border-primary/30 shadow-inner glow-border-primary">
+              <h3 className="text-lg sm:text-xl font-semibold mb-3 text-primary font-headline text-center">Your Airdrop Allocation Summary</h3>
+              <div className="text-center mb-4 border-b border-primary/20 pb-4">
+                <p className="text-5xl font-bold text-primary font-headline">{totalAirdropPoints.toLocaleString()}</p>
+                <p className="text-sm text-muted-foreground uppercase tracking-wider font-code">Total Points</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center text-xs">
+                <div>
+                    <p className="font-bold text-2xl text-foreground">{basePoints.toLocaleString()}</p>
+                    <p className="text-muted-foreground font-code uppercase">Base Eligibility</p>
+                </div>
+                <div>
+                    <p className="font-bold text-2xl text-foreground">{activityPoints.toLocaleString()}</p>
+                    <p className="text-muted-foreground font-code uppercase">Activity Rewards</p>
+                </div>
+              </div>
+          </Card>
+
           {!isWalletFormSubmitted ? (
             <Card className="p-4 sm:p-6 bg-card/80 border-primary/30 shadow-inner">
               <form onSubmit={handleWalletSubmit} className="space-y-3 sm:space-y-4">
-                <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3 text-primary font-headline">Sync Wallet for Airdrop Eligibility</h3>
+                <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3 text-primary font-headline">Sync Wallet for Eligibility</h3>
                 <div>
                   <Label htmlFor="chain-select" className="font-code text-xs sm:text-sm text-muted-foreground">Select Network (ETH, SOL, or TON)</Label>
                   <Select value={selectedChain} onValueChange={setSelectedChain}>
@@ -157,11 +167,6 @@ export default function AirdropTab() {
                 <p className="text-xs sm:text-sm text-muted-foreground">Network: {selectedChain} | Address: {walletAddress.substring(0,8)}...{walletAddress.substring(walletAddress.length - 6)}</p>
             </Card>
           )}
-
-          <div className="text-center bg-card/80 p-4 rounded-lg shadow-inner border border-primary/30">
-            <Label className="text-sm text-muted-foreground uppercase tracking-wider font-code">Eligible Airdrop Allocation</Label>
-            <p className="text-4xl font-bold text-primary font-headline mt-1">{totalAirdropPoints.toLocaleString()} Points</p>
-          </div>
 
           <div className="pt-2 sm:pt-4">
             <h3 className="text-lg sm:text-xl font-semibold mb-1 sm:mb-2 text-foreground font-headline">Airdrop Eligibility Progress</h3>
