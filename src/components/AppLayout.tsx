@@ -114,17 +114,17 @@ export default function AppLayout() {
                 "p-1.5 sm:p-2 rounded-full transition-all duration-300 ease-out",
                  activeTab === tab.id
                     ? 'bg-primary/10 glow-border-primary animate-pulse-glow-primary opacity-100'
-                    : 'opacity-70 group-hover:opacity-100 group-hover:bg-accent group-hover:glow-border-primary'
+                    : 'opacity-70 group-hover:opacity-100 group-hover:bg-green-500'
               )}>
                 <tab.icon className={cn(
                     "h-4 w-4 sm:h-5 sm:w-6",
-                     activeTab === tab.id ? 'text-primary' : 'text-muted-foreground group-hover:text-accent-foreground'
+                     activeTab === tab.id ? 'text-primary' : 'text-muted-foreground group-hover:text-yellow-400'
                   )}
                 />
               </div>
               <span className={cn(
                   "mt-0.5 sm:mt-1 font-medium truncate max-w-[50px] sm:max-w-none hidden sm:inline-block",
-                  activeTab === tab.id ? 'text-primary' : 'text-muted-foreground group-hover:text-accent-foreground'
+                  activeTab === tab.id ? 'text-primary' : 'text-muted-foreground group-hover:text-yellow-400'
                 )}
               >
                 {tab.label}
