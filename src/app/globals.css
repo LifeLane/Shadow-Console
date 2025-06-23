@@ -156,6 +156,10 @@
   box-shadow: 0 0 8px 1px hsl(var(--accent)/0.7), 0 0 12px 2px hsl(var(--accent)/0.5), 0 0 20px 3px hsl(var(--accent)/0.3);
 }
 
+.glow-border-destructive {
+  box-shadow: 0 0 8px 1px hsl(var(--destructive)/0.7), 0 0 12px 2px hsl(var(--destructive)/0.5), 0 0 20px 3px hsl(var(--destructive)/0.3);
+}
+
 /* Pulse animation */
 @keyframes pulse-glow-primary {
   0%, 100% {
@@ -292,3 +296,4 @@
 }
       
   
+

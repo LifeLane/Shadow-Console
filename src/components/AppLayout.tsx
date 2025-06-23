@@ -113,7 +113,7 @@ export default function AppLayout() {
               <div className={cn(
                 "p-1.5 sm:p-2 rounded-full transition-all duration-300 ease-out",
                  activeTab === tab.id
-                    ? 'glow-border-primary' // Active icon gets cyan glow
+                    ? 'glow-border-destructive' // Active icon gets red glow
                     : 'opacity-70 group-hover:opacity-100'
               )}>
                 <tab.icon className="h-4 w-4 sm:h-5 sm:w-6" />
