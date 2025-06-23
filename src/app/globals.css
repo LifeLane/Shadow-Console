@@ -23,7 +23,7 @@
     --muted: 220 25% 94%;
     --muted-foreground: 220 20% 50%; /* Medium Blue-Gray for muted text */
 
-    --accent: 300 100% 55%; /* Magenta (slightly toned down for light mode) */
+    --accent: 300 100% 50%; /* Magenta */
     --accent-foreground: 0 0% 100%; /* White (for text on Magenta) */
 
     --destructive: 0 80% 60%; /* Vibrant Red */
@@ -52,10 +52,10 @@
   }
 
   .dark {
-    --background: 240 30% 8%; /* Deep Navy/Almost Black */
+    --background: 231 28% 11%; /* Deep Navy from image */
     --foreground: 180 70% 92%; /* Pale Cyan/Off-White */
 
-    --card: 240 30% 12%; /* Slightly Lighter Navy for cards */
+    --card: 231 28% 13%; /* Slightly Lighter Navy for cards */
     --card-foreground: 180 70% 92%; /* Pale Cyan/Off-White */
 
     --popover: 240 30% 6%; /* Even Darker Navy for Popovers */
@@ -67,7 +67,7 @@
     --secondary: 240 25% 25%; /* Muted Navy/Gray */
     --secondary-foreground: 180 40% 80%; /* Soft Cyan */
 
-    --muted: 240 25% 25%;
+    --muted: 231 28% 20%;
     --muted-foreground: 180 30% 60%; /* Medium-Dark Cyan for muted text */
 
     --accent: 300 100% 50%; /* Magenta */
@@ -76,8 +76,8 @@
     --destructive: 330 90% 60%; /* Vivid Pink/Red for destructive actions */
     --destructive-foreground: 0 0% 100%; /* White */
 
-    --border: 240 20% 25%; /* Subtle Blue-Gray Border in dark navy theme */
-    --input: 240 25% 18%; /* Dark Input Background */
+    --border: 180 100% 50%; /* Neon Cyan for borders */
+    --input: 231 28% 11%; /* Matching background */
     --ring: 180 100% 50%; /* Neon Cyan for rings */
     
     --chart-1: 180 70% 50%; /* Cyan shades for charts */

@@ -66,8 +66,8 @@ export default function AppLayout() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background/80 text-foreground font-body backdrop-blur-sm"> {/* Added backdrop-blur-sm for particle visibility */}
-      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-3 sm:p-4 bg-background/80 backdrop-blur-md border-b border-border">
+    <div className="flex flex-col min-h-screen bg-background/80 text-foreground font-body backdrop-blur-sm">
+      <header className="sticky top-0 z-50 flex items-center justify-between p-3 sm:p-4 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="flex items-center">
           <Sparkles className="h-7 w-7 sm:h-8 sm:w-8 mr-2 text-primary" />
           <h1 className="text-xl sm:text-2xl font-headline font-bold text-primary">Shadow Trader <span className="text-xs text-muted-foreground align-super">v2.0</span></h1>
@@ -77,7 +77,7 @@ export default function AppLayout() {
         </Button>
       </header>
 
-      <main className="flex-grow pt-20 pb-24 overflow-y-auto">
+      <main className="flex-grow overflow-y-auto">
         <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
           <AnimatePresence mode="wait">
             <motion.div
@@ -94,7 +94,7 @@ export default function AppLayout() {
         </div>
       </main>
 
-      <footer className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/80 backdrop-blur-md">
+      <footer className="border-t border-border bg-background/80 backdrop-blur-md">
         <nav className="container mx-auto grid grid-cols-6 items-center h-16 sm:h-20 px-1">
           {tabs.map((tab) => (
             <Button
