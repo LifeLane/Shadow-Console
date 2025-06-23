@@ -287,7 +287,8 @@ export default function AgentsTab() {
                                 <p className="text-xs sm:text-sm text-muted-foreground">{agent.description}</p>
                             </div>
                              <div className="flex items-center space-x-3 self-end sm:self-center">
-                                <Button size="sm" className="bg-primary hover:bg-primary/90" onClick={() => toast({ title: "Deployment Signal Sent", description: `${agent.name} has been deployed for its daily run.`})}><Rocket className="mr-2 h-4 w-4" />Deploy</Button>
+                                <Badge variant={agent.status === 'Active' ? 'default' : 'secondary'} className={cn(agent.status === 'Active' && 'bg-green-600/80 border-green-500')}>{agent.status}</Badge>
+                                <Button size="sm" className="bg-primary hover:bg-primary/90" disabled={agent.status === 'Active'} onClick={() => handleDeployAgent(agent.id)}><Rocket className="mr-2 h-4 w-4" />Deploy</Button>
                             </div>
                         </Card>
                     ))}
