@@ -19,7 +19,7 @@ import * as polygonService from '@/services/polygonService';
 // Schema for input from the client
 const MarketInsightsInputSchema = z.object({
   target: z.string().describe('The target market (e.g., BTCUSDT).'),
-  timeframe: z.string().describe('The selected chart timeframe (e.g., 5m, 1h, 1d).'),
+  tradeMode: z.string().describe('The selected trading mode (e.g., Intraday, Scalping).'),
   risk: z.string().describe('The risk level (e.g., Low, Medium, High).'),
 });
 export type MarketInsightsInput = z.infer<typeof MarketInsightsInputSchema>;
@@ -46,6 +46,24 @@ export async function generateMarketInsights(input: MarketInsightsInput): Promis
   return generateMarketInsightsFlow(input);
 }
 
+// Helper to map Trade Mode to a technical chart timeframe for the API
+const tradeModeToKlineInterval = (tradeMode: string): string => {
+  switch (tradeMode.toLowerCase()) {
+    case 'scalping':
+      return '5m';
+    case 'intraday':
+      return '1h';
+    case 'swing trading':
+      return '4h';
+    case 'position trading':
+    case 'options':
+    case 'futures':
+      return '1d';
+    default:
+      return '1d'; // Default to daily for unknown modes
+  }
+};
+
 const marketInsightsPrompt = ai.definePrompt({
   name: 'marketInsightsPrompt',
   input: {schema: PromptDataSchema}, // Prompt uses the extended schema with API data
@@ -55,7 +73,7 @@ const marketInsightsPrompt = ai.definePrompt({
   Analyze the following market data to generate a trading signal.
 
   Target Market: {{{target}}}
-  Timeframe: {{{timeframe}}}
+  Trade Mode: {{{tradeMode}}}
   Risk Level: {{{risk}}}
 
   Price Feed Data (from Binance): {{{priceFeed}}}
@@ -88,8 +106,8 @@ const generateMarketInsightsFlow = ai.defineFlow(
   async (clientInput: MarketInsightsInput) => {
     console.log('Received client input for flow:', clientInput);
 
-    // Use timeframe directly as klineInterval
-    const klineInterval = clientInput.timeframe;
+    // Map the user-facing tradeMode to a technical kline interval
+    const klineInterval = tradeModeToKlineInterval(clientInput.tradeMode);
 
     // Fetch data from external services
     const priceFeedData = await binanceService.fetchPriceData(clientInput.target, klineInterval);
@@ -117,3 +135,5 @@ const generateMarketInsightsFlow = ai.defineFlow(
     return output;
   }
 );
+
+    

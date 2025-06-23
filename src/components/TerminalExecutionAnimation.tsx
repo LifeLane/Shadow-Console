@@ -15,7 +15,7 @@ interface TerminalExecutionAnimationProps {
 const getLogLinesConfig = (target: string, tradeMode: string, risk: string) => [
   { id: 'init_core', text: `> Shadow Core v2.0 Protocol Engaged for [${target}]...`, speed: 40, color: "text-gray-300" },
   { id: 'auth_node', text: `> Authenticating with ShadowNet Secure Node... ${Math.random() > 0.05 ? "[ACCESS GRANTED]" : "[WARN: ANOMALY DETECTED - REROUTING]"}`, speed: 40, color: Math.random() > 0.05 ? "text-green-400" : "text-yellow-400" },
-  { id: 'trade_mode', text: `> Trade Matrix Protocol: [${tradeMode.toUpperCase()}]`, speed: 35, color: "text-cyan-400" },
+  { id: 'trade_mode', text: `> Trade Mode Matrix: [${tradeMode.toUpperCase()}]`, speed: 35, color: "text-cyan-400" },
   { id: 'risk_calibration', text: `> Risk Calibration Matrix: [${risk.toUpperCase()}] - Quantum parameters adjusting...`, speed: 30, color: risk.toLowerCase() === 'low' ? "text-green-400" : risk.toLowerCase() === 'medium' ? "text-yellow-400" : "text-red-400" },
   { id: 'data_ingest', text: `> Ingesting multi-terabyte arcane data streams (Binance, Polygon, CoinDesk)...`, speed: 50, color: "text-gray-400" },
   { id: 'liquidity_analysis', text: `> :: Analyzing fragmented liquidity patterns & cross-chain resonances...`, speed: 30, color: "text-purple-400" },
