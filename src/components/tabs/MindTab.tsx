@@ -16,7 +16,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import PulsingText from '@/components/PulsingText';
 import TypewriterText from '@/components/TypewriterText';
-import AnimatedCore from '@/components/AnimatedCore';
 
 
 type CoreState = 'dormant' | 'activating' | 'idle' | 'simulating' | 'tracking' | 'resolved';
@@ -217,7 +216,6 @@ export default function MindTab() {
       case 'dormant':
         return (
           <motion.div key="dormant" {...cardVariants} className="flex flex-col items-center justify-center">
-            <AnimatedCore />
             <Card className="glow-border-primary shadow-2xl bg-card text-center p-8 w-full max-w-md">
               <CardTitle className="font-headline text-3xl text-primary mb-2">Core is Dormant</CardTitle>
               <CardDescription className="font-code text-base mb-6">Your thoughts feed the Mind. Your signals guide the chain.</CardDescription>
