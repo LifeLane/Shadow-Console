@@ -3,7 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { getAgents, saveAgent, updateAgentStatus } from '@/services/agentService';
 import { setupTables, seedInitialUser, seedInitialAgents, seedInitialMissions } from '@/services/setupService';
-import type { Agent, Mission } from '@/lib/types';
+import type { Agent, Mission, User } from '@/lib/types';
+import { getUser } from '@/services/userService';
 
 // This data is used to seed the database the first time the app is run.
 const initialMissionsToSeed: Mission[] = [
@@ -41,6 +42,15 @@ export async function getAgentsAction(): Promise<Agent[]> {
     console.error('Action Error: Failed to get agents.', error);
     return [];
   }
+}
+
+export async function getUserAction(userId: string): Promise<User | null> {
+    try {
+        return await getUser(userId);
+    } catch (error) {
+        console.error(`Action Error: Failed to get user ${userId}.`, error);
+        return null;
+    }
 }
 
 export async function saveAgentAction(agent: Agent) {

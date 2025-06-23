@@ -16,8 +16,8 @@ import { Bot, History, CheckCircle, Award, Star, Power, PlusCircle, Edit, Rocket
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import type { Agent, AgentParameters, User } from '@/lib/types';
-import { getAgentsAction, saveAgentAction, updateAgentStatusAction } from '@/app/agents/actions';
-import { getUser } from '@/services/userService';
+import { getAgentsAction, saveAgentAction, updateAgentStatusAction, getUserAction } from '@/app/agents/actions';
+
 
 // --- INITIAL DATA & TYPES ---
 
@@ -157,7 +157,7 @@ export default function AgentsTab() {
             try {
                 const [dbAgents, dbUser] = await Promise.all([
                     getAgentsAction(),
-                    getUser('default_user')
+                    getUserAction('default_user')
                 ]);
 
                 setAgents(dbAgents);
