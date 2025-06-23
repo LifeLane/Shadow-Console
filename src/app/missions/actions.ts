@@ -1,4 +1,3 @@
-
 'use server';
 
 import { revalidatePath } from 'next/cache';
@@ -26,9 +25,7 @@ export async function getMissionsData(): Promise<MissionData[]> {
 export async function completeMissionAction(missionId: string): Promise<Mission> {
     try {
         const completedMission = await completeMissionForUser(DEFAULT_USER_ID, missionId);
-        revalidatePath('/#missions');
-        revalidatePath('/#airdrop');
-        revalidatePath('/#agents'); // For XP
+        revalidatePath('/');
         return completedMission;
     } catch (error) {
         console.error('Action Error: Failed to complete mission.', error);

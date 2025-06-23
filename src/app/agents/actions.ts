@@ -56,7 +56,7 @@ export async function getUserAction(userId: string): Promise<User | null> {
 export async function saveAgentAction(agent: Agent) {
   try {
     await saveAgent(agent);
-    revalidatePath('/#agents');
+    revalidatePath('/');
   } catch (error) {
     console.error('Action Error: Failed to save agent.', error);
     throw new Error('Failed to save agent.');
@@ -66,7 +66,7 @@ export async function saveAgentAction(agent: Agent) {
 export async function updateAgentStatusAction(agentId: string, status: Agent['status']) {
   try {
     await updateAgentStatus(agentId, status);
-    revalidatePath('/#agents');
+    revalidatePath('/');
   } catch (error) {
     console.error('Action Error: Failed to update agent status.', error);
     throw new Error('Failed to update agent status.');

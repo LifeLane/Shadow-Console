@@ -1,4 +1,3 @@
-
 'use server';
 
 import { revalidatePath } from 'next/cache';
@@ -14,8 +13,7 @@ export async function getUserData(): Promise<User | null> {
 export async function updateWalletAction(walletAddress: string | null, walletChain: string | null) {
     try {
         await updateUserWallet(DEFAULT_USER_ID, walletAddress, walletChain);
-        revalidatePath('/#settings');
-        revalidatePath('/#airdrop');
+        revalidatePath('/');
     } catch (error) {
         console.error('Action Error: Failed to update wallet.', error);
         throw new Error('Failed to update wallet.');

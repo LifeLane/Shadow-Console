@@ -1,14 +1,15 @@
-
 'use server';
 
+import { cache } from 'react';
 import sql from '@/lib/db';
 import type { User } from '@/lib/types';
 
 /**
  * Fetches all users from the database.
+ * This function is cached to optimize data fetching.
  * @returns A promise that resolves to an array of users.
  */
-export async function getUsers(): Promise<User[]> {
+export const getUsers = cache(async (): Promise<User[]> => {
     try {
         return await sql<User[]>`SELECT * FROM users`;
     } catch(e) {
@@ -18,14 +19,15 @@ export async function getUsers(): Promise<User[]> {
         }
         throw e;
     }
-}
+});
 
 /**
  * Fetches a single user by ID.
+ * This function is cached to optimize data fetching.
  * @param id The ID of the user to fetch.
  * @returns A promise that resolves to the user object or null if not found.
  */
-export async function getUser(id: string): Promise<User | null> {
+export const getUser = cache(async (id: string): Promise<User | null> => {
     try {
         const users = await sql<User[]>`SELECT * FROM users WHERE id = ${id}`;
         return users[0] || null;
@@ -36,7 +38,7 @@ export async function getUser(id: string): Promise<User | null> {
         }
         throw e;
     }
-}
+});
 
 /**
  * Updates a user's wallet information.
@@ -59,9 +61,10 @@ export async function updateUserWallet(userId: string, walletAddress: string | n
 
 /**
  * Fetches leaderboard data.
+ * This function is cached to optimize data fetching.
  * @returns A promise that resolves to an array of users sorted by XP.
  */
-export async function getLeaderboardData(): Promise<User[]> {
+export const getLeaderboardData = cache(async (): Promise<User[]> => {
   try {
     return await sql<User[]>`
         SELECT 
@@ -82,4 +85,4 @@ export async function getLeaderboardData(): Promise<User[]> {
     }
     throw e;
   }
-}
+});

@@ -1,13 +1,14 @@
-
 'use server';
 
+import { cache } from 'react';
 import sql from '@/lib/db';
 import type { Signal } from '@/lib/types';
 
 /**
  * Fetches signal history for a user.
+ * This function is cached to optimize data fetching.
  */
-export async function getSignalsForUser(userId: string, limit = 10): Promise<Signal[]> {
+export const getSignalsForUser = cache(async (userId: string, limit = 10): Promise<Signal[]> => {
     try {
         const signals = await sql<Signal[]>`
             SELECT * FROM signals
@@ -23,7 +24,7 @@ export async function getSignalsForUser(userId: string, limit = 10): Promise<Sig
         }
         throw error;
     }
-}
+});
 
 /**
  * Saves a new signal to the database and updates user stats.

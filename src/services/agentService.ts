@@ -1,13 +1,15 @@
 'use server';
 
+import { cache } from 'react';
 import sql from '@/lib/db';
 import type { Agent } from '@/lib/types';
 
 /**
  * Fetches agents for the default user from the database.
+ * This function is cached to optimize data fetching.
  * @returns A promise that resolves to an array of agents.
  */
-export async function getAgents(): Promise<Agent[]> {
+export const getAgents = cache(async (): Promise<Agent[]> => {
   try {
     // For now, we'll assume a single default user. This can be parameterized later.
     const agents = await sql<Agent[]>`SELECT * FROM agents WHERE user_id = 'default_user'`;
@@ -20,13 +22,14 @@ export async function getAgents(): Promise<Agent[]> {
     }
     throw error;
   }
-}
+});
 
 /**
  * Fetches ALL agents from the database, for admin purposes.
+ * This function is cached to optimize data fetching.
  * @returns A promise that resolves to an array of all agents.
  */
-export async function getAllAgents(): Promise<Agent[]> {
+export const getAllAgents = cache(async (): Promise<Agent[]> => {
   try {
     const agents = await sql<Agent[]>`SELECT * FROM agents`;
     return agents;
@@ -37,7 +40,7 @@ export async function getAllAgents(): Promise<Agent[]> {
     }
     throw error;
   }
-}
+});
 
 
 /**

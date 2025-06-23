@@ -1,13 +1,14 @@
-
 'use server';
 
+import { cache } from 'react';
 import sql from '@/lib/db';
 import type { Mission } from '@/lib/types';
 
 /**
  * Fetches all available missions.
+ * This function is cached to optimize data fetching.
  */
-export async function getMissions(): Promise<Mission[]> {
+export const getMissions = cache(async (): Promise<Mission[]> => {
     try {
         const missions = await sql<Mission[]>`SELECT * FROM missions ORDER BY xp`;
         return missions;
@@ -18,12 +19,13 @@ export async function getMissions(): Promise<Mission[]> {
         }
         throw error;
     }
-}
+});
 
 /**
  * Fetches the IDs of completed missions for a user.
+ * This function is cached to optimize data fetching.
  */
-export async function getCompletedMissionIds(userId: string): Promise<string[]> {
+export const getCompletedMissionIds = cache(async (userId: string): Promise<string[]> => {
     try {
         const result = await sql<{ mission_id: string }[]>`
             SELECT mission_id FROM user_missions WHERE user_id = ${userId}
@@ -36,17 +38,18 @@ export async function getCompletedMissionIds(userId: string): Promise<string[]> 
         }
         throw error;
     }
-}
+});
 
 /**
  * Marks a mission as complete for a user and updates their XP.
  */
 export async function completeMissionForUser(userId: string, missionId: string): Promise<Mission> {
-    const missions = await sql<Mission[]>`SELECT * FROM missions WHERE id = ${missionId}`;
-    if (missions.length === 0) {
+    const allMissions = await getMissions(); // Uses cached version
+    const mission = allMissions.find(m => m.id === missionId);
+
+    if (!mission) {
         throw new Error(`Mission with ID ${missionId} not found.`);
     }
-    const mission = missions[0];
 
     await sql.begin(async (sql) => {
         // 1. Add to user_missions

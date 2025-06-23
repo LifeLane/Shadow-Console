@@ -1,4 +1,3 @@
-
 'use server';
 
 import { revalidatePath } from 'next/cache';
@@ -15,9 +14,7 @@ export async function saveSignalAction(signalData: Omit<Signal, 'id' | 'created_
     try {
         const fullSignalData = { ...signalData, user_id: DEFAULT_USER_ID };
         await saveSignal(fullSignalData);
-        revalidatePath('/#mind');
-        revalidatePath('/#airdrop');
-        revalidatePath('/#agents'); // For user stats
+        revalidatePath('/');
     } catch (error) {
         console.error('Action Error: Failed to save signal.', error);
         throw new Error('Failed to save signal.');
