@@ -1,15 +1,32 @@
 [
   {
     "asset": "BTCUSDT",
-    "prediction": "HOLD",
-    "trade_mode": "Intraday",
+    "prediction": "BUY",
+    "trade_mode": "Scalping",
     "outcome": "TP_HIT",
-    "reward_bsai": 648,
-    "reward_xp": 61,
-    "gas_paid": 5,
+    "reward_bsai": 455,
+    "reward_xp": 64,
+    "gas_paid": 3,
+    "entryRange": "$101350 - $101450",
+    "stopLoss": "$101200",
+    "takeProfit": "$101750",
+    "confidence": 60,
+    "shadowScore": 55,
     "user_id": "default_user",
-    "id": 1,
-    "created_at": "2025-06-23T13:19:42.972Z"
+    "id": 4,
+    "created_at": "2025-06-23T13:41:42.377Z"
+  },
+  {
+    "asset": "BTCUSDT",
+    "prediction": "SELL",
+    "trade_mode": "Scalping",
+    "outcome": "TP_HIT",
+    "reward_bsai": 557,
+    "reward_xp": 125,
+    "gas_paid": 1,
+    "user_id": "default_user",
+    "id": 3,
+    "created_at": "2025-06-23T13:31:25.889Z"
   },
   {
     "asset": "BTCUSDT",
@@ -25,14 +42,14 @@
   },
   {
     "asset": "BTCUSDT",
-    "prediction": "SELL",
-    "trade_mode": "Scalping",
+    "prediction": "HOLD",
+    "trade_mode": "Intraday",
     "outcome": "TP_HIT",
-    "reward_bsai": 557,
-    "reward_xp": 125,
-    "gas_paid": 1,
+    "reward_bsai": 648,
+    "reward_xp": 61,
+    "gas_paid": 5,
     "user_id": "default_user",
-    "id": 3,
-    "created_at": "2025-06-23T13:31:25.889Z"
+    "id": 1,
+    "created_at": "2025-06-23T13:19:42.972Z"
   }
 ]
