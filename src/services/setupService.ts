@@ -1,7 +1,7 @@
 'use server';
 
-import { promises as fs } from 'fs';
-import path from 'path';
+import { query } from '@/lib/postgres'; // Changed import
+import { createTablesSQL } from './schema';
 import type { Agent, Mission, User } from '@/lib/types';
 
 const initialMissionsToSeed: Mission[] = [
@@ -13,80 +13,102 @@ const initialMissionsToSeed: Mission[] = [
 ];
 
 const initialAgentsData: Omit<Agent, 'id' | 'user_id'>[] = [
-    { name: 'My ETH Momentum Bot', description: 'Custom agent focusing on ETH/USDT momentum.', status: 'Active', is_custom: true, parameters: { symbol: 'ETHUSDT', tradeMode: 'Intraday', risk: 'Medium', indicators: ['RSI', 'MACD'] }, code: `// Strategy: Momentum\n// Indicators: RSI, MACD\n\nif (crossover(rsi, 70)) {\n  sell();\n} else if (crossover(rsi, 30)) {\n  buy();\n}`, performance: { signals: 40, winRate: 85 } },
-    { name: 'SOL Scalper v2', description: 'High-frequency scalping for SOL/USDT on the 5m timeframe.', status: 'Inactive', is_custom: true, parameters: { symbol: 'SOLUSDT', tradeMode: 'Scalping', risk: 'High', indicators: ['EMA', 'Volume Profile'] }, code: `// Strategy: High-frequency\n// Indicators: EMA, Volume\n\nfunction onTick(price, indicators) {\n  if (price > indicators.ema_fast) {\n    return 'BUY';\n  }\n  return 'SELL';\n}`, performance: { signals: 38, winRate: 72 } },
-    { name: 'BTC Sentinel Prime', description: 'Balanced agent for BTC/USDT, operating on the 4h chart.', status: 'Inactive', is_custom: false, parameters: { symbol: 'BTCUSDT', tradeMode: 'Swing Trading', risk: 'Medium', indicators: ['Ichimoku Cloud', 'Fib Retracement'] }, code: '// PREMADE AGENT LOGIC - PROTECTED', performance: { signals: 0, winRate: 0 } },
+    { name: 'My ETH Momentum Bot', description: 'Custom agent focusing on ETH/USDT momentum.', status: 'Active', is_custom: true, parameters: { symbol: 'ETHUSDT', tradeMode: 'Intraday', risk: 'Medium', indicators: ['RSI', 'MACD'] }, strategy_id: 'momentum_rsi_macd', performance: { signals: 40, winRate: 85 } },
+    { name: 'SOL Scalper v2', description: 'High-frequency scalping for SOL/USDT on the 5m timeframe.', status: 'Inactive', is_custom: true, parameters: { symbol: 'SOLUSDT', tradeMode: 'Scalping', risk: 'High', indicators: ['EMA', 'Volume Profile'] }, strategy_id: 'scalper_ema_volume', performance: { signals: 38, winRate: 72 } },
+    { name: 'BTC Sentinel Prime', description: 'Balanced agent for BTC/USDT, operating on the 4h chart.', status: 'Inactive', is_custom: false, parameters: { symbol: 'BTCUSDT', tradeMode: 'Swing Trading', risk: 'Medium', indicators: ['Ichimoku Cloud', 'Fib Retracement'] }, strategy_id: 'premade_btc_sentinel_prime', performance: { signals: 0, winRate: 0 } },
 ];
 
-const dataDir = path.join(process.cwd(), 'src', 'data');
-
-async function ensureFile(filePath: string, defaultContent: string) {
-    try {
-        await fs.access(filePath);
-    } catch (e) {
-        if (e.code === 'ENOENT') {
-            await fs.writeFile(filePath, defaultContent, 'utf-8');
-            console.log(`Created data file: ${path.basename(filePath)}`);
-        } else {
-            throw e;
+async function seedTable<T extends { id: string }>(tableName: string, data: T[], mapFn: (item: T) => any) {
+    for (const item of data) {
+        const existing = await query(`SELECT id FROM ${tableName} WHERE id = $1`, [item.id]);
+        if (existing.length === 0) {
+            const columns = Object.keys(mapFn(item)).join(', ');
+            const placeholders = Object.keys(mapFn(item)).map((_, index) => `$${index + 1}`).join(', ');
+            const values = Object.values(mapFn(item));
+            await query(`INSERT INTO ${tableName} (${columns}) VALUES (${placeholders})`, values);
+            console.log(`Seeded record: ${item.id} in ${tableName}`);
         }
-    }
-}
-
-async function seedFile<T>(filePath: string, data: T[]) {
-    try {
-        const fileContent = await fs.readFile(filePath, 'utf-8');
-        const existingData = JSON.parse(fileContent);
-        if (existingData.length === 0) {
-            await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8');
-            console.log(`Seeded data file: ${path.basename(filePath)}`);
-        }
-    } catch (error) {
-        console.error(`Error seeding file ${path.basename(filePath)}:`, error);
     }
 }
 
 /**
- * Ensures all necessary JSON data files exist and seeds them with initial data if they are empty.
+ * Ensures all necessary PostgreSQL tables exist and seeds them with initial data if they are empty.
  */
-export async function setupAndSeedLocalJson() {
+export async function setupAndSeedPostgreSQL() { // Renamed function
     try {
-        await fs.mkdir(dataDir, { recursive: true });
+        // Create tables
+        await query(createTablesSQL);
+        console.log('PostgreSQL tables checked/created.');
 
-        // Ensure all files exist with a default empty array/object
-        await ensureFile(path.join(dataDir, 'users.json'), '[]');
-        await ensureFile(path.join(dataDir, 'agents.json'), '[]');
-        await ensureFile(path.join(dataDir, 'missions.json'), '[]');
-        await ensureFile(path.join(dataDir, 'user_missions.json'), '{}');
-        await ensureFile(path.join(dataDir, 'signals.json'), '[]');
+        // Seed initial data if tables are empty
+        const usersCount = await query<{ count: number }>(`SELECT COUNT(*) as count FROM users`);
+        if (usersCount[0].count === 0) {
+            const initialUser: User = { 
+                id: 'default_user', 
+                name: 'Shadow Agent 001', 
+                xp: 1850, 
+                signals_generated: 78, 
+                signals_won: 62, 
+                bsai_earned: 12450.00, 
+                avatarUrl: 'https://placehold.co/100x100.png',
+                wallet_address: null,
+                wallet_chain: null,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                completed_missions: [],
+            };
+            await seedTable<User>('users', [initialUser], (user) => ({
+                id: user.id,
+                name: user.name,
+                xp: user.xp,
+                signals_generated: user.signals_generated,
+                signals_won: user.signals_won,
+                bsai_earned: user.bsai_earned,
+                avatarUrl: user.avatarUrl,
+                wallet_address: user.wallet_address,
+                wallet_chain: user.wallet_chain,
+                created_at: user.created_at,
+                updated_at: user.updated_at,
+                completed_missions: JSON.stringify(user.completed_missions)
+            }));
+        }
 
-        // Seed initial data if files are empty
-        const initialUser: User = { 
-            id: 'default_user', 
-            name: 'Shadow Agent 001', 
-            xp: 1850, 
-            signals_generated: 78, 
-            signals_won: 62, 
-            bsai_earned: 12450, 
-            avatarUrl: 'https://placehold.co/100x100.png',
-            wallet_address: null,
-            wallet_chain: null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-        };
-        await seedFile(path.join(dataDir, 'users.json'), [initialUser]);
-
-        const agentsToSeed = initialAgentsData.map(agent => ({
-            ...agent,
-            id: `agent-${agent.is_custom ? 'custom' : 'premade'}-${agent.name.toLowerCase().replace(/\s+/g, '-')}`,
-            user_id: 'default_user'
-        }));
-        await seedFile(path.join(dataDir, 'agents.json'), agentsToSeed);
+        const agentsCount = await query<{ count: number }>(`SELECT COUNT(*) as count FROM agents`);
+        if (agentsCount[0].count === 0) {
+            const agentsToSeed = initialAgentsData.map(agent => ({
+                ...agent,
+                id: `agent-${agent.is_custom ? 'custom' : 'premade'}-${agent.name.toLowerCase().replace(/\s+/g, '-')}`,
+                user_id: 'default_user'
+            }));
+            await seedTable<Agent>('agents', agentsToSeed, (agent) => ({
+                id: agent.id,
+                name: agent.name,
+                description: agent.description,
+                status: agent.status,
+                is_custom: agent.is_custom,
+                parameters: JSON.stringify(agent.parameters),
+                strategy_id: agent.strategy_id,
+                performance: JSON.stringify(agent.performance),
+                user_id: agent.user_id
+            }));
+        }
         
-        await seedFile(path.join(dataDir, 'missions.json'), initialMissionsToSeed);
+        const missionsCount = await query<{ count: number }>(`SELECT COUNT(*) as count FROM missions`);
+        if (missionsCount[0].count === 0) {
+            await seedTable<Mission>('missions', initialMissionsToSeed, (mission) => ({
+                id: mission.id,
+                title: mission.title,
+                description: mission.description,
+                xp: mission.xp,
+                reward_type: mission.reward.type,
+                reward_name: mission.reward.name
+            }));
+        }
+
+        console.log('PostgreSQL seeding complete.');
 
     } catch (error) {
-        console.error('Error setting up local JSON data store:', error);
+        console.error('Error setting up and seeding PostgreSQL:', error);
         throw error;
     }
 }
