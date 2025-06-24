@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -11,27 +10,45 @@ import TypewriterText from '@/components/TypewriterText';
 import { getLeaderboardAction } from '@/app/leaderboard/actions';
 import type { User } from '@/lib/types';
 
-
 interface LeaderboardUser extends User {
     rank: number;
     isBot?: boolean;
     tags?: string[];
 }
 
-export default function LeaderboardTab() {
+const getRankGlowClass = (rank: number) => {
+    switch (rank) {
+        case 1: return 'shadow-yellow-400/50 glow-border-yellow-400';
+        case 2: return 'shadow-gray-400/50 glow-border-gray-400';
+        case 3: return 'shadow-orange-400/50 glow-border-orange-400';
+        default: return 'border-border hover:scale-[1.01] hover:shadow-primary/30';
+    }
+};
+
+const getRankAvatarClass = (rank: number) => {
+    switch (rank) {
+        case 1: return 'border-yellow-400';
+        case 2: return 'border-gray-400';
+        case 3: return 'border-orange-400';
+        default: return 'border-primary';
+    }
+};
+
+
+export default function LeaderboardTab({ isDbInitialized }: { isDbInitialized: boolean }) {
   const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [descriptionKey, setDescriptionKey] = useState(0);
 
   useEffect(() => {
     async function loadLeaderboard() {
+        if (!isDbInitialized) return;
         setIsLoading(true);
         try {
             const users = await getLeaderboardAction();
             const rankedUsers = users.map((user, index) => ({
                 ...user,
                 rank: index + 1,
-                // Add some dynamic tags for flair
                 tags: user.xp > 8000 ? ['🔮 Signal Oracle'] : user.xp > 5000 ? ['⚡ Chain Whisperer'] : []
             }));
             setLeaderboard(rankedUsers);
@@ -43,7 +60,7 @@ export default function LeaderboardTab() {
         }
     }
     loadLeaderboard();
-  }, []);
+  }, [isDbInitialized]);
 
   if (isLoading) {
     return (
@@ -77,19 +94,18 @@ export default function LeaderboardTab() {
             <Card 
               key={user.id} 
               className={cn(
-                "shadow-lg rounded-lg sm:rounded-xl overflow-hidden transition-all duration-300 transform", 
-                index < 3 ? 'glow-border-accent scale-[1.01] hover:scale-[1.03]' : 'border-border hover:scale-[1.01] hover:shadow-primary/30'
+                "shadow-lg rounded-lg sm:rounded-xl overflow-hidden transition-all duration-300 transform scale-100 hover:scale-[1.02]", 
+                getRankGlowClass(user.rank)
               )}
             >
               <CardContent className={cn(
-                "p-3 sm:p-4 flex items-center space-x-3 sm:space-x-4 bg-card hover:bg-muted/50 transition-colors duration-200",
-                index < 3 ? "bg-card/90" : ""
+                "p-3 sm:p-4 flex items-center space-x-3 sm:space-x-4 bg-card hover:bg-muted/50 transition-colors duration-200"
               )}>
-                <div className={cn("flex flex-col items-center shrink-0 w-10 sm:w-12", index < 3 ? "text-accent" : "text-primary")}>
-                  {index < 3 && <RankIcon className="w-5 h-5 sm:w-6 sm:h-6 mb-0.5" />}
-                  <span className={cn("font-bold", index < 3 ? "text-2xl sm:text-4xl" : "text-xl sm:text-3xl")}>{user.rank}</span>
+                <div className={cn("flex flex-col items-center shrink-0 w-10 sm:w-12", getRankAvatarClass(user.rank))}>
+                  {user.rank <= 3 && <RankIcon className="w-5 h-5 sm:w-6 sm:h-6 mb-0.5" />}
+                  <span className={cn("font-bold", user.rank <= 3 ? "text-2xl sm:text-4xl" : "text-xl sm:text-3xl")}>{user.rank}</span>
                 </div>
-                <Avatar className={cn("h-10 w-10 sm:h-14 sm:w-14 border-2 shrink-0", index < 3 ? "border-accent" : "border-primary")}>
+                <Avatar className={cn("h-10 w-10 sm:h-14 sm:w-14 border-2 shrink-0", getRankAvatarClass(user.rank))}>
                   {user.avatarUrl && <AvatarImage src={user.avatarUrl} data-ai-hint="profile avatar" alt={user.name} />}
                   <AvatarFallback className="text-sm sm:text-lg bg-muted text-foreground">
                     {user.isBot ? <Bot className="w-6 h-6" /> : user.name!.substring(0, 2).toUpperCase()}
@@ -108,8 +124,8 @@ export default function LeaderboardTab() {
                         className={cn(
                           tag.includes('Oracle') ? 'bg-primary text-primary-foreground' : 'bg-accent text-accent-foreground', 
                           'font-code text-[0.6rem] sm:text-xs px-1.5 sm:px-2 py-0.5',
-                          index < 3 && tag.includes('Oracle') ? 'shadow-md shadow-primary/50' : '',
-                          index < 3 && !tag.includes('Oracle') ? 'shadow-md shadow-accent/50' : ''
+                          user.rank <= 3 && tag.includes('Oracle') ? 'shadow-md shadow-primary/50' : '',
+                          user.rank <= 3 && !tag.includes('Oracle') ? 'shadow-md shadow-accent/50' : ''
                         )}
                       >
                         {tag}
@@ -119,8 +135,8 @@ export default function LeaderboardTab() {
                 </div>
                 <div className="text-right space-y-0.5 text-[0.65rem] sm:text-xs hidden md:block shrink-0 min-w-[120px]">
                   <p className="flex items-center justify-end text-muted-foreground"><Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 text-primary/80" /> Shadow XP: <span className="font-semibold ml-1 text-foreground">{user.xp.toLocaleString()}</span></p>
-                  <p className="flex items-center justify-end text-muted-foreground"><Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 text-orange-500" /> Signals: <span className="font-semibold ml-1 text-foreground">{user.signals_generated}</span></p>
-                  <p className="flex items-center justify-end text-muted-foreground"><Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 text-yellow-500" /> Airdrop Pts: <span className="font-semibold ml-1 text-foreground">{user.bsai_earned.toLocaleString()}</span></p>
+                  <p className="flex items-center justify-end text-muted-foreground"><Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 text-orange-500" /> Signals: <span className="font-semibold ml-1 text-foreground">{user.signalsGenerated}</span></p>
+                  <p className="flex items-center justify-end text-muted-foreground"><Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 text-yellow-500" /> Airdrop Pts: <span className="font-semibold ml-1 text-foreground">{user.bsaiEarned.toLocaleString()}</span></p>
                 </div>
               </CardContent>
             </Card>

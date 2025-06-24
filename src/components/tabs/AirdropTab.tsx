@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -24,7 +23,7 @@ const POINTS_CONFIG = {
     GENESIS_INVITE: 25,
 };
 
-export default function AirdropTab() {
+export default function AirdropTab({ isDbInitialized }: { isDbInitialized: boolean }) {
   const { toast } = useToast();
   const [stats, setStats] = useState<AirdropStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,6 +36,7 @@ export default function AirdropTab() {
   const [descriptionKey, setDescriptionKey] = useState(0);
 
   const fetchStats = async () => {
+      if (!isDbInitialized) return;
       try {
           setIsLoading(true);
           const airdropStats = await getAirdropStatsAction();
@@ -51,7 +51,7 @@ export default function AirdropTab() {
 
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [isDbInitialized]);
   
   const handleWalletSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

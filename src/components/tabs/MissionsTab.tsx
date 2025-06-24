@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -21,7 +20,7 @@ const rewardIcons: { [key: string]: React.ElementType } = {
   daily_login: Sparkles,
 };
 
-export default function MissionsTab() {
+export default function MissionsTab({ isDbInitialized }: { isDbInitialized: boolean }) {
   const [missions, setMissions] = useState<MissionData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [completingId, setCompletingId] = useState<string | null>(null);
@@ -30,6 +29,7 @@ export default function MissionsTab() {
 
   useEffect(() => {
     async function loadMissions() {
+      if (!isDbInitialized) return;
       setIsLoading(true);
       try {
         const missionsData = await getMissionsData();
@@ -42,7 +42,7 @@ export default function MissionsTab() {
       }
     }
     loadMissions();
-  }, [toast]);
+  }, [isDbInitialized, toast]);
 
   const handleTaskAction = async (missionId: string) => {
     setCompletingId(missionId);

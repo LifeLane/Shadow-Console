@@ -1,5 +1,3 @@
-
-
 export interface AgentPerformance {
     signals: number;
     winRate: number; // as a percentage, e.g., 80 for 80%
@@ -17,14 +15,14 @@ export interface Agent {
     name: string;
     description: string;
     status: 'Active' | 'Inactive' | 'Training';
-    is_custom: boolean; // Changed to match db snake_case
+    isCustom: boolean;
     parameters: AgentParameters;
     code: string;
     performance: AgentPerformance;
-    user_id?: string;
+    userId?: string;
+    strategyId?: string;
 }
 
-// This is the type for data stored in the `missions` table.
 export interface Mission {
     id: string;
     title: string;
@@ -36,38 +34,38 @@ export interface Mission {
     };
 }
 
-// This is the type for data stored in the `users` table.
 export interface User {
     id: string;
-    wallet_address: string | null;
-    wallet_chain: string | null;
-    signals_generated: number;
-    signals_won: number;
-    bsai_earned: number;
+    walletAddress: string | null;
+    walletChain: string | null;
+    signalsGenerated: number;
+    signalsWon: number;
+    bsaiEarned: number;
     xp: number;
-    created_at: string;
-    updated_at: string;
-    name?: string; // For leaderboard
-    avatarUrl?: string; // For leaderboard
+    createdAt: string;
+    updatedAt: string;
+    name?: string;
+    avatarUrl?: string;
+    completedMissions: string[];
 }
 
 export interface UserMission {
-    user_id: string;
-    mission_id: string;
-    completed_at: string;
+    userId: string;
+    missionId: string;
+    completedAt: string;
 }
 
 export interface Signal {
-    id?: number; // Optional as it's a serial in the DB
-    user_id: string;
+    id?: number;
+    userId: string;
     asset: string;
     prediction: 'BUY' | 'SELL' | 'HOLD';
-    trade_mode: string;
+    tradeMode: string;
     outcome: 'TP_HIT' | 'SL_HIT' | 'PENDING';
-    reward_bsai: number;
-    reward_xp: number;
-    gas_paid: number;
-    created_at?: string;
+    rewardBsai: number;
+    rewardXp: number;
+    gasPaid: number;
+    createdAt?: string;
     entryRange?: string;
     stopLoss?: string;
     takeProfit?: string;

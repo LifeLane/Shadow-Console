@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -175,11 +174,11 @@ export default function AppLayout() {
                       await saveSignalAction({
                           asset: signalInput.target,
                           prediction: activeSignal.prediction as 'BUY' | 'SELL' | 'HOLD',
-                          trade_mode: signalInput.tradeMode,
+                          tradeMode: signalInput.tradeMode,
                           outcome: outcome,
-                          reward_bsai: bsaid,
-                          reward_xp: xp,
-                          gas_paid: Math.floor(Math.random() * 5) + 1,
+                          rewardBsai: bsaid,
+                          rewardXp: xp,
+                          gasPaid: Math.floor(Math.random() * 5) + 1,
                           entryRange: activeSignal.entryRange,
                           stopLoss: activeSignal.stopLoss,
                           takeProfit: activeSignal.takeProfit,
@@ -224,7 +223,7 @@ export default function AppLayout() {
   useEffect(() => {
     async function initializeDataStore() {
         try {
-            console.log("Initializing local JSON data store...");
+            console.log("Initializing local file-based data store...");
             await setupDatabaseAndSeed();
             console.log("Local data store initialization complete.");
             setDbInitialized(true);
@@ -304,19 +303,20 @@ export default function AppLayout() {
               className={cn(
                 "flex flex-col items-center justify-center h-full px-0.5 sm:px-1 text-[0.6rem] sm:text-xs group transition-all duration-300 ease-out transform hover:scale-105 w-full rounded-none",
                 activeTab === tab.id
-                  ? 'bg-accent text-accent-foreground scale-110'
-                  : 'text-muted-foreground hover:bg-primary hover:text-primary-foreground'
+                  ? 'text-accent-foreground scale-110'
+                  : 'text-muted-foreground hover:bg-primary/10 hover:text-primary'
               )}
               aria-current={activeTab === tab.id ? 'page' : undefined}
               title={tab.label}
             >
               <div className={cn(
-                "p-1.5 sm:p-2 rounded-full transition-all duration-300 ease-out",
+                "p-1.5 sm:p-2 rounded-full transition-all duration-300 ease-out relative",
                  activeTab === tab.id
-                    ? 'glow-border-destructive'
+                    ? 'bg-primary text-primary-foreground'
                     : 'opacity-70 group-hover:opacity-100'
               )}>
-                <tab.icon className="h-4 w-4 sm:h-5 sm:w-6" />
+                 {activeTab === tab.id && <div className="absolute inset-0 rounded-full bg-primary animate-pulse-glow-primary z-0"></div>}
+                <tab.icon className="h-4 w-4 sm:h-5 sm:w-6 relative z-10" />
               </div>
               <span className="mt-0.5 sm:mt-1 font-medium truncate max-w-[50px] sm:max-w-none hidden sm:inline-block">
                 {tab.label}

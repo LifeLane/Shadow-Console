@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -17,7 +16,7 @@ import { getUserData, updateWalletAction } from '@/app/settings/actions';
 import type { User } from '@/lib/types';
 
 
-export default function SettingsTab() {
+export default function SettingsTab({ isDbInitialized }: { isDbInitialized: boolean }) {
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
@@ -42,13 +41,14 @@ export default function SettingsTab() {
     setMounted(true);
     
     async function loadUserData() {
+        if (!isDbInitialized) return;
         try {
             setIsLoading(true);
             const userData = await getUserData();
             setUser(userData);
-            if (userData?.wallet_address && userData.wallet_chain) {
+            if (userData?.walletAddress && userData.walletChain) {
                 setIsWalletConnected(true);
-                setConnectedWalletInfo({ address: userData.wallet_address, chain: userData.wallet_chain });
+                setConnectedWalletInfo({ address: userData.walletAddress, chain: userData.walletChain });
                 setSignalStrength(Math.floor(Math.random() * 30) + 70); 
             } else {
                  setSignalStrength(Math.floor(Math.random() * 50) + 20); 
@@ -61,7 +61,7 @@ export default function SettingsTab() {
         }
     }
     loadUserData();
-  }, [toast]);
+  }, [isDbInitialized, toast]);
   
   // Signal strength simulation
   useEffect(() => {
@@ -77,7 +77,7 @@ export default function SettingsTab() {
   }, [mounted, isWalletConnected]);
 
 
-  if (!mounted || (isLoading && !user)) {
+  if (!mounted || isLoading) {
     return (
         <div className="flex justify-center items-center h-64">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -119,15 +119,6 @@ export default function SettingsTab() {
         description: "Your Binance API keys have been securely processed for simulated operations.",
     });
   };
-
-  if (isLoading) {
-    return (
-        <div className="flex justify-center items-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="ml-4 text-lg text-muted-foreground">Loading Configuration...</p>
-        </div>
-    );
-  }
 
   const shortAddress = connectedWalletInfo?.address 
     ? `${connectedWalletInfo.address.substring(0,6)}...${connectedWalletInfo.address.substring(connectedWalletInfo.address.length - 4)}` 

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -67,19 +66,12 @@ export default function MindTab({ isDbInitialized, coreState, setCoreState, onIn
 
   useEffect(() => {
     fetchSignalHistory();
-    if(coreState === 'idle' || coreState === 'resolved') {
-      fetchSignalHistory();
-    }
-  }, [isDbInitialized, coreState]);
+  }, [isDbInitialized]);
   
   useEffect(() => {
-    // When a signal is resolved, we might want to refresh the history
-    if (coreState === 'resolved') {
-      const timer = setTimeout(() => {
-        // Delay fetching a bit to ensure data is written
-         fetchSignalHistory();
-      }, 1000);
-      return () => clearTimeout(timer);
+    // When a signal is resolved or the tab becomes active, refresh history
+    if (coreState === 'idle' || coreState === 'resolved') {
+       fetchSignalHistory();
     }
   }, [coreState]);
 
@@ -88,13 +80,13 @@ export default function MindTab({ isDbInitialized, coreState, setCoreState, onIn
     const { name, value } = e.target;
     setFormState(prevState => ({ ...prevState, [name]: value.toUpperCase() }));
   };
-
-  const handleRiskTabChange = (value: string) => {
-    setFormState(prevState => ({ ...prevState, risk: value }));
-  };
   
   const handleTradeModeTabChange = (value: string) => {
       setFormState(prevState => ({ ...prevState, tradeMode: value }));
+  };
+
+  const handleRiskTabChange = (value: string) => {
+    setFormState(prevState => ({ ...prevState, risk: value as 'Low' | 'Medium' | 'High' }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -243,7 +235,7 @@ export default function MindTab({ isDbInitialized, coreState, setCoreState, onIn
                                             <span className={cn("w-12 sm:w-16 hidden sm:inline-block", isBuy ? "text-primary" : "text-destructive")}>{isBuy ? 'LONG' : 'SHORT'}</span>
                                             <Badge variant={isWin ? "default" : "destructive"} className={cn("text-xs", isWin ? "bg-green-600/80 border-green-500" : "bg-red-600/80 border-red-500")}>{isWin ? 'WIN' : 'LOSS'}</Badge>
                                             <span className="flex-1 text-right text-muted-foreground text-xs">
-                                                {formatDistanceToNow(new Date(signal.created_at!), { addSuffix: true })}
+                                                {formatDistanceToNow(new Date(signal.createdAt!), { addSuffix: true })}
                                             </span>
                                         </div>
                                     </AccordionTrigger>
@@ -255,7 +247,7 @@ export default function MindTab({ isDbInitialized, coreState, setCoreState, onIn
                                                 <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><Target className="w-4 h-4"/>Entry Range:</span> <span className="font-semibold">{signal.entryRange || 'N/A'}</span></div>
                                                 <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><Target className="w-4 h-4 text-destructive"/>Stop Loss:</span> <span className="font-semibold">{signal.stopLoss || 'N/A'}</span></div>
                                                 <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><Target className="w-4 h-4 text-primary"/>Take Profit:</span> <span className="font-semibold">{signal.takeProfit || 'N/A'}</span></div>
-                                                <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><TrendingUp className="w-4 h-4"/>Trade Mode:</span> <span className="font-semibold">{signal.trade_mode}</span></div>
+                                                <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><TrendingUp className="w-4 h-4"/>Trade Mode:</span> <span className="font-semibold">{signal.tradeMode}</span></div>
                                             </div>
                                         </div>
                                         <div className="pt-2">
@@ -263,9 +255,9 @@ export default function MindTab({ isDbInitialized, coreState, setCoreState, onIn
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
                                                 <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><Percent className="w-4 h-4"/>Confidence:</span> <span className="font-semibold">{signal.confidence ? `${signal.confidence}%` : 'N/A'}</span></div>
                                                 <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><Shield className="w-4 h-4"/>ShadowScore:</span> <span className="font-semibold">{signal.shadowScore || 'N/A'}</span></div>
-                                                <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><DollarSign className="w-4 h-4"/>BSAI Reward:</span> <span className="font-semibold text-primary">+{signal.reward_bsai}</span></div>
-                                                <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><Star className="w-4 h-4 text-yellow-400"/>XP Gained:</span> <span className="font-semibold text-yellow-400">+{signal.reward_xp}</span></div>
-                                                <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><Fuel className="w-4 h-4"/>Gas Paid:</span> <span className="font-semibold">-{signal.gas_paid}</span></div>
+                                                <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><DollarSign className="w-4 h-4"/>BSAI Reward:</span> <span className="font-semibold text-primary">+{signal.rewardBsai}</span></div>
+                                                <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><Star className="w-4 h-4 text-yellow-400"/>XP Gained:</span> <span className="font-semibold text-yellow-400">+{signal.rewardXp}</span></div>
+                                                <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><Fuel className="w-4 h-4"/>Gas Paid:</span> <span className="font-semibold">-{signal.gasPaid}</span></div>
                                             </div>
                                         </div>
                                     </div>

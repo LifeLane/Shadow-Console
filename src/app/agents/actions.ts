@@ -2,12 +2,12 @@
 
 import { revalidatePath } from 'next/cache';
 import { getAgents, saveAgent, updateAgentStatus } from '@/services/agentService';
-import { setupAndSeedPostgreSQL } from '@/services/setupService'; // Changed import
+import { setupAndSeedLocalData } from '@/services/setupService';
 import type { Agent, User } from '@/lib/types';
 import { getUser } from '@/services/userService';
 
 export async function setupDatabaseAndSeed() {
-  await setupAndSeedPostgreSQL(); // Changed function call
+  await setupAndSeedLocalData();
 }
 
 export async function getAgentsAction(): Promise<Agent[]> {

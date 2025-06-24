@@ -1,24 +1,22 @@
-
 'use server';
 
-import { query, getClient } from '@/lib/postgres';
+import { readDb, writeDb } from '@/lib/file-system-db';
 import type { Signal, User } from '@/lib/types';
+import path from 'path';
+
+const SIGNALS_DB_PATH = path.resolve(process.cwd(), 'src/data/signals.json');
+const USERS_DB_PATH = path.resolve(process.cwd(), 'src/data/users.json');
 
 /**
- * Fetches signal history for a user from PostgreSQL.
+ * Fetches signal history for a user from the local JSON file.
  */
 export async function getSignalsForUser(userId: string, limitCount = 10): Promise<Signal[]> {
     try {
-        const signals = await query<Signal>(`SELECT * FROM signals WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2`, [userId, limitCount]);
-        return signals.map(signal => ({
-            ...signal,
-            id: signal.id, // PostgreSQL SERIAL type maps directly
-            entryRange: signal.entryRange || null,
-            stopLoss: signal.stopLoss || null,
-            takeProfit: signal.takeProfit || null,
-            confidence: signal.confidence || null,
-            shadowScore: signal.shadowScore || null,
-        }));
+        const allSignals = await readDb<Signal[]>(SIGNALS_DB_PATH);
+        return allSignals
+            .filter(signal => signal.userId === userId)
+            .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime())
+            .slice(0, limitCount);
     } catch (error) {
         console.error(`Error fetching signals for user ${userId}:`, error);
         throw new Error(`Could not retrieve signals for user ${userId}.`);
@@ -26,68 +24,49 @@ export async function getSignalsForUser(userId: string, limitCount = 10): Promis
 }
 
 /**
- * Saves a new signal and updates user stats in PostgreSQL.
+ * Saves a new signal and updates user stats in the local JSON files.
  */
-export async function saveSignal(signal: Omit<Signal, 'id' | 'created_at'>): Promise<void> {
-    const { user_id, outcome, reward_bsai, reward_xp } = signal;
+export async function saveSignal(signal: Omit<Signal, 'id' | 'createdAt'>): Promise<void> {
+    const { userId, outcome, rewardBsai, rewardXp } = signal;
 
-    const client = await getClient();
     try {
-        await client.query('BEGIN');
+        // 1. Read existing data
+        const allSignals = await readDb<Signal[]>(SIGNALS_DB_PATH);
+        const allUsers = await readDb<User[]>(USERS_DB_PATH);
+        
+        // 2. Add the new signal
+        const newSignal: Signal = {
+            ...signal,
+            id: allSignals.length > 0 ? Math.max(...allSignals.map(s => s.id!)) + 1 : 1,
+            createdAt: new Date().toISOString()
+        };
+        allSignals.push(newSignal);
 
-        // 1. Insert the new signal
-        await client.query(
-            `INSERT INTO signals (user_id, asset, prediction, trade_mode, outcome, reward_bsai, reward_xp, gas_paid, created_at, entryRange, stopLoss, takeProfit, confidence, shadowScore)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
-            [
-                signal.user_id,
-                signal.asset,
-                signal.prediction,
-                signal.trade_mode,
-                signal.outcome,
-                signal.reward_bsai,
-                signal.reward_xp,
-                signal.gas_paid,
-                new Date().toISOString(),
-                signal.entryRange || null,
-                signal.stopLoss || null,
-                signal.takeProfit || null,
-                signal.confidence || null,
-                signal.shadowScore || null,
-            ]
-        );
-
-        // 2. Update user stats
-        const userResult = await client.query<User>(`SELECT signals_generated, signals_won, bsai_earned, xp FROM users WHERE id = $1 FOR UPDATE`, [user_id]);
-
-        if (userResult.rows.length > 0) {
-            const user = userResult.rows[0];
-            const updatedSignalsGenerated = (user.signals_generated || 0) + 1;
-            const updatedSignalsWon = outcome === 'TP_HIT' ? (user.signals_won || 0) + 1 : (user.signals_won || 0);
-            const updatedBsaiEarned = (Number(user.bsai_earned || 0) + reward_bsai);
-            const updatedXp = (user.xp || 0) + reward_xp;
-
-            await client.query(
-                `UPDATE users SET signals_generated = $1, signals_won = $2, bsai_earned = $3, xp = $4, updated_at = $5 WHERE id = $6`,
-                [
-                    updatedSignalsGenerated,
-                    updatedSignalsWon,
-                    updatedBsaiEarned,
-                    updatedXp,
-                    new Date().toISOString(),
-                    user_id,
-                ]
-            );
+        // 3. Update user stats
+        const userIndex = allUsers.findIndex(u => u.id === userId);
+        if (userIndex > -1) {
+            const user = allUsers[userIndex];
+            user.signalsGenerated = (user.signalsGenerated || 0) + 1;
+            if (outcome === 'TP_HIT') {
+                user.signalsWon = (user.signalsWon || 0) + 1;
+            }
+            user.bsaiEarned = (user.bsaiEarned || 0) + rewardBsai;
+            user.xp = (user.xp || 0) + rewardXp;
+            user.updatedAt = new Date().toISOString();
+            
+            allUsers[userIndex] = user;
         } else {
-            console.warn(`Could not find user ${user_id} to update stats.`);
+             console.warn(`Could not find user ${userId} to update stats.`);
         }
 
-        await client.query('COMMIT');
+        // 4. Write data back to files
+        await Promise.all([
+            writeDb(SIGNALS_DB_PATH, allSignals),
+            writeDb(USERS_DB_PATH, allUsers)
+        ]);
+
     } catch (error) {
-        await client.query('ROLLBACK');
         console.error('Error saving signal or updating user stats:', error);
         throw new Error('Could not save signal or update user data.');
-    } finally {
-        client.release();
     }
 }

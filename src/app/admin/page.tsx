@@ -29,7 +29,7 @@ export default function AdminPage() {
 
             toast({
                 title: "Data Exported",
-                description: "All user and agent data has been downloaded from the database.",
+                description: "All user and agent data has been downloaded.",
             });
 
         } catch (error) {
@@ -51,17 +51,17 @@ export default function AdminPage() {
                             <Shield className="h-8 w-8 text-primary" />
                             <div>
                                 <CardTitle className="font-headline text-3xl text-primary">Admin Control Panel</CardTitle>
-                                <CardDescription>Manage and export all user and agent data from the database.</CardDescription>
+                                <CardDescription>Manage and export all user and agent data.</CardDescription>
                             </div>
                         </div>
                     </CardHeader>
                     <CardContent className="space-y-4 p-6">
                         <p className="text-sm text-muted-foreground">
-                           This panel provides access to all data stored in the central database. You can export this data for analysis or backup.
+                           This panel provides access to all data stored in the local file system. You can export this data for analysis or backup.
                         </p>
                         <Button onClick={handleDownloadData} variant="outline" className="w-full font-code border-primary text-primary hover:bg-primary/10 transition-colors">
                             <Download className="w-4 h-4 mr-2" />
-                            Export All Database Data (JSON)
+                            Export All Data (JSON)
                         </Button>
                     </CardContent>
                 </Card>

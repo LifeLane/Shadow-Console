@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -15,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Bot, History, CheckCircle, Award, Star, Power, PlusCircle, Edit, Rocket, BrainCircuit, Activity, BarChart, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import type { Agent, AgentParameters, User } from '@/lib/types';
+import type { Agent, User } from '@/lib/types';
 import { getAgentsAction, saveAgentAction, updateAgentStatusAction, getUserAction } from '@/app/agents/actions';
 
 
@@ -36,7 +35,7 @@ const newAgentTemplate: Omit<Agent, 'id'> = {
     name: 'New Custom Agent',
     description: 'A new agent ready for configuration.',
     status: 'Inactive',
-    is_custom: true,
+    isCustom: true,
     parameters: { symbol: 'BTCUSDT', tradeMode: 'Intraday', risk: 'Medium', indicators: [] },
     code: `// Define your custom strategy here.\n// Example: Use indicators to trigger buy/sell signals.\n\nfunction onTick(price, indicators) {\n  if (indicators.rsi < 30) {\n    // Buy condition\n    return 'BUY';\n  }\n  return 'HOLD';\n}`,
     performance: { signals: 0, winRate: 0 },
@@ -88,28 +87,28 @@ const AgentEditorDialog: React.FC<{ agent: Omit<Agent, 'id'> | Agent, onSave: (a
             <DialogTrigger asChild onClick={() => setIsOpen(true)}>{children}</DialogTrigger>
             <DialogContent className="sm:max-w-[600px] bg-background border-primary glow-border-primary text-foreground font-code">
                 <DialogHeader>
-                    <DialogTitle className="font-headline text-2xl text-primary">{editedAgent.is_custom ? 'Configure Custom Agent' : 'View Premade Agent'}</DialogTitle>
+                    <DialogTitle className="font-headline text-2xl text-primary">{editedAgent.isCustom ? 'Configure Custom Agent' : 'View Premade Agent'}</DialogTitle>
                     <DialogDescription>Define your agent's parameters and logic. Your creations strengthen the ShadowNet.</DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto px-1">
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="agent-name" className="text-right">Name</Label>
-                        <Input id="agent-name" value={editedAgent.name} onChange={e => setEditedAgent(p => ({ ...p, name: e.target.value }))} className="col-span-3 bg-input border-border focus:border-primary focus:ring-primary" readOnly={!editedAgent.is_custom} />
+                        <Input id="agent-name" value={editedAgent.name} onChange={e => setEditedAgent(p => ({ ...p, name: e.target.value }))} className="col-span-3 bg-input border-border focus:border-primary focus:ring-primary" readOnly={!editedAgent.isCustom} />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="symbol" className="text-right">Symbol</Label>
-                        <Input id="symbol" value={editedAgent.parameters.symbol} onChange={e => setEditedAgent(p => ({ ...p, parameters: { ...p.parameters, symbol: e.target.value.toUpperCase() } }))} className="col-span-3 bg-input border-border focus:border-primary focus:ring-primary" readOnly={!editedAgent.is_custom} />
+                        <Input id="symbol" value={editedAgent.parameters.symbol} onChange={e => setEditedAgent(p => ({ ...p, parameters: { ...p.parameters, symbol: e.target.value.toUpperCase() } }))} className="col-span-3 bg-input border-border focus:border-primary focus:ring-primary" readOnly={!editedAgent.isCustom} />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label className="text-right">Trade Mode</Label>
-                        <Select value={editedAgent.parameters.tradeMode} onValueChange={(v) => setEditedAgent(p => ({ ...p, parameters: { ...p.parameters, tradeMode: v } }))} disabled={!editedAgent.is_custom}>
+                        <Select value={editedAgent.parameters.tradeMode} onValueChange={(v) => setEditedAgent(p => ({ ...p, parameters: { ...p.parameters, tradeMode: v } }))} disabled={!editedAgent.isCustom}>
                             <SelectTrigger className="col-span-3 bg-input border-border focus:border-primary focus:ring-primary"><SelectValue /></SelectTrigger>
                             <SelectContent>{tradeModes.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
                         </Select>
                     </div>
                      <div className="grid grid-cols-4 items-center gap-4">
                         <Label className="text-right">Risk</Label>
-                         <Select value={editedAgent.parameters.risk} onValueChange={(v) => setEditedAgent(p => ({ ...p, parameters: { ...p.parameters, risk: v as any } }))} disabled={!editedAgent.is_custom}>
+                         <Select value={editedAgent.parameters.risk} onValueChange={(v) => setEditedAgent(p => ({ ...p, parameters: { ...p.parameters, risk: v as any } }))} disabled={!editedAgent.isCustom}>
                             <SelectTrigger className="col-span-3 bg-input border-border focus:border-primary focus:ring-primary"><SelectValue /></SelectTrigger>
                             <SelectContent>{riskLevels.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
                         </Select>
@@ -119,7 +118,7 @@ const AgentEditorDialog: React.FC<{ agent: Omit<Agent, 'id'> | Agent, onSave: (a
                         <div className="col-span-3 grid grid-cols-2 gap-2">
                             {availableIndicators.map(indicator => (
                                 <div key={indicator.id} className="flex items-center space-x-2">
-                                    <Checkbox id={indicator.id} checked={editedAgent.parameters.indicators.includes(indicator.id)} onCheckedChange={(c) => handleIndicatorChange(indicator.id, !!c)} disabled={!editedAgent.is_custom}/>
+                                    <Checkbox id={indicator.id} checked={editedAgent.parameters.indicators.includes(indicator.id)} onCheckedChange={(c) => handleIndicatorChange(indicator.id, !!c)} disabled={!editedAgent.isCustom}/>
                                     <label htmlFor={indicator.id} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">{indicator.label}</label>
                                 </div>
                             ))}
@@ -127,11 +126,11 @@ const AgentEditorDialog: React.FC<{ agent: Omit<Agent, 'id'> | Agent, onSave: (a
                     </div>
                     <div className="grid grid-cols-4 items-start gap-4">
                         <Label htmlFor="code" className="text-right pt-2">Logic</Label>
-                        <Textarea id="code" value={editedAgent.code} onChange={e => setEditedAgent(p => ({...p, code: e.target.value }))} className="col-span-3 min-h-[150px] bg-input border-border focus:border-primary focus:ring-primary" readOnly={!editedAgent.is_custom} />
+                        <Textarea id="code" value={editedAgent.code} onChange={e => setEditedAgent(p => ({...p, code: e.target.value }))} className="col-span-3 min-h-[150px] bg-input border-border focus:border-primary focus:ring-primary" readOnly={!editedAgent.isCustom} />
                     </div>
                 </div>
                 <DialogFooter>
-                    {editedAgent.is_custom && (
+                    {editedAgent.isCustom && (
                         <Button onClick={handleSave} className="bg-primary hover:bg-primary/90" disabled={isSaving}>
                             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             {isSaving ? 'Saving...' : 'Save Agent'}
@@ -145,7 +144,7 @@ const AgentEditorDialog: React.FC<{ agent: Omit<Agent, 'id'> | Agent, onSave: (a
 
 // --- MAIN TAB COMPONENT ---
 
-export default function AgentsTab() {
+export default function AgentsTab({ isDbInitialized }: { isDbInitialized: boolean }) {
     const [agents, setAgents] = useState<Agent[]>([]);
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -153,6 +152,7 @@ export default function AgentsTab() {
 
     useEffect(() => {
         async function loadInitialData() {
+            if (!isDbInitialized) return;
             setIsLoading(true);
             try {
                 const [dbAgents, dbUser] = await Promise.all([
@@ -163,14 +163,14 @@ export default function AgentsTab() {
                 setAgents(dbAgents);
                 setUser(dbUser);
             } catch (error) {
-                console.error("Failed to load data from data store", error);
+                console.error("Failed to load agent/user data", error);
                 toast({ title: "Error", description: "Could not load agent & user data.", variant: "destructive" });
             } finally {
                 setIsLoading(false);
             }
         }
         loadInitialData();
-    }, [toast]);
+    }, [isDbInitialized, toast]);
 
     const handleSaveAgent = async (agentToSave: Agent) => {
         try {
@@ -208,8 +208,8 @@ export default function AgentsTab() {
     };
 
     const winRate = useMemo(() => {
-        if (!user || user.signals_generated === 0) return "0.00%";
-        return ((user.signals_won / user.signals_generated) * 100).toFixed(2) + "%";
+        if (!user || user.signalsGenerated === 0) return "0.00%";
+        return ((user.signalsWon / user.signalsGenerated) * 100).toFixed(2) + "%";
     }, [user]);
 
     const xpProgress = useMemo(() => {
@@ -218,8 +218,8 @@ export default function AgentsTab() {
         return (user.xp / xpForNextLevel) * 100;
     }, [user]);
     
-    const customAgents = agents.filter(a => a.is_custom);
-    const premadeAgents = agents.filter(a => !a.is_custom);
+    const customAgents = agents.filter(a => a.isCustom);
+    const premadeAgents = agents.filter(a => !a.isCustom);
 
     if (isLoading) {
         return (
@@ -244,9 +244,9 @@ export default function AgentsTab() {
                 </CardHeader>
                 <CardContent className="p-4 sm:p-6 space-y-6">
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <StatCard title="Signals Generated" value={user?.signals_generated.toLocaleString() ?? 0}><History className="h-8 w-8 mx-auto" /></StatCard>
+                        <StatCard title="Signals Generated" value={user?.signalsGenerated.toLocaleString() ?? 0}><History className="h-8 w-8 mx-auto" /></StatCard>
                         <StatCard title="Win Rate" value={winRate}><CheckCircle className="h-8 w-8 mx-auto" /></StatCard>
-                        <StatCard title="Total BSAI Earned" value={user?.bsai_earned.toLocaleString() ?? 0}><Award className="h-8 w-8 mx-auto" /></StatCard>
+                        <StatCard title="Total BSAI Earned" value={user?.bsaiEarned.toLocaleString() ?? 0}><Award className="h-8 w-8 mx-auto" /></StatCard>
                         <StatCard title="Current XP" value={user?.xp.toLocaleString() ?? 0}><Star className="h-8 w-8 mx-auto" /></StatCard>
                     </div>
                     <div>

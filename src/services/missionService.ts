@@ -1,21 +1,18 @@
 'use server';
 
-import { query, getClient } from '@/lib/postgres';
+import { readDb, writeDb } from '@/lib/file-system-db';
 import type { Mission, User } from '@/lib/types';
+import path from 'path';
+
+const MISSIONS_DB_PATH = path.resolve(process.cwd(), 'src/data/missions.json');
+const USERS_DB_PATH = path.resolve(process.cwd(), 'src/data/users.json');
 
 /**
- * Fetches all available missions from PostgreSQL.
+ * Fetches all available missions from the local JSON file.
  */
 export async function getMissions(): Promise<Mission[]> {
     try {
-        const missions = await query<Mission>(`SELECT id, title, description, xp, reward_type AS "reward.type", reward_name AS "reward.name" FROM missions`);
-        return missions.map(m => ({
-            id: m.id,
-            title: m.title,
-            description: m.description,
-            xp: m.xp,
-            reward: { type: m['reward.type'] as any, name: m['reward.name'] as string }
-        }));
+        return await readDb<Mission[]>(MISSIONS_DB_PATH);
     } catch (error) {
         console.error('Error fetching missions:', error);
         throw new Error('Could not retrieve missions data.');
@@ -23,15 +20,13 @@ export async function getMissions(): Promise<Mission[]> {
 }
 
 /**
- * Fetches the IDs of completed missions for a user from PostgreSQL.
+ * Fetches the IDs of completed missions for a user from the local JSON file.
  */
 export async function getCompletedMissionIds(userId: string): Promise<string[]> {
     try {
-        const users = await query<User>(`SELECT completed_missions FROM users WHERE id = $1`, [userId]);
-        if (users.length > 0 && users[0].completed_missions) {
-            return users[0].completed_missions as string[];
-        }
-        return [];
+        const users = await readDb<User[]>(USERS_DB_PATH);
+        const user = users.find(u => u.id === userId);
+        return user?.completedMissions || [];
     } catch (error) {
         console.error(`Error fetching completed missions for user ${userId}:`, error);
         throw new Error(`Could not retrieve completed missions for user ${userId}.`);
@@ -39,7 +34,7 @@ export async function getCompletedMissionIds(userId: string): Promise<string[]> 
 }
 
 /**
- * Marks a mission as complete for a user and updates their XP in PostgreSQL.
+ * Marks a mission as complete for a user and updates their XP in the local JSON file.
  */
 export async function completeMissionForUser(userId: string, missionId: string): Promise<Mission> {
     const allMissions = await getMissions();
@@ -49,43 +44,32 @@ export async function completeMissionForUser(userId: string, missionId: string):
         throw new Error(`Mission with ID ${missionId} not found.`);
     }
 
-    const client = await getClient();
     try {
-        await client.query('BEGIN');
+        const users = await readDb<User[]>(USERS_DB_PATH);
+        const userIndex = users.findIndex(u => u.id === userId);
 
-        const userResult = await client.query<User>(`SELECT xp, completed_missions FROM users WHERE id = $1 FOR UPDATE`, [userId]);
-        if (userResult.rows.length === 0) {
+        if (userIndex === -1) {
             throw new Error(`User with ID ${userId} not found.`);
         }
-
-        const user = userResult.rows[0];
-        const completedMissions = user.completed_missions ? user.completed_missions : [];
-
-        if (!Array.isArray(completedMissions)) {
-            throw new Error("completed_missions is not an array.");
-        }
-
-        if (!completedMissions.includes(missionId)) {
-            const updatedCompletedMissions = [...completedMissions, missionId];
-            const updatedXp = (user.xp || 0) + mission.xp;
+        
+        const user = users[userIndex];
+        
+        if (!user.completedMissions.includes(missionId)) {
+            user.completedMissions.push(missionId);
+            user.xp = (user.xp || 0) + mission.xp;
+            user.updatedAt = new Date().toISOString();
             
-            await client.query(
-                `UPDATE users SET completed_missions = $1, xp = $2, updated_at = $3 WHERE id = $4`,
-                [JSON.stringify(updatedCompletedMissions), updatedXp, new Date().toISOString(), userId]
-            );
+            users[userIndex] = user;
+            await writeDb(USERS_DB_PATH, users);
             console.log(`Mission ${missionId} completed by user ${userId}. XP updated.`);
         } else {
-            console.log(`Mission ${missionId} already completed by user ${userId}.`);
+             console.log(`Mission ${missionId} already completed by user ${userId}.`);
         }
 
-        await client.query('COMMIT');
+        return mission;
+
     } catch (error) {
-        await client.query('ROLLBACK');
         console.error(`Error completing mission ${missionId} for user ${userId}:`, error);
         throw new Error(`Could not complete mission ${missionId} for user ${userId}.`);
-    } finally {
-        client.release();
     }
-    
-    return mission;
 }

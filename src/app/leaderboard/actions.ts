@@ -1,4 +1,3 @@
-
 'use server';
 
 import { getLeaderboardData } from '@/services/userService';

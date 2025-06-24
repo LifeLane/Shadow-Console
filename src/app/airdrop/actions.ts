@@ -1,4 +1,3 @@
-
 'use server';
 
 import { getUser } from '@/services/userService';
@@ -46,7 +45,7 @@ export async function getAirdropStatsAction(): Promise<AirdropStats> {
         };
     }
 
-    const walletSynced = !!user.wallet_address && !!user.wallet_chain;
+    const walletSynced = !!user.walletAddress && !!user.walletChain;
     
     // Calculate points from signals
     const successfulSignals = signals.filter(s => s.outcome === 'TP_HIT').length;
@@ -61,8 +60,8 @@ export async function getAirdropStatsAction(): Promise<AirdropStats> {
     return {
         wallet: {
             synced: walletSynced,
-            address: user.wallet_address,
-            chain: user.wallet_chain,
+            address: user.walletAddress,
+            chain: user.walletChain,
         },
         bsaiHolder: walletSynced, // We'll tie this to wallet sync for the simulation
         genesisInvite: true,

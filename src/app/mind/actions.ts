@@ -10,9 +10,9 @@ export async function getSignalHistoryAction(): Promise<Signal[]> {
     return getSignalsForUser(DEFAULT_USER_ID, 5); // Fetch latest 5 signals
 }
 
-export async function saveSignalAction(signalData: Omit<Signal, 'id' | 'created_at' | 'user_id'>): Promise<void> {
+export async function saveSignalAction(signalData: Omit<Signal, 'id' | 'createdAt' | 'userId'>): Promise<void> {
     try {
-        const fullSignalData = { ...signalData, user_id: DEFAULT_USER_ID };
+        const fullSignalData = { ...signalData, userId: DEFAULT_USER_ID };
         await saveSignal(fullSignalData);
         revalidatePath('/');
     } catch (error) {
