@@ -148,7 +148,7 @@ export default function MissionsTab({ isDbInitialized }: { isDbInitialized: bool
             <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="tasks" className="text-xs sm:text-sm">Tasks</TabsTrigger>
                 <TabsTrigger value="airdrop" className="text-xs sm:text-sm">Airdrop</TabsTrigger>
-                <TabsTrigger value="leaderboard" className="text-xs sm:text-sm">Leaderboard</TabsTrigger>
+                <TabsTrigger value="leaderboard" className="text-xs sm:text-sm">Ranks</TabsTrigger>
             </TabsList>
 
             <TabsContent value="tasks" className="mt-4 sm:mt-6">
