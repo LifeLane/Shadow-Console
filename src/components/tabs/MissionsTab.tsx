@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, XCircle, HelpCircle, Gift, Wallet, ListChecks, UserPlus, Loader2, Check, Send, Trophy, Award, Sparkles } from 'lucide-react';
+import { Check, Loader2, Send, Trophy, Award, Sparkles, ListChecks } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { getMissionsDataAction, completeMissionAction, type MissionData } from '@/app/tasks/actions';
 import type { User as UserType } from '@/lib/types';
@@ -30,46 +30,9 @@ const getTitle = (user: UserType): { title: string, icon: React.ElementType } =>
     return { title: 'Neon Pilot', icon: Trophy };
 };
 
-const EligibilityItem = ({ icon, text, status, tip }: { icon: React.ElementType, text: string, status: 'complete' | 'incomplete' | 'pending', tip: string }) => {
-    const statusIcons = {
-        complete: <CheckCircle className="text-accent" />,
-        incomplete: <XCircle className="text-destructive" />,
-        pending: <HelpCircle className="text-yellow-500" />
-    };
-
-    return (
-        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-            <div className="flex items-center space-x-3">
-                {React.createElement(icon, { className: "h-5 w-5 sm:h-6 sm:w-6 text-primary" })}
-                <div>
-                    <p className="font-semibold text-sm sm:text-base">{text}</p>
-                    <p className="text-xs text-muted-foreground">{tip}</p>
-                </div>
-            </div>
-            {statusIcons[status]}
-        </div>
-    );
-};
-
 
 export default function MissionsTab({ isDbInitialized }: { isDbInitialized: boolean }) {
   const { toast } = useToast();
-
-  // Airdrop State
-  const eligibilityStatus = {
-      walletConnected: true,
-      isBsaiHolder: true,
-      trialsCompleted: false,
-      inviteUsed: true,
-  };
-  const isEligible = Object.values(eligibilityStatus).every(status => status === true);
-  const handleClaimAirdrop = () => {
-    toast({
-        title: "Claim In-Progress",
-        description: "Airdrop claims are not yet enabled. Check back soon!",
-        variant: 'destructive'
-    });
-  };
 
   // Tasks State
   const [missions, setMissions] = useState<MissionData[]>([]);
@@ -140,15 +103,14 @@ export default function MissionsTab({ isDbInitialized }: { isDbInitialized: bool
     <div className="space-y-4 sm:space-y-6">
       <Card className="glow-border">
         <CardHeader>
-          <CardTitle className="text-primary flex items-center text-xl sm:text-2xl"><Gift className="mr-3" /> Missions Hub</CardTitle>
-          <CardDescription className="text-sm">Complete tasks, claim airdrops, and climb the leaderboard to earn rewards.</CardDescription>
+          <CardTitle className="text-primary flex items-center text-xl sm:text-2xl"><ListChecks className="mr-3" /> Missions Hub</CardTitle>
+          <CardDescription className="text-sm">Complete tasks and climb the leaderboard to earn rewards.</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="tasks" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="tasks" className="text-xs sm:text-sm">Tasks</TabsTrigger>
-                <TabsTrigger value="airdrop" className="text-xs sm:text-sm">Airdrop</TabsTrigger>
-                <TabsTrigger value="leaderboard" className="text-xs sm:text-sm">Ranks</TabsTrigger>
+                <TabsTrigger value="ranks" className="text-xs sm:text-sm">Ranks</TabsTrigger>
             </TabsList>
 
             <TabsContent value="tasks" className="mt-4 sm:mt-6">
@@ -180,40 +142,7 @@ export default function MissionsTab({ isDbInitialized }: { isDbInitialized: bool
                 </div>
             </TabsContent>
 
-            <TabsContent value="airdrop" className="mt-4 sm:mt-6">
-                 <div className="space-y-3 mb-6">
-                    <h3 className="text-base sm:text-lg font-semibold text-center mb-4">Airdrop Eligibility Tracker</h3>
-                    <EligibilityItem 
-                        icon={Wallet} 
-                        text="Wallet Connected" 
-                        status={eligibilityStatus.walletConnected ? 'complete' : 'incomplete'}
-                        tip="Your wallet is synced with the Shadow Protocol."
-                    />
-                     <EligibilityItem 
-                        icon={ListChecks} 
-                        text="Signal Trials Completed" 
-                        status={eligibilityStatus.trialsCompleted ? 'complete' : 'incomplete'}
-                        tip="Complete all missions in the Tasks tab."
-                    />
-                     <EligibilityItem 
-                        icon={UserPlus} 
-                        text="Invite Code Used" 
-                        status={eligibilityStatus.inviteUsed ? 'complete' : 'incomplete'}
-                        tip="You have successfully joined via an invite."
-                    />
-                     <EligibilityItem 
-                        icon={HelpCircle} 
-                        text="BSAI Holder Status" 
-                        status={eligibilityStatus.isBsaiHolder ? 'complete' : 'pending'}
-                        tip="On-chain check for BSAI token holdings."
-                    />
-                </div>
-                <Button onClick={handleClaimAirdrop} disabled={!isEligible || !isDbInitialized} className="w-full h-11 text-base bg-accent hover:bg-accent/90 text-accent-foreground">
-                    {isEligible ? "Claim Airdrop" : "Not Yet Eligible"}
-                </Button>
-            </TabsContent>
-
-            <TabsContent value="leaderboard" className="mt-4 sm:mt-6">
+            <TabsContent value="ranks" className="mt-4 sm:mt-6">
                 {isLoadingLeaderboard ? (
                     <div className="flex justify-center items-center h-64"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
                 ) : (

@@ -3,12 +3,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
-import { BrainCircuit, Landmark, Gift, User, BarChart, Sparkles, Pickaxe, Sun, Atom, Droplets, SquareTerminal, Scroll } from 'lucide-react';
+import { BrainCircuit, Landmark, Gift, User, BarChart, Sparkles, Pickaxe, Sun, Atom, Droplets, SquareTerminal, Scroll, ListChecks } from 'lucide-react';
 import MindTab from '@/components/tabs/MindTab';
 import WalletTab from '@/components/tabs/WalletTab';
 import MissionsTab from '@/components/tabs/MissionsTab';
 import ProfileTab from '@/components/tabs/ProfileTab';
 import TradeTab from '@/components/tabs/TradeTab';
+import AirdropTab from '@/components/tabs/AirdropTab';
 import BackgroundAnimation from './BackgroundAnimation';
 
 import { Button } from '@/components/ui/button';
@@ -19,7 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { resolveOpenTradesAction } from '@/app/agents/actions';
 import { resolvePendingSignalsAction } from '@/app/mind/actions';
 
-type TabId = 'wallet' | 'trade' | 'mind' | 'missions' | 'profile';
+type TabId = 'wallet' | 'trade' | 'mind' | 'missions' | 'profile' | 'airdrop';
 
 interface Tab {
   id: TabId;
@@ -32,7 +33,8 @@ const tabs: Tab[] = [
   { id: 'wallet', label: "Wallet", icon: Pickaxe, component: WalletTab },
   { id: 'trade', label: "Trade", icon: BarChart, component: TradeTab },
   { id: 'mind', label: "Mind", icon: BrainCircuit, component: MindTab },
-  { id: 'missions', label: 'Missions', icon: Gift, component: MissionsTab },
+  { id: 'missions', label: 'Missions', icon: ListChecks, component: MissionsTab },
+  { id: 'airdrop', label: 'Airdrop', icon: Gift, component: AirdropTab },
   { id: 'profile', label: 'Profile', icon: User, component: ProfileTab },
 ];
 
@@ -190,7 +192,7 @@ export default function AppLayout() {
       </main>
 
       <footer className="sticky bottom-0 z-40 border-t border-border/50 bg-background/90 backdrop-blur-md">
-        <nav className="container mx-auto grid grid-cols-5 items-center h-16 sm:h-20 px-1">
+        <nav className="container mx-auto grid grid-cols-6 items-center h-16 sm:h-20 px-1">
           {tabs.map((tab) => (
             <Button
               key={tab.id}
