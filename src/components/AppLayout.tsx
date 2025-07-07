@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { setupAndSeedLocalData } from '@/services/setupService';
 import { useToast } from '@/hooks/use-toast';
 import { resolveOpenTradesAction } from '@/app/agents/actions';
+import { resolvePendingSignalsAction } from '@/app/mind/actions';
 
 type TabId = 'trade' | 'signal' | 'airdrop' | 'wallet' | 'profile';
 
@@ -82,7 +83,25 @@ export default function AppLayout() {
       }
     }, 15000); // Check every 15 seconds
 
-    return () => clearInterval(tradeResolverInterval);
+    const signalResolverInterval = setInterval(async () => {
+      try {
+        const resolvedSignals = await resolvePendingSignalsAction();
+        resolvedSignals.forEach(signal => {
+          toast({
+            title: `Signal Resolved`,
+            description: signal.message,
+            variant: signal.result === 'WIN' ? 'default' : 'destructive'
+          });
+        });
+      } catch (error) {
+        console.error("Error resolving signals:", error);
+      }
+    }, 30000); // Check every 30 seconds
+
+    return () => {
+      clearInterval(tradeResolverInterval);
+      clearInterval(signalResolverInterval);
+    }
   }, [isDbInitialized, toast]);
 
   const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || (() => <div className="text-center p-8">Select a tab.</div>);

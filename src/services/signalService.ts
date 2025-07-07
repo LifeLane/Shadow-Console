@@ -36,3 +36,17 @@ export async function saveSignal(signal: Omit<Signal, 'id' | 'timestamp'> & { us
     
     return newSignal;
 }
+
+/**
+ * Updates an existing signal.
+ */
+export async function updateSignal(updatedSignal: Signal): Promise<void> {
+    const allSignals = await readDb<Signal[]>(SIGNALS_DB_PATH);
+    const signalIndex = allSignals.findIndex(s => s.id === updatedSignal.id);
+    if (signalIndex > -1) {
+        allSignals[signalIndex] = updatedSignal;
+        await writeDb(SIGNALS_DB_PATH, allSignals);
+    } else {
+        throw new Error(`Signal with ID ${updatedSignal.id} not found.`);
+    }
+}

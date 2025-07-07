@@ -2,10 +2,11 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { getSignals, saveSignal } from '@/services/signalService';
+import { getSignals, saveSignal, updateSignal } from '@/services/signalService';
 import type { Signal } from '@/lib/types';
 import { generateSignal } from '@/ai/flows/generate-market-insights';
 import { fetchLatestPrice } from '@/services/binanceService';
+import { getUser, updateUser } from '@/services/userService';
 
 
 export async function getSignalHistoryAction(): Promise<Signal[]> {
@@ -39,4 +40,82 @@ export async function generateAiSignalAction(market: string): Promise<Signal> {
     revalidatePath('/');
 
     return savedSignal;
+}
+
+export interface ResolvedSignalResult {
+    message: string;
+    result: 'WIN' | 'LOSS';
+}
+
+export async function resolvePendingSignalsAction(): Promise<ResolvedSignalResult[]> {
+    const userId = 'default_user';
+    const allSignals = await getSignals(userId, 999); // Fetch all signals for the user
+    const pendingSignals = allSignals.filter(s => s.status === 'PENDING');
+
+    if (pendingSignals.length === 0) {
+        return [];
+    }
+    
+    const resolvedSignalMessages: ResolvedSignalResult[] = [];
+    const RESOLUTION_DELAY_MS = 5 * 60 * 1000; // 5 minutes
+
+    let userNeedsUpdate = false;
+
+    for (const signal of pendingSignals) {
+        const signalTime = new Date(signal.timestamp).getTime();
+        if (Date.now() - signalTime < RESOLUTION_DELAY_MS) {
+            continue; // Not old enough to resolve
+        }
+
+        const priceData = await fetchLatestPrice(signal.asset);
+        if (!priceData || !priceData.price) {
+            console.error(`Could not fetch price for ${signal.asset} to resolve signal ${signal.id}`);
+            continue;
+        }
+
+        const currentPrice = parseFloat(priceData.price);
+        const entryPrice = signal.entryPrice;
+        let result: 'WIN' | 'LOSS' = 'LOSS';
+
+        const priceChange = (currentPrice - entryPrice) / entryPrice;
+
+        switch (signal.prediction) {
+            case 'LONG':
+                if (priceChange > 0.001) result = 'WIN'; // Price increased > 0.1%
+                break;
+            case 'SHORT':
+                if (priceChange < -0.001) result = 'WIN'; // Price decreased > 0.1%
+                break;
+            case 'HOLD':
+                if (Math.abs(priceChange) <= 0.001) result = 'WIN'; // Price stayed within +/- 0.1%
+                break;
+        }
+
+        signal.status = result;
+        await updateSignal(signal);
+        userNeedsUpdate = true;
+
+        resolvedSignalMessages.push({
+            message: `AI Signal for ${signal.asset} resolved as a ${result}.`,
+            result,
+        });
+    }
+
+    if (userNeedsUpdate) {
+        const user = await getUser(userId);
+        if (user) {
+            const allUserSignals = await getSignals(userId, 999);
+            const closedSignals = allUserSignals.filter(s => s.status !== 'PENDING');
+            const wonSignals = closedSignals.filter(s => s.status === 'WIN').length;
+
+            user.signalAccuracy = closedSignals.length > 0 ? Math.round((wonSignals / closedSignals.length) * 100) : user.signalAccuracy;
+            user.xp += resolvedSignalMessages.filter(m => m.result === 'WIN').length * 25; // 25 XP for a win
+            user.xp += resolvedSignalMessages.filter(m => m.result === 'LOSS').length * 5; // 5 XP for a loss
+            
+            await updateUser(user);
+            revalidatePath('/');
+        }
+    }
+    
+    return resolvedSignalMessages;
 }
