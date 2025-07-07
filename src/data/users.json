@@ -2,9 +2,9 @@
   {
     "id": "default_user",
     "name": "Neon Pilot",
-    "xp": 1590,
+    "xp": 1595,
     "winRate": 67,
-    "signalAccuracy": 37,
+    "signalAccuracy": 35,
     "shadowBalance": 0,
     "stakedAmount": 6500,
     "avatarUrl": "https://placehold.co/100x100.png",

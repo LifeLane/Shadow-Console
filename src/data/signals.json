@@ -20,7 +20,7 @@
     "entryPrice": 108843.73,
     "takeProfit": 109243.73,
     "stopLoss": 108643.73,
-    "status": "PENDING",
+    "status": "LOSS",
     "source": "AI_ORACLE",
     "reasoning": "Intraday NFT minting frenzy coupled with recent volume indicates a potential upward surge, despite the lack of sentiment confirmation.",
     "userId": "default_user",
