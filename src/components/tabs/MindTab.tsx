@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Loader2, Zap, BrainCircuit, ArrowUp, ArrowDown, TrendingUp, Clock, Crosshair, Sparkles, Send, History } from 'lucide-react';
+import { Loader2, Zap, BrainCircuit, ArrowUp, ArrowDown, TrendingUp, Clock, Crosshair, Sparkles, Send, History, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Signal, Market, Ticker24h } from '@/lib/types';
 import { generateAiSignalAction, getSignalHistoryAction } from '@/app/mind/actions';
@@ -195,10 +195,10 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
   }
 
   return (
-    <div className="h-full flex flex-col space-y-4 bg-background">
+    <div className="h-full flex flex-col space-y-3 bg-background">
         {/* Top Section: Console */}
-        <div className="px-4 pt-4">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="px-4 pt-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 <MarketStat label="Current Price" value={tickerData ? `$${parseFloat(tickerData.lastPrice).toLocaleString()}`: <Loader2 className="h-5 w-5 animate-spin" />} icon={Zap} valueClassName="text-white" />
                 <MarketStat label="24h Change" value={tickerData ? `${parseFloat(tickerData.priceChangePercent).toFixed(2)}%`: <Loader2 className="h-5 w-5 animate-spin" />} icon={TrendingUp} valueClassName={tickerData && parseFloat(tickerData.priceChangePercent) >= 0 ? 'text-accent' : 'text-red-500'} />
                 <MarketStat label="24h High" value={tickerData ? `$${parseFloat(tickerData.highPrice).toLocaleString()}`: <Loader2 className="h-5 w-5 animate-spin" />} icon={ArrowUp} />
@@ -208,7 +208,7 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
             </div>
 
             <Form {...form}>
-                <div className="flex-grow flex flex-col space-y-4 mt-4">
+                <div className="flex-grow flex flex-col space-y-3 mt-3">
                     <FormField
                         control={form.control}
                         name="market"
@@ -237,7 +237,7 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel className="text-muted-foreground flex items-center"><Sparkles className="w-4 h-4 mr-2"/> Trading Mode</FormLabel>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                                     {tradingModes.map((mode) => (
                                         <ModeButton
                                             key={mode.id}
@@ -266,7 +266,7 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
                                             type="single"
                                             value={controllerField.value}
                                             onValueChange={(value) => { if (value) form.setValue('risk', value as 'Low' | 'Medium' | 'High', { shouldValidate: true })}}
-                                            className="grid grid-cols-3 gap-2 sm:gap-4 h-12 border-2 border-border rounded-lg p-1"
+                                            className="grid grid-cols-3 gap-2 sm:gap-4 h-11 border-2 border-border rounded-lg p-1"
                                         >
                                             <ToggleGroupItem value="Low" className="h-full">Low</ToggleGroupItem>
                                             <ToggleGroupItem value="Medium" className="h-full">Medium</ToggleGroupItem>
@@ -279,26 +279,25 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
                     />
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                        <Button type="button" onClick={handleGenerateSignal} className="h-auto py-3 text-base border-2 border-accent text-accent bg-transparent hover:bg-accent hover:text-accent-foreground">
+                        <Button type="button" onClick={handleGenerateSignal} className="h-auto py-2 text-base border-2 border-accent text-accent bg-transparent hover:bg-accent hover:text-accent-foreground">
                             <div className="text-left">
                                 <p className="font-bold flex items-center"><Zap className="w-4 h-4 mr-2" />Instant Signal</p>
                                 <p className="text-xs font-normal opacity-80">Executes immediately at market price.</p>
                             </div>
                         </Button>
-                         <Button type="button" onClick={handleGenerateSignal} className="h-auto py-3 text-base bg-accent text-accent-foreground hover:bg-accent/90">
+                         <Button type="button" onClick={handleGenerateSignal} className="h-auto py-2 text-base bg-accent text-accent-foreground hover:bg-accent/90">
                             <div className="text-left">
                                 <p className="font-bold flex items-center"><BrainCircuit className="w-4 h-4 mr-2" />SHADOW's Signal</p>
                                 <p className="text-xs font-normal opacity-80">SHADOW finds the optimal entry.</p>
                             </div>
                         </Button>
                     </div>
-                    <p className="text-center text-xs text-muted-foreground !mt-2">Analyses today: 0 / 3. Register for <span className="text-primary underline cursor-pointer">unlimited</span>.</p>
                 </div>
             </Form>
         </div>
 
         {/* Bottom Section: Signal Log */}
-        <div className="flex-grow flex flex-col min-h-0 px-4 pb-4">
+        <div className="flex-grow flex flex-col min-h-0 px-4 pb-3">
             <Card className="flex-grow flex flex-col bg-card/80">
                 <CardHeader>
                     <CardTitle className="flex items-center"><History className="mr-2" /> Signal Log</CardTitle>
@@ -312,7 +311,7 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
                                 <p className="text-center text-muted-foreground">No signals generated yet. Use the console above.</p>
                             ) : (
                                 signalHistory.map((signal) => (
-                                    <Card key={signal.id} className="p-4 bg-card/50 border border-primary/20">
+                                    <Card key={signal.id} className="p-3 bg-card/50 border border-primary/20">
                                         <div className="flex items-start justify-between gap-4">
                                             <div className="flex-grow">
                                                 <div className="flex items-baseline gap-3 mb-3">
@@ -358,6 +357,12 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
                                                 </p>
                                             </div>
                                         </div>
+                                        <div className="mt-3 pt-2 border-t border-border/20">
+                                            <p className="text-xs text-muted-foreground italic flex items-start gap-2">
+                                                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                                                <span>Shadow Signals are AI-generated for gamified purposes only and do not constitute financial advice. Trade at your own risk.</span>
+                                            </p>
+                                        </div>
                                     </Card>
                                 ))
                             )}
@@ -365,6 +370,9 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
                     </ScrollArea>
                 </CardContent>
             </Card>
+        </div>
+        <div className="px-4 py-2 text-center text-xs text-muted-foreground">
+            <p>Shadow Signals are AI-generated for gamified purposes and do not constitute financial advice. All trades are simulated. Trade at your own risk.</p>
         </div>
     </div>
   );

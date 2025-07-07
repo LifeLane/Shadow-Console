@@ -16,8 +16,8 @@ import { ScrollArea } from '../ui/scroll-area';
 
 const StatCard = ({ icon: Icon, label, value, valuePrefix = '', valueClassName = '' }: { icon: React.ElementType, label: string, value: string | number, valuePrefix?: string, valueClassName?: string }) => (
     <Card className="bg-card/70 border border-green-500/20 glow-border-accent">
-        <CardContent className="p-4">
-            <div className="flex items-center space-x-2 mb-2">
+        <CardContent className="p-3">
+            <div className="flex items-center space-x-2 mb-1">
                 <Icon className="h-4 w-4 text-muted-foreground" />
                 <p className="text-sm font-medium text-muted-foreground">{label}</p>
             </div>
@@ -130,7 +130,7 @@ export default function TradeTab({ isDbInitialized, setActiveTab }: {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
             <Card className="bg-card/70">
                 <CardHeader>
                     <div className="flex justify-between items-start">
@@ -138,25 +138,20 @@ export default function TradeTab({ isDbInitialized, setActiveTab }: {
                             <CardTitle className="text-2xl text-primary flex items-center"><List className="mr-3"/> Performance Matrix</CardTitle>
                             <CardDescription>An overview of your closed trade performance.</CardDescription>
                         </div>
-                        <Button variant="outline"><BrainCircuit className="mr-2"/>Get SHADOW's Review</Button>
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 gap-3">
                         <StatCard icon={Briefcase} label="Invested" value={stats?.invested ?? 0} valuePrefix="$" />
                         <StatCard icon={BarChart} label="Live PnL" value={stats?.livePnl.toFixed(2) ?? "0.00"} valuePrefix="$" valueClassName={stats && stats.livePnl >= 0 ? 'text-accent' : 'text-destructive'}/>
                         <StatCard icon={List} label="Trades" value={stats?.totalTrades ?? 0}/>
                         <StatCard icon={CheckCircle2} label="Winning Trades" value={stats?.winningTrades ?? 0} valueClassName="text-accent"/>
-                        <StatCard icon={DollarSign} label="$ Total PnL" value={stats?.totalPnl.toFixed(2) ?? "0.00"} valueClassName={stats && stats.totalPnl >= 0 ? 'text-accent' : 'text-destructive'}/>
-                        <StatCard icon={ArrowUp} label="Best Trade" value={stats?.bestTrade.toFixed(2) ?? "0.00"} valuePrefix="$" valueClassName="text-accent"/>
-                        <StatCard icon={ArrowDown} label="Worst Trade" value={stats?.worstTrade.toFixed(2) ?? "0.00"} valuePrefix="$" valueClassName="text-destructive"/>
-                        <StatCard icon={Gift} label="Rewards" value={stats?.rewards ?? 0}/>
                     </div>
                 </CardContent>
             </Card>
 
             <Card className="bg-card/70 border border-destructive/50">
-                <CardContent className="p-4 flex justify-between items-center">
+                <CardContent className="p-3 flex justify-between items-center">
                     <div>
                         <h3 className="font-semibold text-destructive">Emergency Protocol</h3>
                         <p className="text-sm text-muted-foreground">Instantly close all active positions at market price.</p>
@@ -169,7 +164,7 @@ export default function TradeTab({ isDbInitialized, setActiveTab }: {
             </Card>
             
             <Tabs defaultValue="positions" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 h-14 bg-accent/10">
+                <TabsList className="grid w-full grid-cols-2 h-12 bg-accent/10">
                     <TabsTrigger value="positions" className="h-full text-lg data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">Positions ({openTrades.length})</TabsTrigger>
                     <TabsTrigger value="history" className="h-full text-lg data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">History ({closedTrades.length})</TabsTrigger>
                 </TabsList>
@@ -204,6 +199,9 @@ export default function TradeTab({ isDbInitialized, setActiveTab }: {
                      </ScrollArea>
                 </TabsContent>
             </Tabs>
+             <div className="px-4 py-2 mt-4 text-center text-xs text-muted-foreground">
+                <p>Shadow Signals are AI-generated for gamified purposes and do not constitute financial advice. All trades are simulated. Trade at your own risk.</p>
+            </div>
         </div>
     );
 }
