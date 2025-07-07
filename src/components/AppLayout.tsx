@@ -9,6 +9,7 @@ import WalletTab from '@/components/tabs/WalletTab';
 import MissionsTab from '@/components/tabs/MissionsTab';
 import ProfileTab from '@/components/tabs/ProfileTab';
 import TradeTab from '@/components/tabs/TradeTab';
+import BackgroundAnimation from './BackgroundAnimation';
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -138,7 +139,8 @@ export default function AppLayout() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground font-body">
+    <div className="relative flex flex-col min-h-screen bg-background text-foreground font-body">
+      <BackgroundAnimation />
       <header className="sticky top-0 z-50 flex items-center justify-between p-3 sm:p-4 bg-background/90 backdrop-blur-md border-b border-border/50">
         <div className="flex items-center gap-2">
           <Sparkles className="h-7 w-7 sm:h-8 sm:w-8 text-primary animate-pulse" />
