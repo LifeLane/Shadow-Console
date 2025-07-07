@@ -44,6 +44,8 @@ export default function TradeTab({ isDbInitialized }: { isDbInitialized: boolean
             asset: 'BTCUSDT',
             side: 'LONG',
             stake: 100,
+            takeProfit: 0,
+            stopLoss: 0,
         },
     });
 
