@@ -12,8 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2, Zap, AlertTriangle, CheckCircle, Clock, Send, BrainCircuit, User as UserIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import type { Signal, Message } from '@/lib/types';
+import type { Signal, Message, Market } from '@/lib/types';
 import { getSignalHistoryAction, generateAiSignalAction } from '@/app/mind/actions';
+import { getAvailableMarketsAction } from '@/app/actions';
 import { askOracleAction } from '@/app/profile/actions';
 import TerminalExecutionAnimation from '../TerminalExecutionAnimation';
 import PulsingText from '../PulsingText';
@@ -22,7 +23,6 @@ import { cn } from '@/lib/utils';
 import { ScrollArea } from '../ui/scroll-area';
 import { Input } from '../ui/input';
 import { Avatar, AvatarFallback } from '../ui/avatar';
-import { SUPPORTED_MARKETS } from '@/lib/constants';
 
 
 const signalFormSchema = z.object({
@@ -33,7 +33,9 @@ type SignalFormValues = z.infer<typeof signalFormSchema>;
 
 export default function SignalTab({ isDbInitialized }: { isDbInitialized: boolean }) {
   const [history, setHistory] = useState<Signal[]>([]);
+  const [markets, setMarkets] = useState<Market[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [isLoadingMarkets, setIsLoadingMarkets] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedSignal, setGeneratedSignal] = useState<Signal | null>(null);
   const { toast } = useToast();
@@ -48,7 +50,7 @@ export default function SignalTab({ isDbInitialized }: { isDbInitialized: boolea
 
   const form = useForm<SignalFormValues>({
     resolver: zodResolver(signalFormSchema),
-    defaultValues: { market: SUPPORTED_MARKETS[0].symbol },
+    defaultValues: { market: '' },
   });
 
   useEffect(() => {
@@ -66,6 +68,24 @@ export default function SignalTab({ isDbInitialized }: { isDbInitialized: boolea
     }
     loadHistory();
   }, [isDbInitialized, toast]);
+
+  useEffect(() => {
+    const loadMarkets = async () => {
+        setIsLoadingMarkets(true);
+        try {
+            const availableMarkets = await getAvailableMarketsAction();
+            setMarkets(availableMarkets);
+            if (availableMarkets.length > 0) {
+                form.setValue('market', availableMarkets[0].symbol);
+            }
+        } catch (error) {
+            toast({ title: "Error", description: "Could not load market pairs.", variant: "destructive" });
+        } finally {
+            setIsLoadingMarkets(false);
+        }
+    };
+    loadMarkets();
+  }, [form, toast]);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -186,14 +206,14 @@ export default function SignalTab({ isDbInitialized }: { isDbInitialized: boolea
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Market Pair</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingMarkets}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select a market to analyze" />
+                                {isLoadingMarkets ? <Loader2 className="h-4 w-4 animate-spin" /> : <SelectValue placeholder="Select a market to analyze" />}
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {SUPPORTED_MARKETS.map((market) => (
+                              {markets.map((market) => (
                                 <SelectItem key={market.symbol} value={market.symbol}>{market.label}</SelectItem>
                               ))}
                             </SelectContent>
@@ -202,7 +222,7 @@ export default function SignalTab({ isDbInitialized }: { isDbInitialized: boolea
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" disabled={isGenerating} className="w-full h-12 text-lg animate-button-ripple-pulse bg-accent hover:bg-accent/90">
+                    <Button type="submit" disabled={isGenerating || isLoadingMarkets} className="w-full h-12 text-lg animate-button-ripple-pulse bg-accent hover:bg-accent/90">
                       {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Zap className="mr-2" />}
                       Initiate Analysis
                     </Button>

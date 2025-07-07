@@ -14,12 +14,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowDown, ArrowUp, BarChart, Loader2, ListOrdered, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import type { Trade } from '@/lib/types';
+import type { Trade, Market } from '@/lib/types';
 import { getTradesAction, placeTradeAction } from '@/app/agents/actions';
-import { getLivePrice } from '@/app/actions';
+import { getLivePrice, getAvailableMarketsAction } from '@/app/actions';
 import { Badge } from '../ui/badge';
 import { cn } from '@/lib/utils';
-import { SUPPORTED_MARKETS } from '@/lib/constants';
 
 const tradeFormSchema = z.object({
     asset: z.string().min(1, 'Please select an asset.'),
@@ -34,7 +33,9 @@ type TradeFormValues = z.infer<typeof tradeFormSchema>;
 
 export default function TradeTab({ isDbInitialized }: { isDbInitialized: boolean }) {
     const [trades, setTrades] = useState<Trade[]>([]);
+    const [markets, setMarkets] = useState<Market[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingMarkets, setIsLoadingMarkets] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [livePrice, setLivePrice] = useState<string | null>(null);
     const { toast } = useToast();
@@ -42,7 +43,7 @@ export default function TradeTab({ isDbInitialized }: { isDbInitialized: boolean
     const form = useForm<TradeFormValues>({
         resolver: zodResolver(tradeFormSchema),
         defaultValues: {
-            asset: SUPPORTED_MARKETS[0].symbol,
+            asset: '',
             side: 'LONG',
             stake: 100,
             takeProfit: 0,
@@ -68,6 +69,24 @@ export default function TradeTab({ isDbInitialized }: { isDbInitialized: boolean
         };
         loadInitialData();
     }, [isDbInitialized, toast]);
+
+    useEffect(() => {
+        const loadMarkets = async () => {
+            setIsLoadingMarkets(true);
+            try {
+                const availableMarkets = await getAvailableMarketsAction();
+                setMarkets(availableMarkets);
+                if (availableMarkets.length > 0) {
+                    form.setValue('asset', availableMarkets[0].symbol);
+                }
+            } catch (error) {
+                 toast({ title: 'Error', description: 'Could not load market pairs.', variant: 'destructive' });
+            } finally {
+                setIsLoadingMarkets(false);
+            }
+        };
+        loadMarkets();
+    }, [form, toast]);
     
     useEffect(() => {
         let interval: NodeJS.Timeout;
@@ -77,8 +96,10 @@ export default function TradeTab({ isDbInitialized }: { isDbInitialized: boolean
                 setLivePrice(price);
             }
         }
-        fetchPrice(); // initial fetch
-        interval = setInterval(fetchPrice, 5000); // fetch every 5 seconds
+        if (selectedAsset) {
+            fetchPrice(); // initial fetch
+            interval = setInterval(fetchPrice, 5000); // fetch every 5 seconds
+        }
         return () => clearInterval(interval);
     }, [selectedAsset]);
     
@@ -106,7 +127,10 @@ export default function TradeTab({ isDbInitialized }: { isDbInitialized: boolean
                 title: 'Trade Placed',
                 description: `Your ${data.side} order for ${data.asset} has been submitted.`,
             });
-            form.reset();
+            form.reset({
+                ...form.getValues(),
+                stake: 100,
+            });
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
             toast({ title: 'Trade Failed', description: errorMessage, variant: 'destructive' });
@@ -133,12 +157,14 @@ export default function TradeTab({ isDbInitialized }: { isDbInitialized: boolean
                                 <FormField control={form.control} name="asset" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Asset</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingMarkets}>
                                             <FormControl>
-                                                <SelectTrigger><SelectValue/></SelectTrigger>
+                                                <SelectTrigger>
+                                                    {isLoadingMarkets ? <Loader2 className="h-4 w-4 animate-spin" /> : <SelectValue placeholder="Select an asset" />}
+                                                </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {SUPPORTED_MARKETS.map((market) => (
+                                                {markets.map((market) => (
                                                   <SelectItem key={market.symbol} value={market.symbol}>{market.label}</SelectItem>
                                                 ))}
                                             </SelectContent>

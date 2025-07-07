@@ -1,7 +1,8 @@
 
 'use server';
 
-import { fetchLatestPrice } from "@/services/binanceService";
+import { fetchLatestPrice, fetchTradableUsdtPairs } from "@/services/binanceService";
+import type { Market } from "@/lib/types";
 
 /**
  * A Server Action to fetch the latest price for a given symbol.
@@ -20,4 +21,12 @@ export async function getLivePrice(symbol: string): Promise<string | null> {
         console.error(`Server Action getLivePrice failed for ${symbol}:`, error);
         return null;
     }
+}
+
+/**
+ * A Server Action to fetch the available trading markets from Binance.
+ * @returns An array of Market objects.
+ */
+export async function getAvailableMarketsAction(): Promise<Market[]> {
+    return await fetchTradableUsdtPairs();
 }

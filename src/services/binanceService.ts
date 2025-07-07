@@ -3,6 +3,7 @@
 /**
  * @fileOverview Service for fetching data from Binance API.
  */
+import type { Market } from '@/lib/types';
 
 const BINANCE_API_BASE_URL = 'https://api.binance.com/api/v3';
 
@@ -81,4 +82,39 @@ export async function fetchPriceData(symbol: string, interval: string = '1h', li
     console.error(`Failed to fetch price data from Binance for ${symbol}:`, error);
     return `Exception while fetching price data for ${symbol}. Check server logs.`;
   }
+}
+
+/**
+ * Fetches all tradable USDT pairs from Binance.
+ * @returns A promise that resolves to an array of market objects.
+ */
+export async function fetchTradableUsdtPairs(): Promise<Market[]> {
+    const defaultPairs = [
+        { symbol: 'BTCUSDT', label: 'BTC/USDT' },
+        { symbol: 'ETHUSDT', label: 'ETH/USDT' },
+        { symbol: 'MATICUSDT', label: 'MATIC/USDT' },
+    ];
+    try {
+        const response = await fetch(`${BINANCE_API_BASE_URL}/exchangeInfo`);
+        if (!response.ok) {
+            console.error(`Binance API error for exchangeInfo: ${response.status}`);
+            return defaultPairs;
+        }
+        const data = await response.json();
+        const usdtPairs: Market[] = data.symbols
+            .filter((s: any) => s.quoteAsset === 'USDT' && s.status === 'TRADING' && s.isSpotTradingAllowed)
+            .map((s: any) => ({
+                symbol: s.symbol,
+                label: `${s.baseAsset}/${s.quoteAsset}`,
+            }));
+
+        const popularAssets = ['BTC', 'ETH', 'MATIC', 'SOL', 'BNB', 'DOGE', 'XRP', 'ADA', 'AVAX'];
+        const filteredPairs = usdtPairs.filter((p: Market) => popularAssets.includes(p.label.split('/')[0]));
+
+        return filteredPairs.length > 0 ? filteredPairs : defaultPairs;
+
+    } catch (error) {
+        console.error('Failed to fetch exchange info from Binance:', error);
+        return defaultPairs;
+    }
 }
