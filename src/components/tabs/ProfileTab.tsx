@@ -6,15 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Award, BrainCircuit, Gem, ShieldCheck, Loader2, KeyRound, Paintbrush, User } from 'lucide-react';
+import { Award, BrainCircuit, Gem, ShieldCheck, Loader2, KeyRound, User } from 'lucide-react';
 import type { User as UserType } from '@/lib/types';
 import { getProfileAction } from '@/app/profile/actions';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Switch } from '../ui/switch';
-import { Label } from '../ui/label';
-import { useTheme } from 'next-themes';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 
@@ -43,7 +40,6 @@ export default function ProfileTab({ isDbInitialized }: { isDbInitialized: boole
     const [profile, setProfile] = useState<UserType | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
-    const { theme, setTheme } = useTheme();
 
     useEffect(() => {
         async function loadProfileData() {
@@ -138,19 +134,6 @@ export default function ProfileTab({ isDbInitialized }: { isDbInitialized: boole
                     </TabsContent>
 
                     <TabsContent value="settings" className="mt-6 space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center text-lg sm:text-xl"><Paintbrush className="mr-2"/> Appearance</CardTitle>
-                                <CardDescription className="text-sm">Customize the look and feel of the application.</CardDescription>
-                             </CardHeader>
-                             <CardContent>
-                                <div className="flex items-center space-x-2">
-                                    <Switch id="theme-switch" checked={theme !== 'theme-light'} onCheckedChange={(checked) => setTheme(checked ? 'theme-shadow' : 'theme-light')} />
-                                    <Label htmlFor="theme-switch" className="text-sm">Dark Mode</Label>
-                                </div>
-                            </CardContent>
-                        </Card>
-                        
                          <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center text-lg sm:text-xl"><KeyRound className="mr-2"/> API Keys</CardTitle>

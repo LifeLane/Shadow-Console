@@ -26,8 +26,14 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <ThemeProvider
           attribute="class"
-          defaultTheme="theme-shadow"
-          themes={['theme-light', 'theme-dark', 'theme-shadow']}
+          defaultTheme="theme-solar-flare-dark"
+          themes={[
+            'theme-solar-flare-dark', 'theme-solar-flare-light',
+            'theme-quantum-core-dark', 'theme-quantum-core-light',
+            'theme-bio-synthwave-dark', 'theme-bio-synthwave-light',
+            'theme-industrial-glitch-dark', 'theme-industrial-glitch-light',
+            'theme-arcane-codex-dark', 'theme-arcane-codex-light',
+          ]}
           disableTransitionOnChange
         >
           {children}

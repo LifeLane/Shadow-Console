@@ -2,7 +2,8 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { BrainCircuit, Landmark, Gift, User, BarChart, Sparkles, Pickaxe } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { BrainCircuit, Landmark, Gift, User, BarChart, Sparkles, Pickaxe, Sun, Atom, Droplets, SquareTerminal, Scroll } from 'lucide-react';
 import MindTab from '@/components/tabs/MindTab';
 import WalletTab from '@/components/tabs/WalletTab';
 import MissionsTab from '@/components/tabs/MissionsTab';
@@ -41,11 +42,41 @@ const pageTransitionVariants = {
   transition: { duration: 0.3 }
 };
 
+const appThemes = [
+    { name: 'Solar Flare', icon: Sun, darkClass: 'theme-solar-flare-dark', lightClass: 'theme-solar-flare-light' },
+    { name: 'Quantum Core', icon: Atom, darkClass: 'theme-quantum-core-dark', lightClass: 'theme-quantum-core-light' },
+    { name: 'Bio-Synthwave', icon: Droplets, darkClass: 'theme-bio-synthwave-dark', lightClass: 'theme-bio-synthwave-light' },
+    { name: 'Industrial Glitch', icon: SquareTerminal, darkClass: 'theme-industrial-glitch-dark', lightClass: 'theme-industrial-glitch-light' },
+    { name: 'Arcane Codex', icon: Scroll, darkClass: 'theme-arcane-codex-dark', lightClass: 'theme-arcane-codex-light' },
+];
 
 export default function AppLayout() {
   const [activeTab, setActiveTab] = useState<TabId>('mind');
   const { toast } = useToast();
   const [isDbInitialized, setIsDbInitialized] = useState(false);
+  const { setTheme, theme } = useTheme();
+  const [currentThemeIndex, setCurrentThemeIndex] = useState(0);
+
+  // Determine if current resolved theme is dark
+  const isDarkMode = theme ? theme.endsWith('-dark') : true;
+
+  const handleThemeToggle = () => {
+    const newTheme = isDarkMode 
+      ? appThemes[currentThemeIndex].lightClass 
+      : appThemes[currentThemeIndex].darkClass;
+    setTheme(newTheme);
+  };
+  
+  const handleThemeCycle = () => {
+    const nextIndex = (currentThemeIndex + 1) % appThemes.length;
+    setCurrentThemeIndex(nextIndex);
+    const newTheme = isDarkMode 
+      ? appThemes[nextIndex].darkClass 
+      : appThemes[nextIndex].lightClass;
+    setTheme(newTheme);
+  };
+
+  const CurrentThemeIcon = appThemes[currentThemeIndex].icon;
 
   useEffect(() => {
     async function initializeDataStore() {
@@ -69,7 +100,6 @@ export default function AppLayout() {
   useEffect(() => {
     if (!isDbInitialized) return;
 
-    // We can keep these background resolvers for now
     const tradeResolverInterval = setInterval(async () => {
       try {
         await resolveOpenTradesAction();
@@ -110,9 +140,31 @@ export default function AppLayout() {
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground font-body">
       <header className="sticky top-0 z-50 flex items-center justify-between p-3 sm:p-4 bg-background/90 backdrop-blur-md border-b border-border/50">
-        <div className="flex items-center">
-          <Sparkles className="h-7 w-7 sm:h-8 sm:w-8 mr-2 text-primary animate-pulse" />
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-7 w-7 sm:h-8 sm:w-8 text-primary animate-pulse" />
           <h1 className="text-xl sm:text-2xl font-headline font-bold text-foreground">Block<span className="text-primary">SHADOW</span></h1>
+        </div>
+
+        <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleThemeCycle}
+              className="h-9 w-9 text-primary hover:bg-primary/10 hover:text-primary/90"
+              aria-label="Cycle Theme"
+            >
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={currentThemeIndex}
+                        initial={{ opacity: 0, rotate: -30 }}
+                        animate={{ opacity: 1, rotate: 0 }}
+                        exit={{ opacity: 0, rotate: 30 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        <CurrentThemeIcon className="h-5 w-5" />
+                    </motion.div>
+                </AnimatePresence>
+            </Button>
         </div>
       </header>
 
