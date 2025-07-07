@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { ScrollArea } from '../ui/scroll-area';
 import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '../ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 const mindFormSchema = z.object({
   market: z.string().min(1, 'Please select a market.'),
@@ -114,26 +115,29 @@ export default function MindTab({ isDbInitialized, setExecutableSignal, setActiv
     return () => { isMounted = false };
   }, [selectedMarket]);
 
-  useEffect(() => {
+  const loadHistory = useCallback(async () => {
     if (!isDbInitialized) return;
-    async function loadHistory() {
-      setIsLoadingHistory(true);
-      try {
-        const history = await getSignalHistoryAction();
-        setSignalHistory(history);
-      } catch (error) {
-        toast({ title: "Error", description: "Could not load signal history.", variant: "destructive" });
-      } finally {
-        setIsLoadingHistory(false);
-      }
+    setIsLoadingHistory(true);
+    try {
+      const history = await getSignalHistoryAction();
+      setSignalHistory(history);
+    } catch (error) {
+      console.error("Error loading signal history:", error);
+      toast({ title: "Error", description: "Could not load signal history.", variant: "destructive" });
+    } finally {
+      setIsLoadingHistory(false);
     }
-    loadHistory();
   }, [isDbInitialized, toast]);
+
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
 
   const handleGenerateSignal = form.handleSubmit(async (data: MindFormValues) => {
     setIsGenerating(true);
     try {
       const newSignal = await generateAiSignalAction(data.market, data.tradingMode, data.risk, 'RSI, MACD');
+      // Prepend the new signal to the history for immediate feedback
       setSignalHistory(prev => [newSignal, ...prev]);
       toast({
         title: "SHADOW Signal Generated!",
@@ -179,6 +183,7 @@ export default function MindTab({ isDbInitialized, setExecutableSignal, setActiv
 
   return (
     <div className="h-full flex flex-col space-y-4 bg-background">
+        {/* Top Section: Console */}
         <div className="px-4 pt-4">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <MarketStat label="Current Price" value={tickerData ? `$${parseFloat(tickerData.lastPrice).toLocaleString()}`: <Loader2 className="h-5 w-5 animate-spin" />} icon={Zap} valueClassName="text-white" />
@@ -226,7 +231,7 @@ export default function MindTab({ isDbInitialized, setExecutableSignal, setActiv
                                             icon={mode.icon}
                                             label={mode.label}
                                             selected={field.value === mode.id}
-                                            onClick={() => form.setValue('tradingMode', mode.id)}
+                                            onClick={() => form.setValue('tradingMode', mode.id as any, { shouldValidate: true })}
                                         />
                                     ))}
                                 </div>
@@ -247,7 +252,7 @@ export default function MindTab({ isDbInitialized, setExecutableSignal, setActiv
                                         <ToggleGroup
                                             type="single"
                                             value={controllerField.value}
-                                            onValueChange={(value) => { if (value) form.setValue('risk', value as 'Low' | 'Medium' | 'High')}}
+                                            onValueChange={(value) => { if (value) form.setValue('risk', value as 'Low' | 'Medium' | 'High', { shouldValidate: true })}}
                                             className="grid grid-cols-3 gap-2 sm:gap-4 h-12 border-2 border-border rounded-lg p-1"
                                         >
                                             <ToggleGroupItem value="Low" className="h-full">Low</ToggleGroupItem>
@@ -279,8 +284,9 @@ export default function MindTab({ isDbInitialized, setExecutableSignal, setActiv
             </Form>
         </div>
 
+        {/* Bottom Section: Signal Log */}
         <div className="flex-grow flex flex-col min-h-0 px-4 pb-4">
-            <Card className="flex-grow flex flex-col">
+            <Card className="flex-grow flex flex-col bg-card/80">
                 <CardHeader>
                     <CardTitle className="flex items-center"><History className="mr-2" /> Signal Log</CardTitle>
                 </CardHeader>
@@ -293,27 +299,47 @@ export default function MindTab({ isDbInitialized, setExecutableSignal, setActiv
                                 <p className="text-center text-muted-foreground">No signals generated yet. Use the console above.</p>
                             ) : (
                                 signalHistory.map((signal) => (
-                                    <Card key={signal.id} className="p-3 bg-card/50">
+                                    <Card key={signal.id} className="p-4 bg-card/50 border border-primary/20">
                                         <div className="flex items-start justify-between gap-4">
                                             <div className="flex-grow">
-                                                <div className="flex items-center gap-2 mb-2">
+                                                <div className="flex items-baseline gap-3 mb-3">
                                                     <Badge className={cn(
+                                                        "py-1 px-3 text-sm font-bold rounded-md",
                                                         signal.prediction === 'LONG' ? 'bg-accent text-accent-foreground' :
                                                         signal.prediction === 'SHORT' ? 'bg-destructive text-destructive-foreground' : 'bg-muted text-muted-foreground'
                                                     )}>{signal.prediction}</Badge>
-                                                    <span className="font-bold">{signal.asset}</span>
+                                                    <span className="font-bold text-lg">{signal.asset}</span>
                                                     <span className="text-sm text-muted-foreground">(Conf: {signal.confidence}%)</span>
                                                 </div>
-                                                <div className="grid grid-cols-3 gap-2 text-xs font-code">
-                                                    <div><span className="text-muted-foreground">Entry:</span> ${signal.entryPrice.toLocaleString()}</div>
-                                                    <div><span className="text-muted-foreground">TP:</span> ${signal.takeProfit.toLocaleString()}</div>
-                                                    <div><span className="text-muted-foreground">SL:</span> ${signal.stopLoss.toLocaleString()}</div>
+                                                <div className="grid grid-cols-3 gap-4 text-sm font-code">
+                                                    <div>
+                                                        <p className="text-muted-foreground">Entry</p>
+                                                        <p className="font-bold text-base">${signal.entryPrice.toLocaleString()}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-muted-foreground">TP</p>
+                                                        <p className="font-bold text-base">${signal.takeProfit.toLocaleString()}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-muted-foreground">SL</p>
+                                                        <p className="font-bold text-base">${signal.stopLoss.toLocaleString()}</p>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div className="flex flex-col items-end gap-2">
-                                                 <Button size="icon" variant="ghost" className="h-8 w-8 text-accent hover:bg-accent/20" onClick={() => handleExecuteSignal(signal)}>
-                                                    <Send className="h-4 w-4" />
-                                                </Button>
+                                            <div className="flex flex-col items-end justify-between h-full min-h-[70px]">
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button size="icon" variant="ghost" className="h-9 w-9 text-accent hover:bg-accent/20" onClick={() => handleExecuteSignal(signal)} disabled={signal.prediction === 'HOLD'}>
+                                                                <Send className="h-5 w-5" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>Execute Trade</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+
                                                 <p className="text-xs text-muted-foreground whitespace-nowrap">
                                                     {formatDistanceToNow(new Date(signal.timestamp), { addSuffix: true })}
                                                 </p>
