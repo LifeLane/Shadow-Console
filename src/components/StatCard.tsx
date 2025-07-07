@@ -9,7 +9,7 @@ const StatCard = ({ icon: Icon, label, value, valuePrefix = '', valueSuffix = ''
             <Icon className="h-4 w-4" />
             <p className="text-xs font-medium">{label}</p>
         </div>
-        <p className={cn("text-xl font-bold font-code", valueClassName)}>
+        <p className={cn("text-lg font-bold font-code", valueClassName)}>
             {valuePrefix}
             {typeof value === 'number' ? value.toLocaleString() : value}
             {valueSuffix}
