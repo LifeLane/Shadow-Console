@@ -114,3 +114,110 @@ export async function resolveOpenTradesAction(): Promise<ResolvedTradeResult[]> 
     
     return resolvedTradeMessages;
 }
+
+
+export interface PerformanceStats {
+    invested: number;
+    livePnl: number;
+    totalTrades: number;
+    winningTrades: number;
+    totalPnl: number;
+    bestTrade: number;
+    worstTrade: number;
+    rewards: number;
+}
+
+export async function getPerformanceStatsAction(): Promise<PerformanceStats> {
+    const userId = 'default_user';
+    const allTrades = await getTrades(userId, 999); // get all trades
+    const openTrades = allTrades.filter(t => t.status === 'OPEN');
+    const closedTrades = allTrades.filter(t => t.status === 'CLOSED');
+
+    let livePnl = 0;
+    // For live PNL, we calculate the potential outcome if closed now
+    for (const trade of openTrades) {
+        const priceData = await fetchLatestPrice(trade.asset);
+        if (priceData) {
+            const currentPrice = parseFloat(priceData.price);
+            const entryPrice = trade.entryPrice;
+            let potentialPnl = 0;
+            // Simplified gamified PNL: +/- stake
+            if (trade.side === 'LONG') {
+                potentialPnl = currentPrice > entryPrice ? trade.stake : -trade.stake;
+            } else { // SHORT
+                potentialPnl = currentPrice < entryPrice ? trade.stake : -trade.stake;
+            }
+            livePnl += potentialPnl;
+        }
+    }
+
+    const invested = closedTrades.reduce((sum, trade) => sum + trade.stake, 0);
+    const totalTrades = closedTrades.length;
+    const winningTrades = closedTrades.filter(t => t.pnl && t.pnl > 0).length;
+    const totalPnl = closedTrades.reduce((sum, trade) => sum + (trade.pnl || 0), 0);
+    const pnlValues = closedTrades.map(t => t.pnl || 0);
+    const bestTrade = closedTrades.length > 0 ? Math.max(...pnlValues) : 0;
+    const worstTrade = closedTrades.length > 0 ? Math.min(...pnlValues) : 0;
+
+    return {
+        invested,
+        livePnl,
+        totalTrades,
+        winningTrades,
+        totalPnl,
+        bestTrade,
+        worstTrade,
+        rewards: 0, // Placeholder
+    };
+}
+
+
+export async function closeAllPositionsAction(): Promise<{ message: string }> {
+    const userId = 'default_user';
+    const allTrades = await getTrades(userId, 999);
+    const openTrades = allTrades.filter(t => t.status === 'OPEN');
+    
+    if (openTrades.length === 0) {
+        return { message: "No open positions to close." };
+    }
+
+    const user = await getUser(userId);
+    if (!user) {
+        throw new Error("User not found.");
+    }
+    
+    let closedCount = 0;
+    let totalPnlFromClosure = 0;
+    
+    for (const trade of openTrades) {
+        const priceData = await fetchLatestPrice(trade.asset);
+        if (priceData) {
+            const currentPrice = parseFloat(priceData.price);
+            let pnl = 0;
+            const priceDiff = currentPrice - trade.entryPrice;
+
+            if (trade.side === 'LONG') {
+                pnl = priceDiff >= 0 ? trade.stake : -trade.stake;
+            } else { // SHORT
+                pnl = priceDiff <= 0 ? trade.stake : -trade.stake;
+            }
+            
+            trade.status = 'CLOSED';
+            trade.pnl = pnl;
+            trade.closePrice = currentPrice;
+            await updateTrade(trade);
+            
+            // Accrue PNL to true-up balance later
+            totalPnlFromClosure += (trade.stake + pnl);
+            closedCount++;
+        }
+    }
+
+    if (closedCount > 0) {
+        user.shadowBalance += totalPnlFromClosure;
+        await updateUser(user);
+        revalidatePath('/');
+    }
+    
+    return { message: `Successfully closed ${closedCount} open positions.` };
+}

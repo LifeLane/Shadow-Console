@@ -21,6 +21,8 @@ import { ScrollArea } from '../ui/scroll-area';
 import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '../ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { placeTradeAction } from '@/app/agents/actions';
+
 
 const mindFormSchema = z.object({
   market: z.string().min(1, 'Please select a market.'),
@@ -32,7 +34,6 @@ type MindFormValues = z.infer<typeof mindFormSchema>;
 
 interface MindTabProps {
   isDbInitialized: boolean;
-  setExecutableSignal: (signal: Signal | null) => void;
   setActiveTab: (tabId: 'wallet' | 'trade' | 'mind' | 'missions' | 'profile') => void;
 }
 
@@ -67,7 +68,7 @@ const ModeButton = ({ icon: Icon, label, selected, ...props }: { icon: React.Ele
     </Button>
 );
 
-export default function MindTab({ isDbInitialized, setExecutableSignal, setActiveTab }: MindTabProps) {
+export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps) {
   const [markets, setMarkets] = useState<Market[]>([]);
   const [isLoadingMarkets, setIsLoadingMarkets] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -151,18 +152,30 @@ export default function MindTab({ isDbInitialized, setExecutableSignal, setActiv
     }
   });
 
-  const handleExecuteSignal = (signal: Signal) => {
+  const handleExecuteSignal = async (signal: Signal) => {
     if (signal.prediction === 'HOLD') {
-        toast({ title: "Cannot Execute HOLD", description: "This signal is advisory. Only LONG or SHORT signals can be sent to the trade terminal.", variant: "destructive"});
+        toast({ title: "Cannot Execute HOLD", description: "This signal is advisory. Only LONG or SHORT signals can be executed.", variant: "destructive"});
         return;
     }
-    setExecutableSignal(signal);
-    setActiveTab('trade');
-    toast({
-        title: "Signal Sent to Terminal",
-        description: `Parameters for ${signal.asset} ${signal.prediction} are ready for execution.`,
+    try {
+      await placeTradeAction({
+        asset: signal.asset,
+        side: signal.prediction,
+        stake: 100, // Default stake of 100 SHADOW
+        entryPrice: signal.entryPrice,
+        takeProfit: signal.takeProfit,
+        stopLoss: signal.stopLoss,
+      });
+      toast({
+        title: "Trade Executed!",
+        description: `Your ${signal.prediction} order for ${signal.asset} has been placed. View in the Trade tab.`,
         className: "bg-primary text-primary-foreground border-accent"
-    });
+      });
+      setActiveTab('trade');
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+        toast({ title: 'Trade Execution Failed', description: errorMessage, variant: 'destructive' });
+    }
   }
 
   const tradingModes = [

@@ -16,7 +16,6 @@ import { setupAndSeedLocalData } from '@/services/setupService';
 import { useToast } from '@/hooks/use-toast';
 import { resolveOpenTradesAction } from '@/app/agents/actions';
 import { resolvePendingSignalsAction } from '@/app/mind/actions';
-import type { Signal } from '@/lib/types';
 
 type TabId = 'wallet' | 'trade' | 'mind' | 'missions' | 'profile';
 
@@ -45,7 +44,6 @@ const pageTransitionVariants = {
 
 export default function AppLayout() {
   const [activeTab, setActiveTab] = useState<TabId>('mind');
-  const [executableSignal, setExecutableSignal] = useState<Signal | null>(null);
   const { toast } = useToast();
   const [isDbInitialized, setIsDbInitialized] = useState(false);
 
@@ -131,9 +129,6 @@ export default function AppLayout() {
           >
             <ActiveComponent 
               isDbInitialized={isDbInitialized}
-              // Pass signal state to relevant tabs
-              executableSignal={executableSignal}
-              setExecutableSignal={setExecutableSignal}
               setActiveTab={setActiveTab}
             />
           </motion.div>
