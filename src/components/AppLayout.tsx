@@ -212,7 +212,7 @@ export default function AppLayout() {
                  {activeTab === tab.id && <div className="absolute inset-0 rounded-full bg-primary animate-pulse z-0"></div>}
                 <tab.icon className="h-5 w-5 sm:h-6 sm:w-6 relative z-10" />
               </div>
-              <span className="mt-1 font-medium truncate max-w-[50px] sm:max-w-none">
+              <span className="hidden sm:block mt-1 font-medium">
                 {tab.label}
               </span>
             </Button>

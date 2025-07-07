@@ -202,7 +202,8 @@ export default function TradeTab({ isDbInitialized }: {
                      </ScrollArea>
                 </TabsContent>
             </Tabs>
-             <div className="px-4 py-2 mt-2 text-center text-xs text-muted-foreground">
+             <div className="px-4 py-2 mt-2 text-center text-xs text-muted-foreground/80 flex items-center justify-center gap-1.5">
+                <AlertTriangle className="h-4 w-4 shrink-0" />
                 <p>All trades are simulated for gamified purposes and do not constitute financial advice. Trade at your own risk.</p>
             </div>
         </div>

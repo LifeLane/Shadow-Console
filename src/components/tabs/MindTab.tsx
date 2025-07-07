@@ -64,7 +64,6 @@ const SignalCard = ({ signal, onExecute }: { signal: Signal; onExecute: (signal:
                     signal.prediction === 'SHORT' ? 'bg-red-500/80 text-white' : 'bg-muted text-muted-foreground'
                 )}>{signal.prediction}</Badge>
                 <span className="font-semibold sm:text-lg">{signal.asset}</span>
-                <span className="text-xs text-muted-foreground">(Conf: {signal.confidence}%)</span>
             </div>
             <TooltipProvider>
                 <Tooltip>
@@ -80,7 +79,10 @@ const SignalCard = ({ signal, onExecute }: { signal: Signal; onExecute: (signal:
             </TooltipProvider>
         </div>
 
-        <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 font-code text-sm mb-3">
+        <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 font-code text-sm mb-3">
+            <div className="text-muted-foreground">Shadow Score</div>
+            <div className="text-right font-semibold">{signal.confidence}%</div>
+            
             <div className="text-muted-foreground">Entry</div>
             <div className="text-right font-semibold">${signal.entryPrice.toLocaleString()}</div>
 
@@ -88,16 +90,16 @@ const SignalCard = ({ signal, onExecute }: { signal: Signal; onExecute: (signal:
             <div className="text-right font-semibold text-accent">${signal.takeProfit.toLocaleString()}</div>
             
             <div className="text-muted-foreground">SL</div>
-            <div className="text-right font-semibold text-destructive flex items-center justify-end gap-2">
-                <span>${signal.stopLoss.toLocaleString()}</span>
-                <span className="text-xs text-muted-foreground font-sans whitespace-nowrap">
-                    {formatDistanceToNow(new Date(signal.timestamp), { addSuffix: true })}
-                </span>
+            <div className="text-right font-semibold text-destructive">${signal.stopLoss.toLocaleString()}</div>
+            
+            <div className="text-muted-foreground">Generated</div>
+            <div className="text-right font-semibold">
+                {formatDistanceToNow(new Date(signal.timestamp), { addSuffix: true })}
             </div>
         </div>
         
         <div className="pt-3 border-t border-border/20">
-            <p className="text-xs text-muted-foreground italic flex items-start gap-1.5">
+            <p className="text-xs text-muted-foreground/80 flex items-start gap-1.5">
                 <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                 <span>Shadow Signals are AI-generated for gamified purposes only and do not constitute financial advice. Trade at your own risk.</span>
             </p>
@@ -396,7 +398,8 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
             </Tabs>
         </div>
 
-        <div className="px-4 pb-2 text-center text-xs text-muted-foreground">
+        <div className="px-4 pb-2 text-center text-xs text-muted-foreground/80 flex items-center justify-center gap-1.5">
+            <AlertTriangle className="h-4 w-4 shrink-0" />
             <p>Shadow Signals are AI-generated for gamified purposes and do not constitute financial advice. All trades are simulated. Trade at your own risk.</p>
         </div>
     </div>
