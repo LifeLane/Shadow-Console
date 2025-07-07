@@ -120,16 +120,12 @@ export default function TradeTab({ isDbInitialized }: {
     return (
         <div className="space-y-4">
             <Card className="bg-card/70">
-                <CardHeader className="p-4">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <CardTitle className="text-xl sm:text-2xl text-primary flex items-center"><BarChart className="mr-3"/> Performance Matrix</CardTitle>
-                            <CardDescription className="text-sm">An overview of your trade performance.</CardDescription>
-                        </div>
-                    </div>
+                <CardHeader className="p-4 pb-2">
+                    <CardTitle className="text-lg text-primary flex items-center"><BarChart className="mr-2 h-5 w-5"/> Performance Matrix</CardTitle>
+                    <CardDescription className="text-sm text-muted-foreground">An overview of your trade performance.</CardDescription>
                 </CardHeader>
-                <CardContent className="p-4 pt-0">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <CardContent className="p-4 pt-2">
+                    <div className="grid grid-cols-2 gap-2">
                         <StatCard icon={DollarSign} label="Total PnL" value={stats?.totalPnl ?? 0} valuePrefix={stats && stats.totalPnl >= 0 ? "+$" : "$"} valueClassName={stats && stats.totalPnl >= 0 ? 'text-accent' : 'text-destructive'}/>
                         <StatCard icon={TrendingUp} label="Best Trade" value={stats?.bestTrade ?? 0} valuePrefix="+$" valueClassName="text-accent"/>
                         <StatCard icon={TrendingDown} label="Worst Trade" value={stats?.worstTrade ?? 0} valuePrefix="$" valueClassName="text-destructive"/>

@@ -20,11 +20,12 @@
     "takeProfit": 111085.85,
     "stopLoss": 107818.62,
     "entryPrice": 108907.7,
-    "status": "OPEN",
-    "pnl": 0,
+    "status": "CLOSED",
+    "pnl": -100,
     "userId": "default_user",
     "id": 3,
-    "timestamp": "2025-07-07T09:13:53.358Z"
+    "timestamp": "2025-07-07T09:13:53.358Z",
+    "closePrice": 108550.54
   },
   {
     "asset": "BTCUSDT",
