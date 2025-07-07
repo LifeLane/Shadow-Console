@@ -2,12 +2,12 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { SquareTerminal, Brain, Gift, User, WalletCards, Sparkles } from 'lucide-react';
-import TradeTab from '@/components/tabs/TradeTab';
-import SignalTab from '@/components/tabs/SignalTab';
+import { BrainCircuit, Trophy, Gift, ScrollText, Settings, Sparkles } from 'lucide-react';
+import MindTab from '@/components/tabs/MindTab';
+import LeaderboardTab from '@/components/tabs/LeaderboardTab';
 import AirdropTab from '@/components/tabs/AirdropTab';
-import WalletTab from '@/components/tabs/WalletTab';
-import ProfileTab from '@/components/tabs/ProfileTab';
+import TasksTab from '@/components/tabs/TasksTab';
+import SettingsTab from '@/components/tabs/SettingsTab';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,7 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { resolveOpenTradesAction } from '@/app/agents/actions';
 import { resolvePendingSignalsAction } from '@/app/mind/actions';
 
-type TabId = 'trade' | 'signal' | 'airdrop' | 'wallet' | 'profile';
+type TabId = 'mind' | 'leaderboard' | 'airdrop' | 'tasks' | 'settings';
 
 interface Tab {
   id: TabId;
@@ -26,11 +26,11 @@ interface Tab {
 }
 
 const tabs: Tab[] = [
-  { id: 'trade', label: "Trade", icon: SquareTerminal, component: TradeTab },
-  { id: 'signal', label: "Signal", icon: Brain, component: SignalTab },
+  { id: 'mind', label: "Mind", icon: BrainCircuit, component: MindTab },
+  { id: 'leaderboard', label: "Leaderboard", icon: Trophy, component: LeaderboardTab },
   { id: 'airdrop', label: 'Airdrop', icon: Gift, component: AirdropTab },
-  { id: 'wallet', label: 'Wallet', icon: WalletCards, component: WalletTab },
-  { id: 'profile', label: 'Profile', icon: User, component: ProfileTab },
+  { id: 'tasks', label: 'Tasks', icon: ScrollText, component: TasksTab },
+  { id: 'settings', label: 'Settings', icon: Settings, component: SettingsTab },
 ];
 
 const pageTransitionVariants = {
@@ -42,14 +42,14 @@ const pageTransitionVariants = {
 
 
 export default function AppLayout() {
-  const [activeTab, setActiveTab] = useState<TabId>('trade');
+  const [activeTab, setActiveTab] = useState<TabId>('mind');
   const { toast } = useToast();
   const [isDbInitialized, setIsDbInitialized] = useState(false);
 
   useEffect(() => {
     async function initializeDataStore() {
         try {
-            console.log("Initializing local file-based data store for Shadow Arena...");
+            console.log("Initializing local file-based data store for Shadow Trader...");
             await setupAndSeedLocalData();
             console.log("Local data store initialization complete.");
             setIsDbInitialized(true);
@@ -68,20 +68,14 @@ export default function AppLayout() {
   useEffect(() => {
     if (!isDbInitialized) return;
 
+    // We can keep these background resolvers for now
     const tradeResolverInterval = setInterval(async () => {
       try {
-        const resolvedTrades = await resolveOpenTradesAction();
-        resolvedTrades.forEach(trade => {
-          toast({
-            title: `Trade ${trade.result === 'WIN' ? 'Successful' : 'Closed'}`,
-            description: trade.message,
-            variant: trade.result === 'WIN' ? 'default' : 'destructive'
-          });
-        });
+        await resolveOpenTradesAction();
       } catch (error) {
         console.error("Error resolving trades:", error);
       }
-    }, 15000); // Check every 15 seconds
+    }, 15000); 
 
     const signalResolverInterval = setInterval(async () => {
       try {
@@ -96,7 +90,7 @@ export default function AppLayout() {
       } catch (error) {
         console.error("Error resolving signals:", error);
       }
-    }, 30000); // Check every 30 seconds
+    }, 30000); 
 
     return () => {
       clearInterval(tradeResolverInterval);
@@ -116,8 +110,8 @@ export default function AppLayout() {
     <div className="flex flex-col min-h-screen bg-background text-foreground font-body">
       <header className="sticky top-0 z-50 flex items-center justify-between p-3 sm:p-4 bg-background/90 backdrop-blur-md border-b border-border/50">
         <div className="flex items-center">
-          <Sparkles className="h-7 w-7 sm:h-8 sm:w-8 mr-2 text-accent animate-pulse-glow-accent" />
-          <h1 className="text-xl sm:text-2xl font-headline font-bold text-foreground">Shadow <span className="text-accent">Arena</span></h1>
+          <Sparkles className="h-7 w-7 sm:h-8 sm:w-8 mr-2 text-primary animate-pulse" />
+          <h1 className="text-xl sm:text-2xl font-headline font-bold text-foreground">Shadow <span className="text-primary">Trader</span></h1>
         </div>
       </header>
 
@@ -160,7 +154,7 @@ export default function AppLayout() {
                     ? 'bg-primary text-primary-foreground'
                     : 'opacity-70 group-hover:opacity-100'
               )}>
-                 {activeTab === tab.id && <div className="absolute inset-0 rounded-full bg-primary animate-pulse-glow-primary z-0"></div>}
+                 {activeTab === tab.id && <div className="absolute inset-0 rounded-full bg-primary animate-pulse z-0"></div>}
                 <tab.icon className="h-5 w-5 sm:h-6 sm:w-6 relative z-10" />
               </div>
               <span className="mt-0.5 sm:mt-1 font-medium truncate max-w-[50px] sm:max-w-none">

@@ -20,8 +20,12 @@ export async function saveSignalAction(signal: Omit<Signal, 'id' | 'timestamp' |
     revalidatePath('/');
 }
 
-
-export async function generateAiSignalAction(market: string): Promise<Signal> {
+export async function generateAiSignalAction(
+    market: string, 
+    timeframe: string,
+    risk: string,
+    indicators: string
+): Promise<Signal> {
     const [priceData, klineData, sentimentNews, onChainData] = await Promise.all([
         fetchLatestPrice(market),
         fetchPriceData(market, '1h', 20),
@@ -36,7 +40,7 @@ export async function generateAiSignalAction(market: string): Promise<Signal> {
         On-Chain Activity: ${onChainData}.
     `;
 
-    const aiResult = await generateSignal({ market, marketData: marketDataSummary });
+    const aiResult = await generateSignal({ market, marketData: marketDataSummary, timeframe, risk, indicators });
 
     const newSignal: Omit<Signal, 'id' | 'userId' | 'timestamp'> = {
         asset: market,
@@ -47,6 +51,7 @@ export async function generateAiSignalAction(market: string): Promise<Signal> {
         stopLoss: aiResult.stopLoss,
         status: 'PENDING',
         source: 'AI_ORACLE',
+        reasoning: aiResult.thought,
     };
     
     const savedSignal = await saveSignal({ ...newSignal, userId: 'default_user' });

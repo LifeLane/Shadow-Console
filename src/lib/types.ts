@@ -1,5 +1,4 @@
 
-
 export interface User {
     id: string;
     name: string;
@@ -40,6 +39,7 @@ export interface Signal {
     status: 'PENDING' | 'WIN' | 'LOSS';
     source: 'AI_ORACLE' | 'MANUAL';
     timestamp: string;
+    reasoning?: string;
 }
 
 export interface Mission {
