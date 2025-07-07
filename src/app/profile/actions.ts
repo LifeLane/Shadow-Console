@@ -4,8 +4,14 @@
 import { getUser, updateUser, getLeaderboardData } from '@/services/userService';
 import type { User } from '@/lib/types';
 import { chatWithOracle } from "@/ai/flows/chat-with-oracle";
-import type { Message } from '@/components/tabs/ProfileTab';
 import { revalidatePath } from 'next/cache';
+
+// This type is duplicated from ProfileTab to avoid circular dependencies
+export interface Message {
+    role: 'user' | 'model';
+    text: string;
+};
+
 
 export async function getProfileAction(): Promise<User | null> {
     // For now, always gets the default user's profile

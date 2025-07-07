@@ -109,3 +109,15 @@ export interface AirdropRegistration {
     airdropWalletAddress: string;
     timestamp: string;
 }
+
+export interface MiningRig {
+  id: string;
+  name: string;
+  description: string;
+  hashrate: number; // TH/s
+  power: number; // Watts
+  price: number; // SHADOW
+  imageUrl: string;
+  dataAiHint: string;
+  status?: 'ACTIVE' | 'INACTIVE'; // For owned rigs
+}
