@@ -41,7 +41,7 @@ const TradeItem = ({ trade }: { trade: Trade }) => {
                         "py-0.5 px-2 text-xs font-bold rounded-md",
                         trade.side === 'LONG' ? 'bg-green-500/80 text-white' : 'bg-red-500/80 text-white'
                     )}>{trade.side}</Badge>
-                    <span className="font-semibold sm:text-lg">{trade.asset}</span>
+                    <span className="font-semibold text-sm sm:text-base">{trade.asset}</span>
                 </div>
                  {trade.status === 'OPEN' ?
                     <Badge variant="outline" className="text-yellow-400 border-yellow-400 text-xs">OPEN</Badge> :
@@ -54,22 +54,22 @@ const TradeItem = ({ trade }: { trade: Trade }) => {
             <div className="grid grid-cols-2 gap-2 mt-3 text-center">
                 <div className="flex flex-col p-2 rounded-lg bg-muted/40">
                     <span className="text-muted-foreground text-xs">Entry Price</span>
-                    <span className="text-lg font-bold font-code text-foreground">${trade.entryPrice.toLocaleString()}</span>
+                    <span className="text-base sm:text-lg font-bold font-code text-foreground">${trade.entryPrice.toLocaleString()}</span>
                 </div>
                 <div className="flex flex-col p-2 rounded-lg bg-muted/40">
                     <span className="text-muted-foreground text-xs">Stake</span>
-                    <span className="text-lg font-bold font-code text-primary">{trade.stake.toLocaleString()} SHADOW</span>
+                    <span className="text-base sm:text-lg font-bold font-code text-primary">{trade.stake.toLocaleString()} SHADOW</span>
                 </div>
 
                 {trade.status === 'CLOSED' ? (
                     <>
                         <div className="flex flex-col p-2 rounded-lg bg-muted/40">
                             <span className="text-muted-foreground text-xs">Close Price</span>
-                            <span className="text-lg font-bold font-code text-foreground">${trade.closePrice?.toLocaleString() ?? 'N/A'}</span>
+                            <span className="text-base sm:text-lg font-bold font-code text-foreground">${trade.closePrice?.toLocaleString() ?? 'N/A'}</span>
                         </div>
                         <div className="flex flex-col p-2 rounded-lg bg-muted/40">
                             <span className="text-muted-foreground text-xs">PNL</span>
-                            <span className={cn("text-lg font-bold font-code", isWin ? 'text-accent' : 'text-destructive')}>
+                            <span className={cn("text-base sm:text-lg font-bold font-code", isWin ? 'text-accent' : 'text-destructive')}>
                                 {pnlPrefix}{trade.pnl?.toLocaleString() ?? '0'} SHADOW
                             </span>
                         </div>
@@ -78,11 +78,11 @@ const TradeItem = ({ trade }: { trade: Trade }) => {
                     <>
                         <div className="flex flex-col p-2 rounded-lg bg-muted/40">
                             <span className="text-muted-foreground text-xs">Take Profit</span>
-                            <span className="text-lg font-bold font-code text-accent">${trade.takeProfit.toLocaleString()}</span>
+                            <span className="text-base sm:text-lg font-bold font-code text-accent">${trade.takeProfit.toLocaleString()}</span>
                         </div>
                         <div className="flex flex-col p-2 rounded-lg bg-muted/40">
                             <span className="text-muted-foreground text-xs">Stop Loss</span>
-                            <span className="text-lg font-bold font-code text-destructive">${trade.stopLoss.toLocaleString()}</span>
+                            <span className="text-base sm:text-lg font-bold font-code text-destructive">${trade.stopLoss.toLocaleString()}</span>
                         </div>
                     </>
                 )}
