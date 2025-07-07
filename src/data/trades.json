@@ -1,3 +1,4 @@
+
 [
   {
     "asset": "BTCUSDT",
@@ -33,6 +34,7 @@
     "stake": 100,
     "takeProfit": 50,
     "stopLoss": 10,
+    "entryPrice": 108800.00,
     "status": "CLOSED",
     "pnl": 100,
     "userId": "default_user",
@@ -46,6 +48,7 @@
     "stake": 100,
     "takeProfit": 100,
     "stopLoss": 50,
+    "entryPrice": 108900.00,
     "status": "CLOSED",
     "pnl": 100,
     "userId": "default_user",
