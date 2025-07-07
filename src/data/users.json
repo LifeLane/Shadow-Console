@@ -5,7 +5,7 @@
     "xp": 1550,
     "winRate": 100,
     "signalAccuracy": 54,
-    "shadowBalance": 100,
+    "shadowBalance": 0,
     "stakedAmount": 6500,
     "avatarUrl": "https://placehold.co/100x100.png",
     "completedMissions": [],

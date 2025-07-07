@@ -1,5 +1,33 @@
 [
   {
+    "asset": "BTCUSDT",
+    "prediction": "LONG",
+    "confidence": 78,
+    "entryPrice": 108950,
+    "takeProfit": 109250,
+    "stopLoss": 108800,
+    "status": "PENDING",
+    "source": "AI_ORACLE",
+    "reasoning": "On-chain volume surge to DEX hints at a bullish accumulation, further supported by the latest hourly close.",
+    "userId": "default_user",
+    "id": 15,
+    "timestamp": "2025-07-07T09:41:37.927Z"
+  },
+  {
+    "asset": "BTCUSDT",
+    "prediction": "LONG",
+    "confidence": 65,
+    "entryPrice": 108925,
+    "takeProfit": 109100,
+    "stopLoss": 108875,
+    "status": "PENDING",
+    "source": "AI_ORACLE",
+    "reasoning": "Recent price stability coupled with significant on-chain SHADOW staking activity hints at underlying bullish sentiment.",
+    "userId": "default_user",
+    "id": 14,
+    "timestamp": "2025-07-07T09:41:17.132Z"
+  },
+  {
     "asset": "ETHUSDT",
     "prediction": "LONG",
     "confidence": 65,

@@ -2,11 +2,11 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { BrainCircuit, Landmark, Gift, Shield, BarChart, Sparkles } from 'lucide-react';
+import { BrainCircuit, Landmark, Gift, User, BarChart, Sparkles, Pickaxe } from 'lucide-react';
 import MindTab from '@/components/tabs/MindTab';
 import WalletTab from '@/components/tabs/WalletTab';
 import MissionsTab from '@/components/tabs/MissionsTab';
-import VaultTab from '@/components/tabs/VaultTab';
+import ProfileTab from '@/components/tabs/ProfileTab';
 import TradeTab from '@/components/tabs/TradeTab';
 
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,7 @@ import { resolveOpenTradesAction } from '@/app/agents/actions';
 import { resolvePendingSignalsAction } from '@/app/mind/actions';
 import type { Signal } from '@/lib/types';
 
-type TabId = 'wallet' | 'trade' | 'mind' | 'missions' | 'vault';
+type TabId = 'wallet' | 'trade' | 'mind' | 'missions' | 'profile';
 
 interface Tab {
   id: TabId;
@@ -28,11 +28,11 @@ interface Tab {
 }
 
 const tabs: Tab[] = [
-  { id: 'wallet', label: "Wallet", icon: Landmark, component: WalletTab },
+  { id: 'wallet', label: "Wallet", icon: Pickaxe, component: WalletTab },
   { id: 'trade', label: "Trade", icon: BarChart, component: TradeTab },
   { id: 'mind', label: "Mind", icon: BrainCircuit, component: MindTab },
   { id: 'missions', label: 'Missions', icon: Gift, component: MissionsTab },
-  { id: 'vault', label: 'Vault', icon: Shield, component: VaultTab },
+  { id: 'profile', label: 'Profile', icon: User, component: ProfileTab },
 ];
 
 const pageTransitionVariants = {
@@ -118,7 +118,7 @@ export default function AppLayout() {
         </div>
       </header>
 
-      <main className="flex-grow flex flex-col">
+      <main className="flex-grow flex flex-col p-4">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}

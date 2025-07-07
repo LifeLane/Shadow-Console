@@ -6,10 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Award, BrainCircuit, Gem, ShieldCheck, Users, Loader2, KeyRound, Paintbrush, Shield } from 'lucide-react';
+import { Award, BrainCircuit, Gem, ShieldCheck, Users, Loader2, KeyRound, Paintbrush, User } from 'lucide-react';
 import type { User as UserType } from '@/lib/types';
 import { getProfileAction } from '@/app/profile/actions';
-import { getLeaderboardAction } from '@/app/leaderboard/actions';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -40,7 +39,7 @@ const StatCard = ({ icon, label, value, description }: { icon: React.ElementType
     </Card>
 );
 
-export default function VaultTab({ isDbInitialized }: { isDbInitialized: boolean }) {
+export default function ProfileTab({ isDbInitialized }: { isDbInitialized: boolean }) {
     const [profile, setProfile] = useState<UserType | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
@@ -82,7 +81,7 @@ export default function VaultTab({ isDbInitialized }: { isDbInitialized: boolean
     return (
         <Card className="glow-border">
             <CardHeader>
-                <CardTitle className="text-primary flex items-center text-2xl"><Shield className="mr-3"/> Vault</CardTitle>
+                <CardTitle className="text-primary flex items-center text-2xl"><User className="mr-3"/> Profile</CardTitle>
                 <CardDescription>Manage your profile and application preferences.</CardDescription>
             </CardHeader>
             <CardContent>
