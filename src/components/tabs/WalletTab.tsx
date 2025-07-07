@@ -106,7 +106,7 @@ export default function WalletTab({ isDbInitialized }: { isDbInitialized: boolea
           <CardDescription>Stake your SHADOW tokens in pools to earn rewards and power the network.</CardDescription>
         </CardHeader>
         <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatDisplay icon={Gem} label="SHADOW Balance" value={stats.shadowBalance.toLocaleString()} />
                 <StatDisplay icon={Pickaxe} label="Total Staked" value={stats.stakedAmount.toLocaleString()} />
                 <StatDisplay icon={ShieldQuestion} label="Avg. Staking APR" value={stats.apr.toFixed(2)} unit="%" />

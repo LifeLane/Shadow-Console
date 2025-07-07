@@ -22,6 +22,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '../ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { placeTradeAction } from '@/app/agents/actions';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 
 
 const mindFormSchema = z.object({
@@ -48,6 +49,62 @@ const MarketStat = ({ label, value, icon: Icon, valueClassName }: { label: strin
                 {value}
             </div>
         </CardContent>
+    </Card>
+);
+
+const SignalCard = ({ signal, onExecute }: { signal: Signal; onExecute: (signal: Signal) => void; }) => (
+    <Card key={signal.id} className="p-3 bg-card/50 border border-primary/20">
+        <div className="flex items-center justify-between gap-2">
+            <div className="flex-grow">
+                <div className="flex items-baseline gap-3 mb-2">
+                    <Badge className={cn(
+                        "py-1 px-3 text-sm font-bold rounded-md",
+                        signal.prediction === 'LONG' ? 'bg-accent text-accent-foreground' :
+                        signal.prediction === 'SHORT' ? 'bg-destructive text-destructive-foreground' : 'bg-muted text-muted-foreground'
+                    )}>{signal.prediction}</Badge>
+                    <span className="font-bold text-lg">{signal.asset}</span>
+                    <span className="text-sm text-muted-foreground">(Conf: {signal.confidence}%)</span>
+                </div>
+                <div className="grid grid-cols-3 gap-3 text-sm font-code">
+                    <div>
+                        <p className="text-muted-foreground">Entry</p>
+                        <p className="font-bold text-base">${signal.entryPrice.toLocaleString()}</p>
+                    </div>
+                    <div>
+                        <p className="text-muted-foreground">TP</p>
+                        <p className="font-bold text-base">${signal.takeProfit.toLocaleString()}</p>
+                    </div>
+                    <div>
+                        <p className="text-muted-foreground">SL</p>
+                        <p className="font-bold text-base">${signal.stopLoss.toLocaleString()}</p>
+                    </div>
+                </div>
+            </div>
+            <div className="flex flex-col items-end justify-between space-y-2">
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button size="icon" variant="ghost" className="h-9 w-9 text-accent hover:bg-accent/20" onClick={() => onExecute(signal)} disabled={signal.prediction === 'HOLD'}>
+                                <Send className="h-5 w-5" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>Execute Trade</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+
+                <p className="text-xs text-muted-foreground whitespace-nowrap">
+                    {formatDistanceToNow(new Date(signal.timestamp), { addSuffix: true })}
+                </p>
+            </div>
+        </div>
+        <div className="mt-2 pt-2 border-t border-border/20">
+            <p className="text-xs text-muted-foreground italic flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                <span>Shadow Signals are AI-generated for gamified purposes only and do not constitute financial advice. Trade at your own risk.</span>
+            </p>
+        </div>
     </Card>
 );
 
@@ -139,7 +196,7 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
     try {
       const newSignal = await generateAiSignalAction(data.market, data.tradingMode, data.risk, 'RSI, MACD');
       // Prepend the new signal to the history for immediate feedback
-      setSignalHistory(prev => [newSignal, ...prev]);
+      setSignalHistory(prev => [newSignal, ...prev.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())]);
       toast({
         title: "SHADOW Signal Generated!",
         description: "Review the new signal in your Signal Log below.",
@@ -194,11 +251,13 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
     );
   }
 
+  const pendingSignals = signalHistory.filter(s => s.status === 'PENDING');
+
   return (
     <div className="h-full flex flex-col space-y-3 bg-background">
         {/* Top Section: Console */}
         <div className="px-4 pt-3">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                 <MarketStat label="Current Price" value={tickerData ? `$${parseFloat(tickerData.lastPrice).toLocaleString()}`: <Loader2 className="h-5 w-5 animate-spin" />} icon={Zap} valueClassName="text-white" />
                 <MarketStat label="24h Change" value={tickerData ? `${parseFloat(tickerData.priceChangePercent).toFixed(2)}%`: <Loader2 className="h-5 w-5 animate-spin" />} icon={TrendingUp} valueClassName={tickerData && parseFloat(tickerData.priceChangePercent) >= 0 ? 'text-accent' : 'text-red-500'} />
                 <MarketStat label="24h High" value={tickerData ? `$${parseFloat(tickerData.highPrice).toLocaleString()}`: <Loader2 className="h-5 w-5 animate-spin" />} icon={ArrowUp} />
@@ -298,80 +357,47 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
 
         {/* Bottom Section: Signal Log */}
         <div className="flex-grow flex flex-col min-h-0 px-4 pb-3">
-            <Card className="flex-grow flex flex-col bg-card/80">
-                <CardHeader>
-                    <CardTitle className="flex items-center"><History className="mr-2" /> Signal Log</CardTitle>
-                </CardHeader>
-                <CardContent className="flex-grow flex flex-col p-2 pt-0">
-                    <ScrollArea className="flex-grow">
-                        <div className="space-y-3 p-4">
+            <Tabs defaultValue="all" className="flex-grow flex flex-col">
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="all">Signal Log</TabsTrigger>
+                    <TabsTrigger value="pending">Pending ({pendingSignals.length})</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="all" className="flex-grow mt-4 overflow-hidden">
+                    <ScrollArea className="h-full">
+                        <div className="space-y-3 pr-4">
                             {isLoadingHistory ? (
                                 <div className="flex justify-center items-center h-40"><Loader2 className="animate-spin h-8 w-8 text-primary" /></div>
                             ) : signalHistory.length === 0 ? (
-                                <p className="text-center text-muted-foreground">No signals generated yet. Use the console above.</p>
+                                <p className="text-center text-muted-foreground py-10">No signals generated yet. Use the console above.</p>
                             ) : (
                                 signalHistory.map((signal) => (
-                                    <Card key={signal.id} className="p-3 bg-card/50 border border-primary/20">
-                                        <div className="flex items-center justify-between gap-2">
-                                            <div className="flex-grow">
-                                                <div className="flex items-baseline gap-3 mb-2">
-                                                    <Badge className={cn(
-                                                        "py-1 px-3 text-sm font-bold rounded-md",
-                                                        signal.prediction === 'LONG' ? 'bg-accent text-accent-foreground' :
-                                                        signal.prediction === 'SHORT' ? 'bg-destructive text-destructive-foreground' : 'bg-muted text-muted-foreground'
-                                                    )}>{signal.prediction}</Badge>
-                                                    <span className="font-bold text-lg">{signal.asset}</span>
-                                                    <span className="text-sm text-muted-foreground">(Conf: {signal.confidence}%)</span>
-                                                </div>
-                                                <div className="grid grid-cols-3 gap-3 text-sm font-code">
-                                                    <div>
-                                                        <p className="text-muted-foreground">Entry</p>
-                                                        <p className="font-bold text-base">${signal.entryPrice.toLocaleString()}</p>
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-muted-foreground">TP</p>
-                                                        <p className="font-bold text-base">${signal.takeProfit.toLocaleString()}</p>
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-muted-foreground">SL</p>
-                                                        <p className="font-bold text-base">${signal.stopLoss.toLocaleString()}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="flex flex-col items-end justify-between space-y-2">
-                                                <TooltipProvider>
-                                                    <Tooltip>
-                                                        <TooltipTrigger asChild>
-                                                            <Button size="icon" variant="ghost" className="h-9 w-9 text-accent hover:bg-accent/20" onClick={() => handleExecuteSignal(signal)} disabled={signal.prediction === 'HOLD'}>
-                                                                <Send className="h-5 w-5" />
-                                                            </Button>
-                                                        </TooltipTrigger>
-                                                        <TooltipContent>
-                                                            <p>Execute Trade</p>
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                </TooltipProvider>
-
-                                                <p className="text-xs text-muted-foreground whitespace-nowrap">
-                                                    {formatDistanceToNow(new Date(signal.timestamp), { addSuffix: true })}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className="mt-2 pt-2 border-t border-border/20">
-                                            <p className="text-xs text-muted-foreground italic flex items-start gap-2">
-                                                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-                                                <span>Shadow Signals are AI-generated for gamified purposes only and do not constitute financial advice. Trade at your own risk.</span>
-                                            </p>
-                                        </div>
-                                    </Card>
+                                    <SignalCard key={signal.id} signal={signal} onExecute={handleExecuteSignal} />
                                 ))
                             )}
                         </div>
                     </ScrollArea>
-                </CardContent>
-            </Card>
+                </TabsContent>
+
+                <TabsContent value="pending" className="flex-grow mt-4 overflow-hidden">
+                    <ScrollArea className="h-full">
+                        <div className="space-y-3 pr-4">
+                            {isLoadingHistory ? (
+                                <div className="flex justify-center items-center h-40"><Loader2 className="animate-spin h-8 w-8 text-primary" /></div>
+                            ) : pendingSignals.length === 0 ? (
+                                <p className="text-center text-muted-foreground py-10">No pending signals.</p>
+                            ) : (
+                                pendingSignals.map((signal) => (
+                                    <SignalCard key={signal.id} signal={signal} onExecute={handleExecuteSignal} />
+                                ))
+                            )}
+                        </div>
+                    </ScrollArea>
+                </TabsContent>
+            </Tabs>
         </div>
-        <div className="px-4 py-2 text-center text-xs text-muted-foreground">
+
+        <div className="px-4 pb-2 text-center text-xs text-muted-foreground">
             <p>Shadow Signals are AI-generated for gamified purposes and do not constitute financial advice. All trades are simulated. Trade at your own risk.</p>
         </div>
     </div>
