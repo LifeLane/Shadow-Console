@@ -39,17 +39,11 @@ interface MindTabProps {
 }
 
 const MarketStat = ({ label, value, icon: Icon, valueClassName }: { label: string; value: string | React.ReactNode; icon: React.ElementType, valueClassName?: string }) => (
-    <div className="bg-card/60 border border-primary/20 rounded-lg p-2 flex flex-col justify-center text-center">
-        <div className="flex items-center justify-center gap-1.5 text-[0.6rem] sm:text-xs text-muted-foreground">
-            <span>{label}</span>
-            <Icon className="h-3 w-3 shrink-0" />
-        </div>
-        <div className={cn("text-base sm:text-lg font-bold font-code mt-1 truncate", valueClassName)}>
-            {value}
-        </div>
+    <div className="flex-1 px-2 py-1 text-center">
+        <p className="text-muted-foreground uppercase text-[0.6rem] sm:text-xs tracking-wider flex items-center justify-center gap-1.5">{label} <Icon className="h-3 w-3 shrink-0" /></p>
+        <p className={cn("font-bold font-code text-xs sm:text-sm truncate", valueClassName)}>{value}</p>
     </div>
 );
-
 
 const SignalCard = ({ signal, onExecute }: { signal: Signal; onExecute: (signal: Signal) => void; }) => (
     <Card className="p-3 bg-card/50 border-primary/20">
@@ -112,7 +106,7 @@ const ModeButton = ({ icon: Icon, label, selected, ...props }: { icon: React.Ele
             "h-auto p-2 flex flex-row justify-center items-center gap-2 border-2 text-center transition-all duration-200",
             selected
                 ? "bg-accent text-accent-foreground border-accent glow-border-accent"
-                : "bg-card/80 border-border text-foreground hover:bg-accent/10 hover:border-accent hover:text-primary"
+                : "bg-card/80 border-border text-foreground hover:bg-accent/10 hover:border-accent hover:text-accent"
         )}
         {...props}
     >
@@ -189,18 +183,27 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
     loadHistory();
   }, [loadHistory]);
 
-  const handleGenerateSignal = form.handleSubmit(async (data: MindFormValues) => {
+  const handleGenerateSignal = async (type: 'instant' | 'shadow') => {
+    await form.trigger();
+    if (!form.formState.isValid) {
+        toast({
+            title: "Invalid Input",
+            description: "Please select a market and configure modes.",
+            variant: "destructive"
+        });
+        return;
+    }
+
+    const data = form.getValues();
     setIsGenerating(true);
     try {
-      const newSignal = await generateAiSignalAction(data.market, data.tradingMode, data.risk, 'RSI, MACD');
-      // Prepend the new signal to the history for immediate feedback
+      const newSignal = await generateAiSignalAction(data.market, data.tradingMode, data.risk, 'RSI, MACD', type);
       setSignalHistory(prev => [newSignal, ...prev]);
       toast({
         title: "SHADOW Signal Generated!",
         description: "Review the new signal in your Signal Log below.",
         className: "bg-accent text-accent-foreground border-primary",
       });
-      // Scroll to the signal log after a short delay to allow DOM to update
       setTimeout(() => {
         signalLogRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
@@ -209,7 +212,7 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
     } finally {
       setIsGenerating(false);
     }
-  });
+  };
 
   const handleExecuteSignal = async (signal: Signal) => {
     if (signal.prediction === 'HOLD') {
@@ -257,15 +260,12 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
 
   return (
     <div className="h-full flex flex-col space-y-3 sm:space-y-4 bg-background">
-        {/* Top Section: Console */}
         <div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-                <MarketStat label="Current Price" value={tickerData ? `$${parseFloat(tickerData.lastPrice).toLocaleString()}`: <Loader2 className="h-5 w-5 animate-spin" />} icon={Zap} valueClassName="text-white" />
-                <MarketStat label="24h Change" value={tickerData ? `${parseFloat(tickerData.priceChangePercent).toFixed(2)}%`: <Loader2 className="h-5 w-5 animate-spin" />} icon={TrendingUp} valueClassName={tickerData && parseFloat(tickerData.priceChangePercent) >= 0 ? 'text-accent' : 'text-red-500'} />
-                <MarketStat label="24h High" value={tickerData ? `$${parseFloat(tickerData.highPrice).toLocaleString()}`: <Loader2 className="h-5 w-5 animate-spin" />} icon={ArrowUp} />
-                <MarketStat label="24h Low" value={tickerData ? `$${parseFloat(tickerData.lowPrice).toLocaleString()}`: <Loader2 className="h-5 w-5 animate-spin" />} icon={ArrowDown} />
-                <MarketStat label="Volume (BTC)" value={tickerData ? `${(parseFloat(tickerData.volume) / 1000).toFixed(2)}K`: <Loader2 className="h-5 w-5 animate-spin" />} icon={BrainCircuit} />
-                <MarketStat label="Volume (USDT)" value={tickerData ? `$${(parseFloat(tickerData.quoteVolume) / 1000000).toFixed(2)}M`: <Loader2 className="h-5 w-5 animate-spin" />} icon={BrainCircuit} />
+             <div className="w-full bg-card/60 rounded-lg border border-primary/30 flex divide-x divide-primary/20">
+                <MarketStat label="Price" value={tickerData ? `$${parseFloat(tickerData.lastPrice).toLocaleString()}`: <Loader2 className="h-4 w-4 animate-spin mx-auto" />} icon={Zap} valueClassName="text-white" />
+                <MarketStat label="24h" value={tickerData ? `${parseFloat(tickerData.priceChangePercent).toFixed(2)}%`: <Loader2 className="h-4 w-4 animate-spin mx-auto" />} icon={TrendingUp} valueClassName={tickerData && parseFloat(tickerData.priceChangePercent) >= 0 ? 'text-accent' : 'text-red-500'} />
+                <MarketStat label="High" value={tickerData ? `$${parseFloat(tickerData.highPrice).toLocaleString()}`: <Loader2 className="h-4 w-4 animate-spin mx-auto" />} icon={ArrowUp} />
+                <MarketStat label="Low" value={tickerData ? `$${parseFloat(tickerData.lowPrice).toLocaleString()}`: <Loader2 className="h-4 w-4 animate-spin mx-auto" />} icon={ArrowDown} />
             </div>
 
             <Form {...form}>
@@ -342,13 +342,13 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-                        <Button type="button" onClick={handleGenerateSignal} className="h-auto py-2 text-sm sm:text-base border-2 border-accent text-accent bg-transparent hover:bg-accent hover:text-accent-foreground">
+                        <Button type="button" onClick={() => handleGenerateSignal('instant')} className="h-auto py-2 text-sm sm:text-base border-2 border-accent text-accent bg-transparent hover:bg-accent hover:text-accent-foreground">
                             <div className="text-left">
                                 <p className="font-bold flex items-center"><Zap className="w-4 h-4 mr-2" />Instant Signal</p>
                                 <p className="text-xs font-normal opacity-80">Executes immediately at market price.</p>
                             </div>
                         </Button>
-                         <Button type="button" onClick={handleGenerateSignal} className="h-auto py-2 text-sm sm:text-base bg-accent text-accent-foreground hover:bg-accent/90">
+                         <Button type="button" onClick={() => handleGenerateSignal('shadow')} className="h-auto py-2 text-sm sm:text-base bg-accent text-accent-foreground hover:bg-accent/90">
                             <div className="text-left">
                                 <p className="font-bold flex items-center"><BrainCircuit className="w-4 h-4 mr-2" />SHADOW's Signal</p>
                                 <p className="text-xs font-normal opacity-80">SHADOW finds the optimal entry.</p>
@@ -359,7 +359,6 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
             </Form>
         </div>
 
-        {/* Bottom Section: Signal Log */}
         <div ref={signalLogRef} className="flex-grow flex flex-col min-h-0">
             <Tabs defaultValue="all" className="flex-grow flex flex-col">
                 <TabsList className="grid w-full grid-cols-2">

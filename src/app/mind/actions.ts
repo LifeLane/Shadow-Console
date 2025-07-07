@@ -24,7 +24,8 @@ export async function generateAiSignalAction(
     market: string, 
     tradingMode: string,
     risk: string,
-    indicators: string
+    indicators: string,
+    signalType: 'instant' | 'shadow'
 ): Promise<Signal> {
     const [priceData, klineData, sentimentNews, onChainData] = await Promise.all([
         fetchLatestPrice(market),
@@ -40,7 +41,7 @@ export async function generateAiSignalAction(
         On-Chain Activity: ${onChainData}.
     `;
 
-    const aiResult = await generateSignal({ market, marketData: marketDataSummary, tradingMode, risk, indicators });
+    const aiResult = await generateSignal({ market, marketData: marketDataSummary, tradingMode, risk, indicators, signalType });
 
     const newSignal: Omit<Signal, 'id' | 'userId' | 'timestamp'> = {
         asset: market,

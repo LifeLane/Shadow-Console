@@ -19,6 +19,7 @@ const GenerateSignalInputSchema = z.object({
   risk: z.string().describe('The user-defined risk tolerance (e.g., Low, Medium, High).'),
   indicators: z.string().describe('A comma-separated list of technical indicators to consider (e.g., RSI, MACD, ATR).'),
   marketData: z.string().describe('A comprehensive summary of recent market data, including current price, recent k-line price action, market sentiment/news, and simulated on-chain activity.'),
+  signalType: z.enum(['instant', 'shadow']).describe("The type of signal to generate: 'instant' for market price execution, 'shadow' for an optimal entry price."),
 });
 export type GenerateSignalInput = z.infer<typeof GenerateSignalInputSchema>;
 
@@ -49,16 +50,20 @@ const signalPrompt = ai.definePrompt({
   - Trading Mode: {{{tradingMode}}}
   - Risk Level: {{{risk}}}
   - Key Indicators: {{{indicators}}}
+  - Signal Generation Mode: '{{{signalType}}}'
 
   Data Feed:
   {{{marketData}}}
 
   Instructions:
-  1.  **Synthesize**: Do not just repeat the data. Analyze the interplay between price action, news sentiment, and on-chain activity, keeping the user's parameters in mind.
-  2.  **Generate Signal**: Based on your synthesis, provide a clear signal (LONG, SHORT, or HOLD).
-  3.  **Set Confidence**: Assign a confidence score (0-100) based on how strongly the data sources align.
-  4.  **Define Parameters**: Suggest realistic entry, take-profit, and stop-loss prices based on the current price and recent volatility.
-  5.  **Formulate Thought**: Write a single, punchy sentence that justifies your signal, referencing at least two different data points (e.g., "Bullish on-chain activity coupled with positive sentiment suggests a breakout is imminent."). This is your "Current Thought".
+  1.  **Analyze Signal Generation Mode**:
+      - If the mode is 'instant', your primary goal is immediate action. The suggested entry price MUST be the current market price from the data feed. The analysis should be quick and based on current conditions.
+      - If the mode is 'shadow', your primary goal is precision. You must determine the OPTIMAL entry price. This price might be different from the current market price. Your analysis should be deeper, considering potential pullbacks or breakouts to find a better entry.
+  2.  **Synthesize**: Do not just repeat the data. Analyze the interplay between price action, news sentiment, and on-chain activity, keeping the user's parameters and the signal generation mode in mind.
+  3.  **Generate Signal**: Based on your synthesis, provide a clear signal (LONG, SHORT, or HOLD).
+  4.  **Set Confidence**: Assign a confidence score (0-100) based on how strongly the data sources align.
+  5.  **Define Parameters**: Based on the chosen Signal Generation Mode, suggest the entry price, and then define realistic take-profit and stop-loss prices based on that entry and recent volatility.
+  6.  **Formulate Thought**: Write a single, punchy sentence that justifies your signal, referencing at least two different data points (e.g., "Bullish on-chain activity coupled with positive sentiment suggests a breakout is imminent."). This is your "Current Thought".
 
   Your entire output must be in the specified JSON format.
   `
