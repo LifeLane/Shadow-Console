@@ -5,8 +5,10 @@ import { revalidatePath } from 'next/cache';
 import { getSignals, saveSignal, updateSignal } from '@/services/signalService';
 import type { Signal } from '@/lib/types';
 import { generateSignal } from '@/ai/flows/generate-market-insights';
-import { fetchLatestPrice } from '@/services/binanceService';
+import { fetchLatestPrice, fetchPriceData } from '@/services/binanceService';
 import { getUser, updateUser } from '@/services/userService';
+import { fetchSentimentNews } from '@/services/coindeskService';
+import { fetchRecentTransactions } from '@/services/polygonService';
 
 
 export async function getSignalHistoryAction(): Promise<Signal[]> {
@@ -20,8 +22,19 @@ export async function saveSignalAction(signal: Omit<Signal, 'id' | 'timestamp' |
 
 
 export async function generateAiSignalAction(market: string): Promise<Signal> {
-    const priceData = await fetchLatestPrice(market);
-    const marketDataSummary = `Current price for ${market} is ${priceData?.price}.`;
+    const [priceData, klineData, sentimentNews, onChainData] = await Promise.all([
+        fetchLatestPrice(market),
+        fetchPriceData(market, '1h', 20),
+        fetchSentimentNews(market),
+        fetchRecentTransactions(market)
+    ]);
+
+    const marketDataSummary = `
+        Current Price: ${priceData?.price ? `$${priceData.price}` : 'N/A'}.
+        Recent Price Action (K-lines): ${klineData}.
+        Market Sentiment/News: ${sentimentNews}.
+        On-Chain Activity: ${onChainData}.
+    `;
 
     const aiResult = await generateSignal({ market, marketData: marketDataSummary });
 

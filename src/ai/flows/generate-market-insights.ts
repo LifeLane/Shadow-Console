@@ -15,7 +15,7 @@ import {z} from 'genkit';
 
 const GenerateSignalInputSchema = z.object({
   market: z.string().describe('The target market (e.g., BTCUSDT).'),
-  marketData: z.string().describe('A summary of recent market data, including price, volume, and major news headlines.'),
+  marketData: z.string().describe('A comprehensive summary of recent market data, including current price, recent k-line price action, market sentiment/news, and simulated on-chain activity.'),
 });
 export type GenerateSignalInput = z.infer<typeof GenerateSignalInputSchema>;
 
@@ -40,13 +40,19 @@ const signalPrompt = ai.definePrompt({
   output: {schema: GenerateSignalOutputSchema},
   prompt: `You are Shadow Oracle, an AI market analyst providing concise trading signals for a gamified trading arena.
   
-  Analyze the provided market data for {{{market}}}. Based *only* on this data, generate a trading signal.
+  Your task is to analyze a comprehensive data feed for {{{market}}} and generate a high-probability trading signal. You must synthesize information from all provided sources to form your conclusion.
 
-  Market Data: {{{marketData}}}
+  Data Feed:
+  {{{marketData}}}
 
-  Your response must be a clear signal (LONG, SHORT, or HOLD), a confidence score, a suggested entry price, take-profit, stop-loss, and a very brief thought process.
-  The prices should be realistic based on the current market data provided.
-  The reasoning should be a single, punchy sentence.
+  Instructions:
+  1.  **Synthesize**: Do not just repeat the data. Analyze the interplay between price action, news sentiment, and on-chain activity.
+  2.  **Generate Signal**: Based on your synthesis, provide a clear signal (LONG, SHORT, or HOLD).
+  3.  **Set Confidence**: Assign a confidence score (0-100) based on how strongly the data sources align.
+  4.  **Define Parameters**: Suggest realistic entry, take-profit, and stop-loss prices based on the current price and recent volatility.
+  5.  **Provide Reasoning**: Write a single, punchy sentence that justifies your signal, referencing at least two different data points (e.g., "Bullish on-chain activity coupled with positive sentiment suggests a breakout is imminent.").
+
+  Your entire output must be in the specified JSON format.
 
   Example Output:
   {
