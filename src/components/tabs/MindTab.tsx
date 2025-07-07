@@ -26,6 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import AirdropForm from '../AirdropForm';
 import { getProfileAction } from '@/app/profile/actions';
 import { Separator } from '../ui/separator';
+import InfoGridItem from '../InfoGridItem';
 
 const mindFormSchema = z.object({
   market: z.string().min(1, 'Please select a market.'),
@@ -46,19 +47,6 @@ const MarketStat = ({ label, value, icon: Icon, valueClassName }: { label: strin
         <p className={cn("font-bold font-code text-sm sm:text-base truncate", valueClassName)}>{value}</p>
     </div>
 );
-
-const InfoGridItem = ({ label, value, icon: Icon, valueClassName }: { label: string; value: React.ReactNode; icon?: React.ElementType, valueClassName?: string }) => (
-    <div className="flex flex-col p-2 rounded-lg bg-muted/40">
-        <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
-            {Icon && <Icon className="h-3 w-3" />}
-            <span>{label}</span>
-        </div>
-        <div className={cn("text-base sm:text-lg font-bold font-code text-foreground", valueClassName)}>
-            {value}
-        </div>
-    </div>
-);
-
 
 const SignalCard = ({ signal, onExecute, ticker }: { signal: Signal; onExecute: (signal: Signal) => void; ticker: Ticker24h | null }) => {
     const isMatchingTicker = ticker && ticker.symbol === signal.asset;

@@ -14,28 +14,16 @@ import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ScrollArea } from '../ui/scroll-area';
 import { Separator } from '../ui/separator';
-
-const StatCard = ({ icon: Icon, label, value, valuePrefix = '', valueClassName = '' }: { icon: React.ElementType, label: string, value: string | number, valuePrefix?: string, valueClassName?: string }) => (
-    <Card className="bg-card/70">
-        <CardContent className="p-3 sm:p-4">
-            <div className="flex items-center space-x-2 mb-1">
-                <Icon className="h-4 w-4 text-muted-foreground" />
-                <p className="text-xs sm:text-sm font-medium text-muted-foreground">{label}</p>
-            </div>
-            <p className={cn("text-xl sm:text-2xl font-bold font-code", valueClassName)}>
-                {valuePrefix}{typeof value === 'number' ? value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : value}
-            </p>
-        </CardContent>
-    </Card>
-);
+import InfoGridItem from '../InfoGridItem';
+import StatCard from '../StatCard';
 
 const TradeItem = ({ trade }: { trade: Trade }) => {
     const isWin = trade.pnl !== undefined && trade.pnl > 0;
     const pnlPrefix = isWin ? '+' : '';
 
     return (
-        <Card className="p-3 bg-card/50 border-primary/20">
-            <div className="flex items-start justify-between gap-2 mb-2">
+        <Card className="p-3 bg-card/50 border-primary/20 flex flex-col">
+            <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2">
                     <Badge className={cn(
                         "py-0.5 px-2 text-xs font-bold rounded-md",
@@ -49,46 +37,26 @@ const TradeItem = ({ trade }: { trade: Trade }) => {
                  }
             </div>
             
-            <Separator className="my-2 bg-border/20"/>
+            <Separator className="my-3 bg-border/20"/>
 
-            <div className="grid grid-cols-2 gap-2 mt-3 text-center">
-                <div className="flex flex-col p-2 rounded-lg bg-muted/40">
-                    <span className="text-muted-foreground text-xs">Entry Price</span>
-                    <span className="text-base sm:text-lg font-bold font-code text-foreground">${trade.entryPrice.toLocaleString()}</span>
-                </div>
-                <div className="flex flex-col p-2 rounded-lg bg-muted/40">
-                    <span className="text-muted-foreground text-xs">Stake</span>
-                    <span className="text-base sm:text-lg font-bold font-code text-primary">{trade.stake.toLocaleString()} SHADOW</span>
-                </div>
-
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <InfoGridItem label="Entry Price" value={`$${trade.entryPrice.toLocaleString()}`} />
+                <InfoGridItem label="Stake" value={`${trade.stake.toLocaleString()} SHADOW`} valueClassName="text-primary" />
+                
                 {trade.status === 'CLOSED' ? (
                     <>
-                        <div className="flex flex-col p-2 rounded-lg bg-muted/40">
-                            <span className="text-muted-foreground text-xs">Close Price</span>
-                            <span className="text-base sm:text-lg font-bold font-code text-foreground">${trade.closePrice?.toLocaleString() ?? 'N/A'}</span>
-                        </div>
-                        <div className="flex flex-col p-2 rounded-lg bg-muted/40">
-                            <span className="text-muted-foreground text-xs">PNL</span>
-                            <span className={cn("text-base sm:text-lg font-bold font-code", isWin ? 'text-accent' : 'text-destructive')}>
-                                {pnlPrefix}{trade.pnl?.toLocaleString() ?? '0'} SHADOW
-                            </span>
-                        </div>
+                        <InfoGridItem label="Close Price" value={`$${trade.closePrice?.toLocaleString() ?? 'N/A'}`} />
+                        <InfoGridItem label="PNL" value={`${pnlPrefix}${trade.pnl?.toLocaleString() ?? '0'} SHADOW`} valueClassName={isWin ? 'text-accent' : 'text-destructive'} />
                     </>
                 ) : (
                     <>
-                        <div className="flex flex-col p-2 rounded-lg bg-muted/40">
-                            <span className="text-muted-foreground text-xs">Take Profit</span>
-                            <span className="text-base sm:text-lg font-bold font-code text-accent">${trade.takeProfit.toLocaleString()}</span>
-                        </div>
-                        <div className="flex flex-col p-2 rounded-lg bg-muted/40">
-                            <span className="text-muted-foreground text-xs">Stop Loss</span>
-                            <span className="text-base sm:text-lg font-bold font-code text-destructive">${trade.stopLoss.toLocaleString()}</span>
-                        </div>
+                        <InfoGridItem label="Take Profit" value={`$${trade.takeProfit.toLocaleString()}`} valueClassName="text-accent" />
+                        <InfoGridItem label="Stop Loss" value={`$${trade.stopLoss.toLocaleString()}`} valueClassName="text-destructive" />
                     </>
                 )}
             </div>
 
-            <div className="pt-3 mt-2">
+            <div className="pt-3 mt-auto">
                 <p className="text-xs text-muted-foreground text-right">
                     {formatDistanceToNow(new Date(trade.timestamp), { addSuffix: true })}
                 </p>
@@ -162,7 +130,7 @@ export default function TradeTab({ isDbInitialized }: {
                 </CardHeader>
                 <CardContent className="p-4 pt-0">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <StatCard icon={DollarSign} label="Total PnL" value={stats?.totalPnl ?? 0} valuePrefix={stats && stats.totalPnl > 0 ? "+$" : "$"} valueClassName={stats && stats.totalPnl >= 0 ? 'text-accent' : 'text-destructive'}/>
+                        <StatCard icon={DollarSign} label="Total PnL" value={stats?.totalPnl ?? 0} valuePrefix={stats && stats.totalPnl >= 0 ? "+$" : "$"} valueClassName={stats && stats.totalPnl >= 0 ? 'text-accent' : 'text-destructive'}/>
                         <StatCard icon={TrendingUp} label="Best Trade" value={stats?.bestTrade ?? 0} valuePrefix="+$" valueClassName="text-accent"/>
                         <StatCard icon={TrendingDown} label="Worst Trade" value={stats?.worstTrade ?? 0} valuePrefix="$" valueClassName="text-destructive"/>
                         <StatCard icon={Repeat} label="Total Trades" value={stats?.totalTrades ?? 0}/>

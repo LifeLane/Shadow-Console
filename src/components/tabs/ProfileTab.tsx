@@ -17,6 +17,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '../ui/form';
 import { useForm } from 'react-hook-form';
 import AnimatedAvatar from '../AnimatedAvatar';
+import StatCard from '../StatCard';
 
 const getTierStyling = (xp: number) => {
     if (xp >= 9000) return { name: 'Oracle Lord', className: 'text-purple-400 border-purple-400', progress: 100 };
@@ -25,19 +26,6 @@ const getTierStyling = (xp: number) => {
     if (xp < 5000) return { name: 'Neon Pilot', className: 'text-green-400 border-green-400', progress: (xp / 5000) * 100 };
     return { name: 'Neon Pilot', className: 'text-green-400 border-green-400', progress: (xp / 5000) * 100 };
 }
-
-const StatCard = ({ icon, label, value, description }: { icon: React.ElementType, label: string, value: string | number, description?: string }) => (
-    <Card className="bg-card/70">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4">
-            <CardTitle className="text-sm font-medium">{label}</CardTitle>
-            {React.createElement(icon, { className: "h-4 w-4 text-muted-foreground" })}
-        </CardHeader>
-        <CardContent className="p-4 pt-0">
-            <div className="text-xl sm:text-2xl font-bold">{value}</div>
-            {description && <p className="text-xs text-muted-foreground">{description}</p>}
-        </CardContent>
-    </Card>
-);
 
 export type Message = {
   role: 'user' | 'model';
@@ -258,10 +246,10 @@ export default function ProfileTab({ isDbInitialized }: { isDbInitialized: boole
                                         <CardDescription className="text-sm">Your lifetime statistics in the Shadow Arena.</CardDescription>
                                     </CardHeader>
                                     <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 pt-0">
-                                        <StatCard icon={Award} label="Trade Win Rate" value={`${profile.winRate}%`} description="Based on all completed trades" />
-                                        <StatCard icon={ShieldCheck} label="Signal Accuracy" value={`${profile.signalAccuracy}%`} description="AI signal prediction success" />
-                                        <StatCard icon={Gem} label="SHADOW Balance" value={profile.shadowBalance.toLocaleString()} description="Your liquid token balance" />
-                                        <StatCard icon={BrainCircuit} label="Total XP Gained" value={profile.xp.toLocaleString()} description="Experience points earned" />
+                                        <StatCard icon={Award} label="Trade Win Rate" value={profile.winRate} valueSuffix="%" />
+                                        <StatCard icon={ShieldCheck} label="Signal Accuracy" value={profile.signalAccuracy} valueSuffix="%" />
+                                        <StatCard icon={Gem} label="SHADOW Balance" value={profile.shadowBalance} />
+                                        <StatCard icon={BrainCircuit} label="Total XP Gained" value={profile.xp} />
                                     </CardContent>
                                 </Card>
                             </div>
