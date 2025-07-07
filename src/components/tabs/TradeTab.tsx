@@ -216,7 +216,7 @@ export default function TradeTab({ isDbInitialized }: { isDbInitialized: boolean
                                             <TableCell className="font-medium">{trade.asset}</TableCell>
                                             <TableCell className={cn("font-semibold", trade.side === 'LONG' ? 'text-green-500' : 'text-red-500')}>{trade.side}</TableCell>
                                             <TableCell>{trade.stake}</TableCell>
-                                            <TableCell>${trade.entryPrice.toLocaleString()}</TableCell>
+                                            <TableCell>${trade.entryPrice?.toLocaleString() ?? 'N/A'}</TableCell>
                                             <TableCell>
                                                 {trade.status === 'OPEN' ? 
                                                     <Badge variant="outline" className="text-yellow-400 border-yellow-400">OPEN</Badge> : 
