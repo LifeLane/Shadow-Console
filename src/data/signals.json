@@ -1,12 +1,26 @@
 [
   {
     "asset": "BTCUSDT",
+    "prediction": "LONG",
+    "confidence": 75,
+    "entryPrice": 108830,
+    "takeProfit": 109130,
+    "stopLoss": 108730,
+    "status": "PENDING",
+    "source": "AI_ORACLE",
+    "reasoning": "Aggressive scalping opportunity: on-chain data shows DEX inflows hinting at upward momentum, despite the lack of sentiment data.",
+    "userId": "default_user",
+    "id": 18,
+    "timestamp": "2025-07-07T09:49:24.197Z"
+  },
+  {
+    "asset": "BTCUSDT",
     "prediction": "SHORT",
     "confidence": 65,
     "entryPrice": 108950,
     "takeProfit": 108700,
     "stopLoss": 109050,
-    "status": "PENDING",
+    "status": "LOSS",
     "source": "AI_ORACLE",
     "reasoning": "The recent NFT minting gas spike hints at network congestion, while the flat hourly candle suggests a possible short-term pullback for scalpers.",
     "userId": "default_user",

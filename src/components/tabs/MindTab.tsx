@@ -35,16 +35,18 @@ interface MindTabProps {
   setActiveTab: (tabId: 'wallet' | 'trade' | 'mind' | 'missions' | 'profile') => void;
 }
 
-const MarketStat = ({ label, value, change, icon: Icon, valueClassName }: { label: string; value: string | React.ReactNode; change?: number; icon: React.ElementType, valueClassName?: string }) => (
-    <div className="bg-card/70 border border-border/50 rounded-lg p-2 sm:p-3">
-        <div className="flex items-center text-muted-foreground text-[0.6rem] sm:text-xs">
-            <Icon className="w-3 h-3 mr-1.5" />
-            <span>{label}</span>
-        </div>
-        <div className={cn("text-base sm:text-lg font-bold font-code mt-1", valueClassName)}>
-            {value}
-        </div>
-    </div>
+const MarketStat = ({ label, value, icon: Icon, valueClassName }: { label: string; value: string | React.ReactNode; icon: React.ElementType, valueClassName?: string }) => (
+    <Card className="bg-card/70 border-border/50">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3">
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{label}</CardTitle>
+            <Icon className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent className="p-3 pt-0">
+            <div className={cn("text-lg sm:text-xl font-bold font-code", valueClassName)}>
+                {value}
+            </div>
+        </CardContent>
+    </Card>
 );
 
 const ModeButton = ({ icon: Icon, label, selected, ...props }: { icon: React.ElementType; label: string; selected: boolean } & React.ComponentProps<typeof Button>) => (
@@ -178,7 +180,7 @@ export default function MindTab({ isDbInitialized, setExecutableSignal, setActiv
   return (
     <div className="h-full flex flex-col space-y-4 bg-background">
         <div className="px-4 pt-4">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <MarketStat label="Current Price" value={tickerData ? `$${parseFloat(tickerData.lastPrice).toLocaleString()}`: <Loader2 className="h-5 w-5 animate-spin" />} icon={Zap} valueClassName="text-white" />
                 <MarketStat label="24h Change" value={tickerData ? `${parseFloat(tickerData.priceChangePercent).toFixed(2)}%`: <Loader2 className="h-5 w-5 animate-spin" />} icon={TrendingUp} valueClassName={tickerData && parseFloat(tickerData.priceChangePercent) >= 0 ? 'text-accent' : 'text-red-500'} />
                 <MarketStat label="24h High" value={tickerData ? `$${parseFloat(tickerData.highPrice).toLocaleString()}`: <Loader2 className="h-5 w-5 animate-spin" />} icon={ArrowUp} />
