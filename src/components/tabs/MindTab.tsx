@@ -55,39 +55,41 @@ const MarketStat = ({ label, value, icon: Icon, valueClassName }: { label: strin
 );
 
 const SignalCard = ({ signal, onExecute }: { signal: Signal; onExecute: (signal: Signal) => void; }) => (
-    <Card className="p-3 bg-card/50 border border-primary/20">
-        <div className="flex items-start sm:items-center justify-between gap-2 flex-col sm:flex-row">
-            <div className="flex-grow">
+    <Card className="p-3 bg-card/50 border-primary/20">
+        <div className="flex items-start justify-between gap-2">
+            <div className="flex-1">
                 <div className="flex items-baseline gap-2 mb-2">
                     <Badge className={cn(
-                        "py-0.5 px-2 text-sm font-bold rounded-md",
-                        signal.prediction === 'LONG' ? 'bg-accent text-accent-foreground' :
-                        signal.prediction === 'SHORT' ? 'bg-destructive text-destructive-foreground' : 'bg-muted text-muted-foreground'
+                        "py-0.5 px-2 text-xs font-bold rounded-md",
+                        signal.prediction === 'LONG' ? 'bg-green-500/80 text-white' :
+                        signal.prediction === 'SHORT' ? 'bg-red-500/80 text-white' : 'bg-muted text-muted-foreground'
                     )}>{signal.prediction}</Badge>
-                    <span className="font-bold text-base sm:text-lg">{signal.asset}</span>
-                    <span className="text-xs sm:text-sm text-muted-foreground">(Conf: {signal.confidence}%)</span>
+                    <span className="font-semibold sm:text-lg">{signal.asset}</span>
+                    <span className="text-xs text-muted-foreground">(Conf: {signal.confidence}%)</span>
                 </div>
-                <div className="grid grid-cols-3 gap-2 text-xs sm:text-sm font-code">
-                    <div>
-                        <p className="text-muted-foreground">Entry</p>
-                        <p className="font-bold text-sm sm:text-base">${signal.entryPrice.toLocaleString()}</p>
+
+                <div className="space-y-1 sm:grid sm:grid-cols-3 sm:gap-x-4 sm:space-y-0 font-code text-sm">
+                    <div className="flex items-baseline justify-between sm:flex-col sm:items-start">
+                        <span className="text-muted-foreground text-xs">Entry</span>
+                        <span className="font-semibold">${signal.entryPrice.toLocaleString()}</span>
                     </div>
-                    <div>
-                        <p className="text-muted-foreground">TP</p>
-                        <p className="font-bold text-sm sm:text-base">${signal.takeProfit.toLocaleString()}</p>
+                    <div className="flex items-baseline justify-between sm:flex-col sm:items-start">
+                        <span className="text-muted-foreground text-xs">TP</span>
+                        <span className="font-semibold text-accent">${signal.takeProfit.toLocaleString()}</span>
                     </div>
-                    <div>
-                        <p className="text-muted-foreground">SL</p>
-                        <p className="font-bold text-sm sm:text-base">${signal.stopLoss.toLocaleString()}</p>
+                    <div className="flex items-baseline justify-between sm:flex-col sm:items-start">
+                        <span className="text-muted-foreground text-xs">SL</span>
+                        <span className="font-semibold text-destructive">${signal.stopLoss.toLocaleString()}</span>
                     </div>
                 </div>
             </div>
-            <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between space-x-2 sm:space-x-0 sm:space-y-2 w-full sm:w-auto mt-2 sm:mt-0">
+            
+            <div className="flex flex-col items-end justify-between self-stretch">
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button size="icon" variant="ghost" className="h-8 w-8 sm:h-9 sm:w-9 text-accent hover:bg-accent/20" onClick={() => onExecute(signal)} disabled={signal.prediction === 'HOLD'}>
-                                <Send className="h-4 w-4 sm:h-5 sm:w-5" />
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-accent hover:bg-accent/20" onClick={() => onExecute(signal)} disabled={signal.prediction === 'HOLD'}>
+                                <Send className="h-4 w-4" />
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -95,12 +97,12 @@ const SignalCard = ({ signal, onExecute }: { signal: Signal; onExecute: (signal:
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
-                <p className="text-xs text-muted-foreground whitespace-nowrap">
+                <p className="text-xs text-muted-foreground whitespace-nowrap mt-auto">
                     {formatDistanceToNow(new Date(signal.timestamp), { addSuffix: true })}
                 </p>
             </div>
         </div>
-        <div className="mt-2 pt-2 border-t border-border/20">
+        <div className="mt-3 pt-3 border-t border-border/20">
             <p className="text-xs text-muted-foreground italic flex items-start gap-1.5">
                 <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                 <span>Shadow Signals are AI-generated for gamified purposes only and do not constitute financial advice. Trade at your own risk.</span>
@@ -274,7 +276,7 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
                         name="market"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="text-muted-foreground text-sm flex items-center"><BrainCircuit className="w-4 h-4 mr-2"/> Target Asset</FormLabel>
+                                <FormLabel className="text-muted-foreground text-xs flex items-center"><BrainCircuit className="w-4 h-4 mr-2"/> Target Asset</FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingMarkets}>
                                     <FormControl>
                                         <SelectTrigger className="h-11 text-sm sm:text-base border-2 border-border focus:border-primary">
@@ -291,13 +293,13 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
                         )}
                     />
                     
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
                         <FormField
                             control={form.control}
                             name="tradingMode"
                             render={({ field }) => (
-                                <FormItem className="col-span-2 sm:col-span-4">
-                                    <FormLabel className="text-muted-foreground text-sm flex items-center"><Sparkles className="w-4 h-4 mr-2"/> Trading Mode</FormLabel>
+                                <FormItem className="col-span-1 sm:col-span-4">
+                                    <FormLabel className="text-muted-foreground text-xs flex items-center"><Sparkles className="w-4 h-4 mr-2"/> Trading Mode</FormLabel>
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                                         {tradingModes.map((mode) => (
                                             <ModeButton
@@ -317,8 +319,8 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
                             control={form.control}
                             name="risk"
                             render={({ field }) => (
-                                <FormItem className="col-span-2 sm:col-span-4">
-                                    <FormLabel className="text-muted-foreground text-sm flex items-center"><Crosshair className="w-4 h-4 mr-2"/> Risk Profile</FormLabel>
+                                <FormItem className="col-span-1 sm:col-span-4">
+                                    <FormLabel className="text-muted-foreground text-xs flex items-center"><Crosshair className="w-4 h-4 mr-2"/> Risk Profile</FormLabel>
                                     <Controller
                                         control={form.control}
                                         name="risk"
