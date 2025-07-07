@@ -28,14 +28,14 @@ const StatDisplay = ({ icon, label, value, unit, tooltip }: { icon: React.Elemen
     <TooltipProvider>
         <Tooltip>
             <TooltipTrigger asChild>
-                <div className="flex flex-col items-center justify-between p-3 bg-muted/30 rounded-lg text-center h-36">
+                <div className="flex flex-col items-center justify-between p-4 bg-muted/30 rounded-lg text-center h-36">
                     <div className="flex flex-col items-center gap-1">
-                        {React.createElement(icon, { className: "h-6 w-6 text-accent" })}
-                        <p className="text-sm text-muted-foreground leading-tight">{label}</p>
+                        {React.createElement(icon, { className: "h-6 w-6 text-primary" })}
+                        <p className="text-sm text-muted-foreground whitespace-pre-line leading-tight">{label}</p>
                     </div>
                     <div className="text-center">
-                        <p className="text-3xl font-bold font-code text-primary">{value}</p>
-                        {unit && <p className="text-base text-muted-foreground -mt-1">{unit}</p>}
+                        <p className="text-3xl font-bold font-code text-accent">{value}</p>
+                        {unit && <p className="text-base text-accent -mt-1">{unit}</p>}
                     </div>
                 </div>
             </TooltipTrigger>
@@ -127,10 +127,10 @@ export default function WalletTab({ isDbInitialized }: { isDbInitialized: boolea
                         <CardTitle className="text-lg">My Staking Dashboard</CardTitle>
                     </CardHeader>
                     <CardContent className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
-                        <StatDisplay icon={Gem} label="Available SHADOW" value={stats.shadowBalance.toLocaleString()} tooltip="Tokens in your wallet, ready to be staked."/>
-                        <StatDisplay icon={Pickaxe} label="Total Staked" value={stats.stakedAmount.toLocaleString()} tooltip="Tokens currently earning rewards in staking pools."/>
-                        <StatDisplay icon={TrendingUp} label="Current Staking APR" value={stats.apr.toFixed(2)} unit="%" tooltip="Your Annual Percentage Rate, boosted by your XP."/>
-                        <StatDisplay icon={Zap} label="Hourly Rewards" value={hourlyRewards.toFixed(4)} tooltip="Estimated SHADOW earned per hour from staking."/>
+                        <StatDisplay icon={Gem} label={"Available\nSHADOW"} value={stats.shadowBalance.toLocaleString()} tooltip="Tokens in your wallet, ready to be staked."/>
+                        <StatDisplay icon={Pickaxe} label={"Total\nStaked"} value={stats.stakedAmount.toLocaleString()} tooltip="Tokens currently earning rewards in staking pools."/>
+                        <StatDisplay icon={TrendingUp} label={"Current\nStaking APR"} value={stats.apr.toFixed(2)} unit="%" tooltip="Your Annual Percentage Rate, boosted by your XP."/>
+                        <StatDisplay icon={Zap} label={"Hourly\nRewards"} value={hourlyRewards.toFixed(4)} tooltip="Estimated SHADOW earned per hour from staking."/>
                     </CardContent>
                 </Card>
 
@@ -204,5 +204,7 @@ export default function WalletTab({ isDbInitialized }: { isDbInitialized: boolea
         </Tabs>
     </div>
   );
+
+    
 
     
