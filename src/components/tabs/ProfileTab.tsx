@@ -107,13 +107,13 @@ export default function ProfileTab({ isDbInitialized }: { isDbInitialized: boole
                        userTier?.name === 'Grid Ghost' ? 7000 : 5000;
     const nextTierName = userTier?.name === 'Oracle Lord' ? 'MAX' :
                          userTier?.name === 'Cypher Runner' ? 'Oracle Lord' :
-                         userTier?.name === 'Grid Ghost' ? 'Cypher Runner' : 'Neon Pilot';
+                         userTier?.name === 'Grid Ghost' ? 'Cypher Runner' : 'Grid Ghost';
 
     return (
         <Card className="glow-border">
             <CardHeader>
                 <CardTitle className="text-primary flex items-center text-xl sm:text-2xl"><User className="mr-3"/> Pilot Hub</CardTitle>
-                <CardDescription className="text-sm">Manage your profile, consult the Oracle, and secure your airdrop.</CardDescription>
+                <CardDescription className="text-sm">Manage your profile and secure your airdrop.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Tabs defaultValue="profile" className="w-full">

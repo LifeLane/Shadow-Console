@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Gem, Pickaxe, Loader2, Cpu, Zap, TrendingUp, Gauge, Bolt, Power, PowerOff, ShoppingCart, Wrench } from 'lucide-react';
+import { Gem, Landmark, Loader2, Cpu, Zap, TrendingUp, Gauge, Bolt, Power, PowerOff, ShoppingCart, Wrench } from 'lucide-react';
 import type { WalletStats, User, MiningRig } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { getWalletStatsAction, stakeShadowAction, unstakeShadowAction } from '@/app/missions/actions';
@@ -23,16 +23,18 @@ import { Badge } from '../ui/badge';
 import InfoGridItem from '../InfoGridItem';
 
 const stakeFormSchema = z.object({
-  amount: z.coerce.number().positive("Amount must be positive."),
+  amount: z.coerce.number().positive("Amount must be be positive."),
 });
 type StakeFormValues = z.infer<typeof stakeFormSchema>;
 
 
-const StatGridItem = ({ icon, label, children, className }: { icon: React.ElementType, label: string, children: React.ReactNode, className?: string }) => (
-    <div className={cn("p-4 text-center flex flex-col items-center justify-center space-y-2 min-h-[140px]", className)}>
-        {React.createElement(icon, { className: "h-5 w-5 text-primary mb-2" })}
-        <p className="text-xs text-muted-foreground whitespace-pre-line leading-tight">{label}</p>
-        <div className="flex items-baseline justify-center">{children}</div>
+const StatDisplay = ({ icon, label, children, className }: { icon: React.ElementType, label: string, children: React.ReactNode, className?: string }) => (
+    <div className={cn("p-4 text-center flex flex-col items-center justify-between space-y-2 h-[140px]", className)}>
+        <div className="flex flex-col items-center gap-2">
+            {React.createElement(icon, { className: "h-5 w-5 text-primary" })}
+            <p className="text-xs text-muted-foreground whitespace-pre-line leading-tight">{label}</p>
+        </div>
+        <div className="flex flex-col items-center">{children}</div>
     </div>
 );
 
@@ -241,7 +243,7 @@ export default function WalletTab({ isDbInitialized }: { isDbInitialized: boolea
     <div className="space-y-4 sm:space-y-6">
         <Card className="glow-border-primary">
             <CardHeader>
-                <CardTitle className="text-primary flex items-center text-xl sm:text-2xl"><Pickaxe className="mr-3"/> SHADOW Vault</CardTitle>
+                <CardTitle className="text-primary flex items-center text-xl sm:text-2xl"><Landmark className="mr-3"/> SHADOW Vault</CardTitle>
                 <CardDescription className="text-sm">Manage your SHADOW holdings. Stake in high-yield pools or deploy custom mining rigs.</CardDescription>
             </CardHeader>
         </Card>
@@ -258,22 +260,20 @@ export default function WalletTab({ isDbInitialized }: { isDbInitialized: boolea
                         <CardTitle className="text-lg">My Staking Dashboard</CardTitle>
                     </CardHeader>
                     <CardContent className="p-0">
-                        <div className="grid grid-cols-2">
-                            <StatGridItem icon={Gem} label={"Available\nSHADOW"} className="border-r border-b border-border">
+                         <div className="grid grid-cols-2 divide-x divide-border">
+                            <StatDisplay icon={Gem} label={"Available\nSHADOW"} className="border-b border-border">
                                 <p className="text-2xl font-bold font-code text-accent">{stats.shadowBalance.toLocaleString()}</p>
-                            </StatGridItem>
-                            <StatGridItem icon={Pickaxe} label={"Total\nStaked"} className="border-b border-border">
+                            </StatDisplay>
+                            <StatDisplay icon={Landmark} label={"Total\nStaked"} className="border-b border-border">
                                 <p className="text-2xl font-bold font-code text-accent">{stats.stakedAmount.toLocaleString()}</p>
-                            </StatGridItem>
-                            <StatGridItem icon={TrendingUp} label={"Current\nStaking APR"} className="border-r border-border">
-                                <>
-                                    <p className="text-2xl font-bold font-code text-accent">{stats.apr.toFixed(2)}</p>
-                                    <p className="text-lg font-bold font-code text-accent/80 ml-0.5">%</p>
-                                </>
-                            </StatGridItem>
-                            <StatGridItem icon={Zap} label={"Hourly\nRewards"}>
+                            </StatDisplay>
+                            <StatDisplay icon={TrendingUp} label={"Current\nStaking APR"}>
+                                <p className="text-2xl font-bold font-code text-accent">{stats.apr.toFixed(2)}</p>
+                                <p className="text-lg font-bold font-code text-accent/80">%</p>
+                            </StatDisplay>
+                            <StatDisplay icon={Zap} label={"Hourly\nRewards"}>
                                  <p className="text-2xl font-bold font-code text-accent">{hourlyRewards.toFixed(4)}</p>
-                            </StatGridItem>
+                            </StatDisplay>
                         </div>
                     </CardContent>
                 </Card>
@@ -339,13 +339,13 @@ export default function WalletTab({ isDbInitialized }: { isDbInitialized: boolea
                         <CardTitle className="text-lg">Fleet Overview</CardTitle>
                     </CardHeader>
                     <CardContent className="grid grid-cols-2 gap-4">
-                        <StatGridItem icon={Gauge} label={"Total\nHashrate"} className="min-h-0 py-2">
+                        <StatDisplay icon={Gauge} label={"Total\nHashrate"} className="min-h-0 py-2">
                            <p className="text-2xl font-bold font-code text-accent">{totalHashrate.toLocaleString()} TH/s</p>
-                        </StatGridItem>
-                        <StatGridItem icon={Zap} label={"Passive Income\n(per hour)"} className="min-h-0 py-2">
+                        </StatDisplay>
+                        <StatDisplay icon={Zap} label={"Passive Income\n(per hour)"} className="min-h-0 py-2">
                             <p className="text-2xl font-bold font-code text-accent">{passiveIncome.toFixed(3)}</p>
                              <p className="text-sm font-code text-accent/80 ml-1.5">SHADOW</p>
-                        </StatGridItem>
+                        </StatDisplay>
                     </CardContent>
                 </Card>
 

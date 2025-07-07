@@ -13,11 +13,11 @@ interface TerminalExecutionAnimationProps {
 }
 
 const getLogLinesConfig = (target: string, tradeMode: string, risk: string) => [
-  { id: 'init_core', text: `> Shadow Core v2.0 Protocol Engaged for [${target}]...`, speed: 40, color: "text-gray-300" },
+  { id: 'init_core', text: `> Shadow Core v2.0 Protocol Engaged for [${target}]...`, speed: 40, color: "text-foreground/80" },
   { id: 'auth_node', text: `> Authenticating with ShadowNet Secure Node... ${Math.random() > 0.05 ? "[ACCESS GRANTED]" : "[WARN: ANOMALY DETECTED - REROUTING]"}`, speed: 40, color: Math.random() > 0.05 ? "text-primary" : "text-yellow-400" },
   { id: 'trade_mode', text: `> Trade Mode Matrix: [${tradeMode.toUpperCase()}]`, speed: 35, color: "text-cyan-400" },
-  { id: 'risk_calibration', text: `> Risk Calibration Matrix: [${risk.toUpperCase()}] - Quantum parameters adjusting...`, speed: 30, color: risk.toLowerCase() === 'low' ? "text-primary" : risk.toLowerCase() === 'medium' ? "text-yellow-400" : "text-red-400" },
-  { id: 'data_ingest', text: `> Ingesting multi-terabyte arcane data streams (Binance, Polygon, CoinDesk)...`, speed: 50, color: "text-gray-400" },
+  { id: 'risk_calibration', text: `> Risk Calibration Matrix: [${risk.toUpperCase()}] - Quantum parameters adjusting...`, speed: 30, color: risk.toLowerCase() === 'low' ? "text-primary" : risk.toLowerCase() === 'medium' ? "text-yellow-400" : "text-destructive" },
+  { id: 'data_ingest', text: `> Ingesting multi-terabyte arcane data streams (Binance, Polygon, CoinDesk)...`, speed: 50, color: "text-foreground/60" },
   { id: 'liquidity_analysis', text: `> :: Analyzing fragmented liquidity patterns & cross-chain resonances...`, speed: 30, color: "text-purple-400" },
   { id: 'sentiment_scan', text: `> :: Scanning Noosphere for emergent sentiment clusters...`, speed: 35, color: "text-teal-400" },
   { id: 'oracle_sync', text: `> :: Synchronizing with the Chronos Oracle... aligning temporal echoes...`, speed: 40, color: "text-accent" },

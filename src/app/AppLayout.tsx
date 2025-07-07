@@ -9,7 +9,7 @@ import WalletTab from '@/components/tabs/WalletTab';
 import MissionsTab from '@/components/tabs/MissionsTab';
 import ProfileTab from '@/components/tabs/ProfileTab';
 import TradeTab from '@/components/tabs/TradeTab';
-import BackgroundAnimation from './BackgroundAnimation';
+import BackgroundAnimation from '@/components/BackgroundAnimation';
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -18,9 +18,8 @@ import { setupAndSeedLocalData } from '@/services/setupService';
 import { useToast } from '@/hooks/use-toast';
 import { resolveOpenTradesAction } from '@/app/agents/actions';
 import { resolvePendingSignalsAction } from '@/app/mind/actions';
-import AirdropTab from '@/components/tabs/AirdropTab';
 
-type TabId = 'vault' | 'trade' | 'mind' | 'missions' | 'airdrop' | 'profile';
+type TabId = 'vault' | 'trade' | 'mind' | 'missions' | 'profile';
 
 interface Tab {
   id: TabId;
@@ -34,7 +33,6 @@ const tabs: Tab[] = [
   { id: 'trade', label: "Trade", icon: BarChart, component: TradeTab },
   { id: 'mind', label: "Mind", icon: BrainCircuit, component: MindTab },
   { id: 'missions', label: 'Missions', icon: ListChecks, component: MissionsTab },
-  { id: 'airdrop', label: 'Airdrop', icon: Gift, component: AirdropTab },
   { id: 'profile', label: 'Profile', icon: User, component: ProfileTab },
 ];
 
@@ -141,14 +139,12 @@ export default function AppLayout() {
   };
 
   return (
-    <div className="relative flex flex-col min-h-screen text-foreground font-body">
-      <div className="fixed top-0 left-0 w-full h-full z-0">
-        <BackgroundAnimation />
-      </div>
+    <div className="relative flex flex-col min-h-screen text-foreground font-body bg-background">
+       <BackgroundAnimation />
       <header className="sticky top-0 z-50 flex items-center justify-between p-3 sm:p-4 bg-background/90 backdrop-blur-md border-b border-border/50">
         <div className="flex items-center gap-2">
           <Sparkles className="h-7 w-7 sm:h-8 sm:w-8 text-primary animate-pulse" />
-          <h1 className="text-xl sm:text-2xl font-headline font-bold text-foreground">Block<span className="text-primary">SHADOW</span></h1>
+          <h1 className="text-xl sm:text-2xl font-headline font-bold text-foreground">Block<span className="text-primary animate-neon-flicker">SHADOW</span></h1>
         </div>
 
         <div className="flex items-center gap-2">
@@ -194,7 +190,7 @@ export default function AppLayout() {
       </main>
 
       <footer className="sticky bottom-0 z-40 border-t border-border/50 bg-background/90 backdrop-blur-md">
-        <nav className="container mx-auto grid grid-cols-6 items-center h-16 sm:h-20 px-1">
+        <nav className="container mx-auto grid grid-cols-5 items-center h-16 sm:h-20 px-1">
           {tabs.map((tab) => (
             <Button
               key={tab.id}

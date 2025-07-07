@@ -259,7 +259,7 @@
     @apply border-border;
   }
   body {
-    @apply text-foreground;
+    @apply bg-background text-foreground;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -280,6 +280,9 @@
 
 /* Glow effect for sections */
 .glow-border {
+  box-shadow: 0 0 5px 1px hsl(var(--primary)/0.6), 0 0 10px 2px hsl(var(--primary)/0.4);
+}
+.glow-border-primary {
   box-shadow: 0 0 5px 1px hsl(var(--primary)/0.6), 0 0 10px 2px hsl(var(--primary)/0.4);
 }
 
@@ -305,32 +308,43 @@
 
 
 /* Typewriter Caret Animation */
-@keyframes blink-caret { 
-  from, to { border-color: transparent }
-  50% { border-color: hsl(var(--accent)); } 
+@keyframes blink-block-caret { 
+  50% { opacity: 0; }
 }
 
-.typewriter-caret::after {
-  content: '_';
-  animation: blink-caret 1s step-end infinite;
-  color: hsl(var(--accent));
-  font-weight: bold;
+.animate-blink-block-caret {
+  animation: blink-block-caret 1s step-end infinite;
 }
 
-/* Neon Tab Transition (Conceptual) */
+/* Neon flicker for logo */
 @keyframes neon-flicker {
   0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
-    text-shadow:
-      0 0 5px hsl(var(--primary)),
-      0 0 10px hsl(var(--primary)),
-      0 0 20px hsl(var(--primary)),
-      0 0 40px hsl(var(--primary-foreground));
-    color: hsl(var(--primary));
+      text-shadow:
+          0 0 2px hsl(var(--primary-foreground)),
+          0 0 5px hsl(var(--primary-foreground)),
+          0 0 10px hsl(var(--primary)),
+          0 0 20px hsl(var(--primary)),
+          0 0 30px hsl(var(--primary)),
+          0 0 40px hsl(var(--primary));
+      color: hsl(var(--primary-foreground) / 0.9);
   }
   20%, 24%, 55% {
-    text-shadow: none;
-    color: hsl(var(--primary-foreground));
+      text-shadow: none;
+      color: hsl(var(--primary));
   }
 }
 
-    
+.animate-neon-flicker {
+  animation: neon-flicker 3s infinite alternate;
+}
+
+/* Pulse animation for general elements */
+@keyframes pulse-opacity {
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.animate-pulse-opacity {
+  animation: pulse-opacity 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

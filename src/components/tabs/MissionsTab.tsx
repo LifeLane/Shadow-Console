@@ -104,7 +104,7 @@ export default function MissionsTab({ isDbInitialized }: { isDbInitialized: bool
       <Card className="glow-border">
         <CardHeader>
           <CardTitle className="text-primary flex items-center text-xl sm:text-2xl"><ListChecks className="mr-3" /> Missions Hub</CardTitle>
-          <CardDescription className="text-sm">Complete tasks and climb the leaderboard to earn rewards.</CardDescription>
+          <CardDescription className="text-sm">Complete tasks and climb the ranks to earn rewards.</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="tasks" className="w-full">

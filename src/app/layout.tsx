@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
-  title: 'Shadow Trader',
+  title: 'BlockShadow',
   description: 'AI-Powered Web3 Trading Competition',
 };
 
