@@ -39,7 +39,7 @@ type MindFormValues = z.infer<typeof mindFormSchema>;
 
 interface MindTabProps {
   isDbInitialized: boolean;
-  setActiveTab: (tabId: 'wallet' | 'trade' | 'mind' | 'missions' | 'profile') => void;
+  setActiveTab: (tabId: 'vault' | 'trade' | 'mind' | 'missions' | 'profile') => void;
 }
 
 const MarketStat = ({ label, value, icon: Icon, valueClassName }: { label: string; value: string | React.ReactNode; icon: React.ElementType, valueClassName?: string }) => (
