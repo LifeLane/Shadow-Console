@@ -170,7 +170,7 @@ export default function AppLayout() {
         </div>
       </header>
 
-      <main className="flex-grow flex flex-col p-2 sm:p-4">
+      <main className="relative z-10 flex-grow flex flex-col p-2 sm:p-4">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
