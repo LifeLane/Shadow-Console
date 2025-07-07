@@ -31,10 +31,10 @@ const StatCard = ({ icon: Icon, label, value, valuePrefix = '', valueClassName =
 const TradeItem = ({ trade }: { trade: Trade }) => {
     const isWin = trade.pnl !== undefined && trade.pnl > 0;
     return (
-        <Card className="p-4 bg-card/50 border border-primary/20">
-            <div className="flex items-start justify-between gap-4">
+        <Card className="p-3 bg-card/50 border border-primary/20">
+            <div className="flex items-center justify-between gap-2">
                 <div className="flex-grow">
-                    <div className="flex items-baseline gap-3 mb-3">
+                    <div className="flex items-baseline gap-3 mb-2">
                         <Badge className={cn(
                             "py-1 px-3 text-sm font-bold rounded-md",
                             trade.side === 'LONG' ? 'bg-green-500/80 text-white' : 'bg-red-500/80 text-white'
@@ -42,7 +42,7 @@ const TradeItem = ({ trade }: { trade: Trade }) => {
                         <span className="font-bold text-lg">{trade.asset}</span>
                         <span className="text-sm text-muted-foreground">(Stake: ${trade.stake})</span>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm font-code">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm font-code">
                         <div>
                             <p className="text-muted-foreground">Entry</p>
                             <p className="font-bold text-base">${trade.entryPrice.toLocaleString()}</p>
@@ -61,7 +61,7 @@ const TradeItem = ({ trade }: { trade: Trade }) => {
                         )}
                     </div>
                 </div>
-                <div className="flex flex-col items-end justify-between h-full min-h-[70px]">
+                <div className="flex flex-col items-end justify-between space-y-2">
                      {trade.status === 'OPEN' ?
                         <Badge variant="outline" className="text-yellow-400 border-yellow-400">OPEN</Badge> :
                         <Badge variant="secondary" className={cn(isWin ? "bg-accent/20 text-accent" : "bg-destructive/20 text-destructive")}>CLOSED</Badge>

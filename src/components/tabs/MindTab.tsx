@@ -312,9 +312,9 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
                             ) : (
                                 signalHistory.map((signal) => (
                                     <Card key={signal.id} className="p-3 bg-card/50 border border-primary/20">
-                                        <div className="flex items-start justify-between gap-4">
+                                        <div className="flex items-center justify-between gap-2">
                                             <div className="flex-grow">
-                                                <div className="flex items-baseline gap-3 mb-3">
+                                                <div className="flex items-baseline gap-3 mb-2">
                                                     <Badge className={cn(
                                                         "py-1 px-3 text-sm font-bold rounded-md",
                                                         signal.prediction === 'LONG' ? 'bg-accent text-accent-foreground' :
@@ -323,7 +323,7 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
                                                     <span className="font-bold text-lg">{signal.asset}</span>
                                                     <span className="text-sm text-muted-foreground">(Conf: {signal.confidence}%)</span>
                                                 </div>
-                                                <div className="grid grid-cols-3 gap-4 text-sm font-code">
+                                                <div className="grid grid-cols-3 gap-3 text-sm font-code">
                                                     <div>
                                                         <p className="text-muted-foreground">Entry</p>
                                                         <p className="font-bold text-base">${signal.entryPrice.toLocaleString()}</p>
@@ -338,7 +338,7 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="flex flex-col items-end justify-between h-full min-h-[70px]">
+                                            <div className="flex flex-col items-end justify-between space-y-2">
                                                 <TooltipProvider>
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
@@ -357,7 +357,7 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
                                                 </p>
                                             </div>
                                         </div>
-                                        <div className="mt-3 pt-2 border-t border-border/20">
+                                        <div className="mt-2 pt-2 border-t border-border/20">
                                             <p className="text-xs text-muted-foreground italic flex items-start gap-2">
                                                 <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                                                 <span>Shadow Signals are AI-generated for gamified purposes only and do not constitute financial advice. Trade at your own risk.</span>
