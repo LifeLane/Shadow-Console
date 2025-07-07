@@ -17,34 +17,22 @@ import { getWalletStatsAction, stakeShadowAction, unstakeShadowAction } from '@/
 import { getProfileAction } from '@/app/profile/actions';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 const stakeFormSchema = z.object({
   amount: z.coerce.number().positive("Amount must be positive."),
 });
 type StakeFormValues = z.infer<typeof stakeFormSchema>;
 
-const StatDisplay = ({ icon, label, value, unit, tooltip }: { icon: React.ElementType, label: string, value: string | number, unit?: string, tooltip: string }) => (
-    <TooltipProvider>
-        <Tooltip>
-            <TooltipTrigger asChild>
-                <div className="flex flex-col items-center justify-between p-4 bg-muted/30 rounded-lg text-center h-36">
-                    <div className="flex flex-col items-center gap-1">
-                        {React.createElement(icon, { className: "h-6 w-6 text-primary" })}
-                        <p className="text-sm text-muted-foreground whitespace-pre-line leading-tight">{label}</p>
-                    </div>
-                    <div className="text-center">
-                        <p className="text-3xl font-bold font-code text-accent">{value}</p>
-                        {unit && <p className="text-base text-accent -mt-1">{unit}</p>}
-                    </div>
-                </div>
-            </TooltipTrigger>
-            <TooltipContent>
-                <p>{tooltip}</p>
-            </TooltipContent>
-        </Tooltip>
-    </TooltipProvider>
+
+const StatGridItem = ({ icon, label, children, className }: { icon: React.ElementType, label: string, children: React.ReactNode, className?: string }) => (
+    <div className={cn("p-4 text-center flex flex-col items-center justify-center space-y-2 min-h-[140px]", className)}>
+        {React.createElement(icon, { className: "h-5 w-5 text-primary mb-2" })}
+        <p className="text-xs text-muted-foreground whitespace-pre-line leading-tight">{label}</p>
+        <div className="flex items-baseline justify-center">{children}</div>
+    </div>
 );
+
 
 export default function WalletTab({ isDbInitialized }: { isDbInitialized: boolean }) {
   const [stats, setStats] = useState<WalletStats | null>(null);
@@ -126,11 +114,24 @@ export default function WalletTab({ isDbInitialized }: { isDbInitialized: boolea
                     <CardHeader>
                         <CardTitle className="text-lg">My Staking Dashboard</CardTitle>
                     </CardHeader>
-                    <CardContent className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
-                        <StatDisplay icon={Gem} label={"Available\nSHADOW"} value={stats.shadowBalance.toLocaleString()} tooltip="Tokens in your wallet, ready to be staked."/>
-                        <StatDisplay icon={Pickaxe} label={"Total\nStaked"} value={stats.stakedAmount.toLocaleString()} tooltip="Tokens currently earning rewards in staking pools."/>
-                        <StatDisplay icon={TrendingUp} label={"Current\nStaking APR"} value={stats.apr.toFixed(2)} unit="%" tooltip="Your Annual Percentage Rate, boosted by your XP."/>
-                        <StatDisplay icon={Zap} label={"Hourly\nRewards"} value={hourlyRewards.toFixed(4)} tooltip="Estimated SHADOW earned per hour from staking."/>
+                    <CardContent className="p-0">
+                        <div className="grid grid-cols-2">
+                            <StatGridItem icon={Gem} label={"Available\nSHADOW"} className="border-r border-b border-border">
+                                <p className="text-2xl font-bold font-code text-accent">{stats.shadowBalance.toLocaleString()}</p>
+                            </StatGridItem>
+                            <StatGridItem icon={Pickaxe} label={"Total\nStaked"} className="border-b border-border">
+                                <p className="text-2xl font-bold font-code text-accent">{stats.stakedAmount.toLocaleString()}</p>
+                            </StatGridItem>
+                            <StatGridItem icon={TrendingUp} label={"Current\nStaking APR"} className="border-r border-border">
+                                <>
+                                    <p className="text-2xl font-bold font-code text-accent">{stats.apr.toFixed(2)}</p>
+                                    <p className="text-lg font-bold font-code text-accent/80 ml-0.5">%</p>
+                                </>
+                            </StatGridItem>
+                            <StatGridItem icon={Zap} label={"Hourly\nRewards"}>
+                                 <p className="text-2xl font-bold font-code text-accent">{hourlyRewards.toFixed(4)}</p>
+                            </StatGridItem>
+                        </div>
                     </CardContent>
                 </Card>
 
@@ -205,6 +206,4 @@ export default function WalletTab({ isDbInitialized }: { isDbInitialized: boolea
     </div>
   );
 
-    
-
-    
+}
