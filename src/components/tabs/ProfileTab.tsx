@@ -1,10 +1,11 @@
+
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Award, BrainCircuit, Gem, ShieldCheck, Loader2, KeyRound, User, MessageCircle, Send, Edit } from 'lucide-react';
+import { Award, BrainCircuit, Gem, ShieldCheck, Loader2, KeyRound, User, MessageCircle, Send, Edit, Gift, Wallet, ListChecks, CheckCircle, XCircle, HelpCircle, Sparkles } from 'lucide-react';
 import type { User as UserType } from '@/lib/types';
 import { getProfileAction, askOracleAction, updateUserAction } from '@/app/profile/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -13,10 +14,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
-import { Form, FormControl, FormField, FormItem, FormLabel } from '../ui/form';
+import { Form, FormControl, FormField, FormItem } from '../ui/form';
 import { useForm } from 'react-hook-form';
 import AnimatedAvatar from '../AnimatedAvatar';
 import StatCard from '../StatCard';
+import AirdropForm from '../AirdropForm';
 
 const getTierStyling = (xp: number) => {
     if (xp >= 9000) return { name: 'Oracle Lord', className: 'text-purple-400 border-purple-400', progress: 100 };
@@ -141,6 +143,27 @@ const OracleChat = () => {
     );
 };
 
+const EligibilityItem = ({ icon, text, status, tip }: { icon: React.ElementType, text: string, status: 'complete' | 'incomplete' | 'pending', tip: string }) => {
+    const statusIcons = {
+        complete: <CheckCircle className="text-accent" />,
+        incomplete: <XCircle className="text-destructive" />,
+        pending: <HelpCircle className="text-yellow-500" />
+    };
+
+    return (
+        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+            <div className="flex items-center space-x-3">
+                {React.createElement(icon, { className: "h-5 w-5 sm:h-6 sm:w-6 text-primary" })}
+                <div>
+                    <p className="font-semibold text-sm sm:text-base">{text}</p>
+                    <p className="text-xs text-muted-foreground">{tip}</p>
+                </div>
+            </div>
+            {statusIcons[status]}
+        </div>
+    );
+};
+
 
 export default function ProfileTab({ isDbInitialized }: { isDbInitialized: boolean }) {
     const [profile, setProfile] = useState<UserType | null>(null);
@@ -167,6 +190,10 @@ export default function ProfileTab({ isDbInitialized }: { isDbInitialized: boole
     useEffect(() => {
         loadProfile();
     }, [loadProfile]);
+
+    const onAirdropSuccess = () => {
+        loadProfile();
+    };
 
     const handleNameChange = async (values: { name: string }) => {
         if (!profile || !profile.nameEditable) return;
@@ -201,14 +228,15 @@ export default function ProfileTab({ isDbInitialized }: { isDbInitialized: boole
     return (
         <Card className="glow-border">
             <CardHeader>
-                <CardTitle className="text-primary flex items-center text-xl sm:text-2xl"><User className="mr-3"/> Profile</CardTitle>
-                <CardDescription className="text-sm">Manage your profile, settings, and consult the Oracle.</CardDescription>
+                <CardTitle className="text-primary flex items-center text-xl sm:text-2xl"><User className="mr-3"/> Pilot Hub</CardTitle>
+                <CardDescription className="text-sm">Manage your profile, consult the Oracle, and secure your airdrop.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Tabs defaultValue="profile" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3">
+                    <TabsList className="grid w-full grid-cols-4">
                         <TabsTrigger value="profile" className="text-xs sm:text-sm">Profile</TabsTrigger>
                         <TabsTrigger value="oracle" className="text-xs sm:text-sm">Oracle</TabsTrigger>
+                        <TabsTrigger value="airdrop" className="text-xs sm:text-sm">Airdrop</TabsTrigger>
                         <TabsTrigger value="settings" className="text-xs sm:text-sm">Settings</TabsTrigger>
                     </TabsList>
 
@@ -257,6 +285,37 @@ export default function ProfileTab({ isDbInitialized }: { isDbInitialized: boole
                     
                     <TabsContent value="oracle" className="mt-6">
                         <OracleChat />
+                    </TabsContent>
+
+                    <TabsContent value="airdrop" className="mt-6">
+                         {profile.hasRegisteredForAirdrop ? (
+                            <Card className="glow-border text-center">
+                                <CardHeader>
+                                    <CardTitle className="text-primary flex items-center justify-center text-xl sm:text-2xl"><Sparkles className="mr-3" /> You're on the Whitelist!</CardTitle>
+                                    <CardDescription className="text-sm">You have successfully registered for the BlockShadow airdrop.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-muted-foreground">Your eligibility is confirmed. Stay tuned for announcements regarding the token distribution event. Keep engaging with the platform to maximize your rewards!</p>
+                                    <div className="mt-6 space-y-3">
+                                        <h3 className="text-base sm:text-lg font-semibold text-center mb-4">Your Airdrop Status</h3>
+                                        <EligibilityItem 
+                                            icon={Wallet} 
+                                            text="Wallet Connected" 
+                                            status={'complete'}
+                                            tip="Your wallet is synced with the Shadow Protocol."
+                                        />
+                                         <EligibilityItem 
+                                            icon={ListChecks} 
+                                            text="Registration Complete" 
+                                            status={'complete'}
+                                            tip="You have completed the airdrop registration."
+                                        />
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ) : (
+                            <AirdropForm onSuccess={onAirdropSuccess} />
+                        )}
                     </TabsContent>
 
                     <TabsContent value="settings" className="mt-6 space-y-6">
