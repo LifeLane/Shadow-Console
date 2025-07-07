@@ -1,72 +1,28 @@
+
 'use server';
 
-import { getUser } from '@/services/userService';
-import { getSignalsForUser } from '@/services/signalService';
-import { getCompletedMissionIds } from '@/services/missionService';
+import { revalidatePath } from 'next/cache';
+import { getMissions, getCompletedMissionIds, completeMissionForUser } from '@/services/missionService';
+import type { Mission } from '@/lib/types';
 
-const DEFAULT_USER_ID = 'default_user';
-
-export interface AirdropStats {
-    wallet: {
-        synced: boolean;
-        address: string | null;
-        chain: string | null;
-    };
-    bsaiHolder: boolean; // Based on wallet sync
-    genesisInvite: boolean; // Always true for this simulation
-    signalPoints: number;
-    agentPoints: number; // Derived from user XP
-    missionPoints: number;
+export interface MissionData {
+    mission: Mission;
+    isCompleted: boolean;
 }
 
-const POINTS = {
-    WALLET_SYNC: 100,
-    BSAI_HOLDER: 150,
-    GENESIS_INVITE: 25,
-    PER_SIGNAL_WIN: 5,
-    PER_XP: 0.1,
-    PER_MISSION: 30,
-};
-
-export async function getAirdropStatsAction(): Promise<AirdropStats> {
-    const user = await getUser(DEFAULT_USER_ID);
-    const signals = await getSignalsForUser(DEFAULT_USER_ID, 1000); // Get all signals to calculate points
-    const completedMissions = await getCompletedMissionIds(DEFAULT_USER_ID);
-
-    if (!user) {
-        // Return default state if user not found, though they should be seeded
-        return {
-            wallet: { synced: false, address: null, chain: null },
-            bsaiHolder: false,
-            genesisInvite: true,
-            signalPoints: 0,
-            agentPoints: 0,
-            missionPoints: 0,
-        };
-    }
-
-    const walletSynced = !!user.walletAddress && !!user.walletChain;
+export async function getMissionsDataAction(): Promise<MissionData[]> {
+    const allMissions = await getMissions();
+    const completedIds = await getCompletedMissionIds('default_user');
+    const completedIdSet = new Set(completedIds);
     
-    // Calculate points from signals
-    const successfulSignals = signals.filter(s => s.outcome === 'TP_HIT').length;
-    const signalPoints = successfulSignals * POINTS.PER_SIGNAL_WIN;
+    return allMissions.map(mission => ({
+        mission,
+        isCompleted: completedIdSet.has(mission.id),
+    }));
+}
 
-    // Calculate points from agent performance (user XP)
-    const agentPoints = Math.floor(user.xp * POINTS.PER_XP);
-
-    // Calculate points from missions
-    const missionPoints = completedMissions.length * POINTS.PER_MISSION;
-
-    return {
-        wallet: {
-            synced: walletSynced,
-            address: user.walletAddress,
-            chain: user.walletChain,
-        },
-        bsaiHolder: walletSynced, // We'll tie this to wallet sync for the simulation
-        genesisInvite: true,
-        signalPoints,
-        agentPoints,
-        missionPoints,
-    };
+export async function completeMissionAction(missionId: string): Promise<Mission> {
+    const completedMission = await completeMissionForUser('default_user', missionId);
+    revalidatePath('/'); // Revalidate all paths to update user XP/rewards everywhere
+    return completedMission;
 }

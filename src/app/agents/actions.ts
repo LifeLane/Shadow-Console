@@ -1,50 +1,30 @@
-'use server';
+
+"use server";
 
 import { revalidatePath } from 'next/cache';
-import { getAgents, saveAgent, updateAgentStatus } from '@/services/agentService';
-import { setupAndSeedLocalData } from '@/services/setupService';
-import type { Agent, User } from '@/lib/types';
-import { getUser } from '@/services/userService';
+import { getTrades, saveTrade } from '@/services/tradeService';
+import { getUser, updateUserBalance } from '@/services/userService';
+import type { Trade } from '@/lib/types';
 
-export async function setupDatabaseAndSeed() {
-  await setupAndSeedLocalData();
+export async function getTradesAction(): Promise<Trade[]> {
+    return getTrades('default_user');
 }
 
-export async function getAgentsAction(): Promise<Agent[]> {
-  try {
-    const agents = await getAgents();
-    return agents;
-  } catch (error) {
-    console.error('Action Error: Failed to get agents.', error);
-    return [];
-  }
-}
-
-export async function getUserAction(userId: string): Promise<User | null> {
-    try {
-        return await getUser(userId);
-    } catch (error) {
-        console.error(`Action Error: Failed to get user ${userId}.`, error);
-        return null;
+export async function placeTradeAction(trade: Omit<Trade, 'id' | 'timestamp' | 'userId' | 'status' | 'pnl'>): Promise<Trade> {
+    const user = await getUser('default_user');
+    if (!user || user.shadowBalance < trade.stake) {
+        throw new Error("Insufficient SHADOW balance.");
     }
-}
 
-export async function saveAgentAction(agent: Agent) {
-  try {
-    await saveAgent(agent);
-    revalidatePath('/');
-  } catch (error) {
-    console.error('Action Error: Failed to save agent.', error);
-    throw new Error('Failed to save agent.');
-  }
-}
+    await updateUserBalance('default_user', -trade.stake);
 
-export async function updateAgentStatusAction(agentId: string, status: Agent['status']) {
-  try {
-    await updateAgentStatus(agentId, status);
+    const newTrade = await saveTrade({
+        ...trade,
+        status: 'OPEN',
+        pnl: 0,
+        userId: 'default_user'
+    });
+
     revalidatePath('/');
-  } catch (error) {
-    console.error('Action Error: Failed to update agent status.', error);
-    throw new Error('Failed to update agent status.');
-  }
+    return newTrade;
 }

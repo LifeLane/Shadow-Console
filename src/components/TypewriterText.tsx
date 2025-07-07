@@ -76,7 +76,7 @@ const TypewriterText: React.FC<TypewriterTextProps> = ({
          <span className={cn(
            "inline-block w-[0.6ch] h-[1.2em] ml-0.5 align-text-bottom", // Adjusted caret style
            isComplete && showCaretAfterComplete ? "animate-blink-block-caret" : "", // Blink only if showCaretAfterComplete
-           caretClassName || "bg-accent" 
+           caretClassName || "bg-primary" 
          )} style={{ animationDelay: `${currentIndex * (speed / 1000) + 0.1}s` }}></span>
       )}
     </Element>

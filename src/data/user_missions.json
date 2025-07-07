@@ -1,6 +1,4 @@
+
 {
-  "default_user": [
-    "daily_login",
-    "signal"
-  ]
+    "default_user": ["trade_5"]
 }

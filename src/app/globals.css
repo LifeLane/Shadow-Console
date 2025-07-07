@@ -13,6 +13,37 @@
     --radius: 0.5rem;
   }
 
+  /* Shadow Trader Theme */
+  :root, .theme-shadow {
+    --background: 270 6% 15%; /* #262429 Dark Gray */
+    --foreground: 270 25% 95%; /* Off-white */
+    
+    --card: 270 6% 18%; /* Slightly lighter gray */
+    --card-foreground: 270 25% 95%;
+    
+    --popover: 270 6% 10%;
+    --popover-foreground: 270 25% 95%;
+    
+    --primary: 101 100% 60%; /* #6BFF33 Bright Green */
+    --primary-foreground: 101 100% 5%; /* Dark green for text on primary */
+    
+    --secondary: 270 10% 25%;
+    --secondary-foreground: 270 25% 85%;
+    
+    --muted: 270 8% 22%;
+    --muted-foreground: 270 15% 65%;
+    
+    --accent: 289 83% 55%; /* #BE29EC Electric Purple */
+    --accent-foreground: 289 83% 95%;
+    
+    --destructive: 0 80% 60%; /* Bright Red */
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 270 6% 30%;
+    --input: 270 6% 20%;
+    --ring: 101 100% 60%; /* Green ring for focus */
+  }
+
   .theme-light {
     --background: 0 0% 98%;
     --foreground: 240 10% 3.9%;
@@ -20,19 +51,19 @@
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 221 83% 53%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 101 100% 30%;
+    --primary-foreground: 101 100% 95%;
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --accent: 289 83% 45%;
+    --accent-foreground: 289 83% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
+    --ring: 101 100% 30%;
   }
 
   .theme-dark {
@@ -42,41 +73,19 @@
     --card-foreground: 180 70% 92%;
     --popover: 240 30% 6%;
     --popover-foreground: 180 70% 92%;
-    --primary: 180 100% 50%;
-    --primary-foreground: 240 50% 5%;
+    --primary: 101 100% 50%;
+    --primary-foreground: 101 50% 5%;
     --secondary: 240 25% 25%;
     --secondary-foreground: 180 40% 80%;
     --muted: 231 28% 20%;
     --muted-foreground: 180 30% 60%;
-    --accent: 48 100% 50%;
+    --accent: 289 83% 50%;
     --accent-foreground: 0 0% 10%;
     --destructive: 330 90% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 180 100% 50%;
+    --border: 101 100% 50%;
     --input: 231 28% 11%;
-    --ring: 180 100% 50%;
-  }
-  
-  .theme-shadow {
-    --background: 270 35% 15%;
-    --foreground: 270 25% 95%;
-    --card: 270 35% 18%;
-    --card-foreground: 270 25% 95%;
-    --popover: 270 35% 20%;
-    --popover-foreground: 270 25% 95%;
-    --primary: 180 100% 50%;
-    --primary-foreground: 240 40% 5%;
-    --secondary: 270 25% 25%;
-    --secondary-foreground: 270 25% 85%;
-    --muted: 270 25% 22%;
-    --muted-foreground: 270 20% 65%;
-    --accent: 48 100% 50%;
-    --accent-foreground: 0 0% 10%;
-    --destructive: 0 80% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 270 35% 30%;
-    --input: 270 35% 25%;
-    --ring: 180 100% 50%;
+    --ring: 101 100% 50%;
   }
 }
 
@@ -91,124 +100,63 @@
     -moz-osx-font-smoothing: grayscale;
   }
   
-  h1 {
-    font-size: theme('fontSize.2xl');
-  }
-  @screen sm {
-    h1 {
-      font-size: theme('fontSize.3xl');
-    }
-  }
-
-  h2 {
-    font-size: theme('fontSize.xl');
-  }
-  @screen sm {
-    h2 {
-      font-size: theme('fontSize.2xl');
-    }
-  }
-
-  h3 {
-    font-size: theme('fontSize.lg');
-  }
-  @screen sm {
-    h3 {
-      font-size: theme('fontSize.xl');
-    }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-headline;
   }
 
   p, div, span, label, button {
-    font-size: theme('fontSize.sm');
+    @apply font-body;
   }
-  @screen sm {
-    p, div, span, label, button {
-      font-size: theme('fontSize.base');
-    }
+
+  input, textarea {
+    @apply font-code;
   }
 }
-
 
 /* Glow effect for sections */
 .glow-border-primary {
-  box-shadow: 0 0 8px 1px hsl(var(--primary)/0.7), 0 0 12px 2px hsl(var(--primary)/0.5), 0 0 20px 3px hsl(var(--primary)/0.3);
+  box-shadow: 0 0 5px 1px hsl(var(--primary)/0.6), 0 0 10px 2px hsl(var(--primary)/0.4);
 }
 
 .glow-border-accent {
-  box-shadow: 0 0 8px 1px hsl(var(--accent)/0.7), 0 0 12px 2px hsl(var(--accent)/0.5), 0 0 20px 3px hsl(var(--accent)/0.3);
+  box-shadow: 0 0 5px 1px hsl(var(--accent)/0.6), 0 0 10px 2px hsl(var(--accent)/0.4);
 }
 
 .glow-border-destructive {
-  box-shadow: 0 0 8px 1px hsl(var(--destructive)/0.7), 0 0 12px 2px hsl(var(--destructive)/0.5), 0 0 20px 3px hsl(var(--destructive)/0.3);
+  box-shadow: 0 0 5px 1px hsl(var(--destructive)/0.6), 0 0 10px 2px hsl(var(--destructive)/0.4);
 }
 
 /* Pulse animation */
-@keyframes pulse-glow-primary {
+@keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 5px 1px hsl(var(--primary)/0.6), 0 0 8px 2px hsl(var(--primary)/0.4);
+    box-shadow: 0 0 5px 1px hsl(var(--color)/0.6), 0 0 8px 2px hsl(var(--color)/0.4);
     transform: scale(1);
   }
   50% {
-    box-shadow: 0 0 10px 2px hsl(var(--primary)/0.8), 0 0 15px 4px hsl(var(--primary)/0.6);
+    box-shadow: 0 0 10px 2px hsl(var(--color)/0.8), 0 0 15px 4px hsl(var(--color)/0.6);
     transform: scale(1.02);
   }
 }
 
 .animate-pulse-glow-primary {
-  animation: pulse-glow-primary 2s infinite ease-in-out;
-}
-
-@keyframes pulse-glow-accent {
-  0%, 100% {
-    box-shadow: 0 0 5px 1px hsl(var(--accent)/0.6), 0 0 8px 2px hsl(var(--accent)/0.4);
-    transform: scale(1);
-  }
-  50% {
-    box-shadow: 0 0 10px 2px hsl(var(--accent)/0.8), 0 0 15px 4px hsl(var(--accent)/0.6);
-    transform: scale(1.02);
-  }
+  --color: var(--primary);
+  animation: pulse-glow 2s infinite ease-in-out;
 }
 
 .animate-pulse-glow-accent {
-  animation: pulse-glow-accent 2s infinite ease-in-out;
-}
-
-@keyframes pulse-glow-destructive {
-  0%, 100% {
-    box-shadow: 0 0 5px 1px hsl(var(--destructive)/0.6), 0 0 8px 2px hsl(var(--destructive)/0.4);
-  }
-  50% {
-    box-shadow: 0 0 10px 2px hsl(var(--destructive)/0.8), 0 0 15px 4px hsl(var(--destructive)/0.6);
-  }
-}
-
-.animate-pulse-glow-destructive {
-  animation: pulse-glow-destructive 1.5s infinite ease-in-out;
-}
-
-
-/* Typewriter effect */
-.typewriter-char {
-  display: inline-block;
-  opacity: 0;
-  animation: typechar 0.05s forwards; /* Faster for general text */
-}
-
-@keyframes typechar {
-  to {
-    opacity: 1;
-  }
+   --color: var(--accent);
+  animation: pulse-glow 2.5s infinite ease-in-out;
 }
 
 /* Caret Animations */
 @keyframes blink-caret { 
   0%, 100% { border-color: transparent; }
-  50% { border-color: hsl(var(--accent)); } 
+  50% { border-color: hsl(var(--primary)); } 
 }
 
 @keyframes blink-block-caret { 
-  0%, 100% { opacity: 0; }
-  50% { opacity: 1; }
+  0%, 100% { background-color: transparent; }
+  50% { background-color: hsl(var(--primary)); }
 }
 
 .animate-blink-block-caret {
@@ -223,58 +171,21 @@
   animation: pulse-opacity 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-.animate-spin-slow {
-  animation: spin 2s linear infinite;
-}
-
-/* Neural Dot Grid Overlay */
-.neural-dot-grid {
-  position: relative;
-}
-.neural-dot-grid::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: radial-gradient(hsl(var(--primary)/0.1) 1px, transparent 1px); /* More subtle dots */
-  background-size: 18px 18px; /* Slightly larger grid */
-  opacity: 0.4; /* Slightly more subtle */
-  pointer-events: none;
-  z-index: 0; 
-}
-
-/* Risk Tab Active Glow */
-@keyframes risk-tab-glow {
-  0%, 100% {
-    box-shadow: 0 0 4px 1px hsl(var(--primary)/0.5), 0 0 6px 1px hsl(var(--primary)/0.3);
-  }
-  50% {
-    box-shadow: 0 0 8px 2px hsl(var(--primary)/0.7), 0 0 12px 2px hsl(var(--primary)/0.5);
-  }
-}
-.risk-tab-active-glow {
-  animation: risk-tab-glow 1.5s infinite ease-in-out;
-}
-
 /* Button Ripple/Pulse for Initiate Analysis */
 @keyframes button-ripple-pulse {
   0% {
     transform: scale(0.98);
-    box-shadow: 0 0 0 0 hsl(var(--primary)/0.7);
+    box-shadow: 0 0 0 0 hsl(var(--accent)/0.7);
   }
   70% {
     transform: scale(1.02);
-    box-shadow: 0 0 0 10px hsl(var(--primary)/0);
+    box-shadow: 0 0 0 10px hsl(var(--accent)/0);
   }
   100% {
     transform: scale(0.98);
-    box-shadow: 0 0 0 0 hsl(var(--primary)/0);
+    box-shadow: 0 0 0 0 hsl(var(--accent)/0);
   }
 }
 .animate-button-ripple-pulse {
   animation: button-ripple-pulse 2s infinite ease-in-out;
 }
-      
-  

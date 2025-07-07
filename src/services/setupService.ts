@@ -1,46 +1,39 @@
+
 'use server';
 
 import { writeDb } from '@/lib/file-system-db';
-import type { Agent, Mission, User } from '@/lib/types';
+import type { User, Mission, Signal, Trade } from '@/lib/types';
 import fs from 'fs/promises';
 import path from 'path';
 
 // Define paths for data files
 const DATA_DIR = path.resolve(process.cwd(), 'src/data');
 const USERS_PATH = path.join(DATA_DIR, 'users.json');
-const AGENTS_PATH = path.join(DATA_DIR, 'agents.json');
 const MISSIONS_PATH = path.join(DATA_DIR, 'missions.json');
 const SIGNALS_PATH = path.join(DATA_DIR, 'signals.json');
+const TRADES_PATH = path.join(DATA_DIR, 'trades.json');
+const USER_MISSIONS_PATH = path.join(DATA_DIR, 'user_missions.json');
+
 
 // Initial seed data
-const initialMissionsToSeed: Mission[] = [
-  { id: 'signal', title: 'Shadow Core: First Signal Test', description: 'Use the Market Command Console to generate and analyze one signal. Your input trains the Core!', xp: 50, reward: { type: 'NFT', name: 'ShadowBox NFT (Common)'} },
-  { id: 'wallet', title: 'Sync Wallet with Polygon Network', description: 'Connect your primary wallet (ETH, SOL, or TON) and perform a test sync via Polygon for BSAI airdrop eligibility.', xp: 100, reward: { type: 'Key', name: 'ShadowNet Testnet Key'} },
-  { id: 'share', title: 'Broadcast: Share Prediction on X', description: 'Share one of your Shadow Core predictions on X (Twitter) with #ShadowTrader.', xp: 75, reward: { type: 'XP_Boost', name: '+20% XP Boost (24h)'} },
-  { id: 'learn', title: 'Intel Briefing: ShadowScore Module', description: 'Complete the "Intro to ShadowScore" learning module to understand Core analysis.', xp: 60, reward: { type: 'Badge', name: 'Shadow Analyst Badge'} },
-  { id: 'daily_login', title: 'Daily Check-in: Report to Core', description: 'Log in daily to maintain your agent status and receive bonus XP.', xp: 25, reward: { type: 'Airdrop_Multiplier', name: 'Airdrop Multiplier +0.1x'} },
+const initialUsers: User[] = [
+    { id: 'default_user', name: 'Neon Pilot', xp: 1250, winRate: 68, signalAccuracy: 74, shadowBalance: 5000, stakedAmount: 1500, avatarUrl: 'https://placehold.co/100x100.png', completedMissions: ['trade_5'], walletAddress: '0x123...abc' },
+    { id: 'bot_1', name: 'Cypher Runner', xp: 8420, winRate: 75, signalAccuracy: 81, shadowBalance: 1000, stakedAmount: 0, avatarUrl: 'https://placehold.co/100x100.png', completedMissions: [], walletAddress: '0x456...def'},
+    { id: 'bot_2', name: 'Grid Ghost', xp: 5100, winRate: 62, signalAccuracy: 68, shadowBalance: 1000, stakedAmount: 0, avatarUrl: 'https://placehold.co/100x100.png', completedMissions: [], walletAddress: '0x789...ghi'},
+    { id: 'bot_3', name: 'Oracle Lord', xp: 9500, winRate: 88, signalAccuracy: 92, shadowBalance: 1000, stakedAmount: 0, avatarUrl: 'https://placehold.co/100x100.png', completedMissions: [], walletAddress: '0xabc...123'},
 ];
 
-const initialAgentsToSeed: Agent[] = [
-    { id: 'agent-custom-my-eth-momentum-bot', name: 'My ETH Momentum Bot', description: 'Custom agent focusing on ETH/USDT momentum.', status: 'Active', isCustom: true, parameters: { symbol: 'ETHUSDT', tradeMode: 'Intraday', risk: 'Medium', indicators: ['RSI', 'MACD'] }, code: '// Custom logic', performance: { signals: 40, winRate: 85 }, userId: 'default_user' },
-    { id: 'agent-custom-sol-scalper-v2', name: 'SOL Scalper v2', description: 'High-frequency scalping for SOL/USDT on the 5m timeframe.', status: 'Inactive', isCustom: true, parameters: { symbol: 'SOLUSDT', tradeMode: 'Scalping', risk: 'High', indicators: ['EMA', 'Volume Profile'] }, code: '// Custom logic', performance: { signals: 38, winRate: 72 }, userId: 'default_user' },
-    { id: 'agent-premade-btc-sentinel-prime', name: 'BTC Sentinel Prime', description: 'Balanced agent for BTC/USDT, operating on the 4h chart.', status: 'Inactive', isCustom: false, parameters: { symbol: 'BTCUSDT', tradeMode: 'Swing Trading', risk: 'Medium', indicators: ['Ichimoku Cloud', 'Fib Retracement'] }, code: '// Premade logic', performance: { signals: 0, winRate: 0 }, userId: 'default_user' },
+const initialMissions: Mission[] = [
+    { id: 'trade_5', title: 'Arena Warmup', description: 'Complete 5 trades in the Trade Arena today.', xp: 100, reward: { type: 'SHADOW', amount: 20 }},
+    { id: 'signal_3', title: 'Oracle Challenger', description: 'Generate 3 correct AI signals in the Signal Console.', xp: 125, reward: { type: 'SHADOW', amount: 50 }},
+    { id: 'stake_1000', title: 'Vault Commitment', description: 'Stake 1,000 SHADOW in the Wallet Vault.', xp: 200, reward: { type: 'NFT_SKIN', amount: 1 }},
+    { id: 'invite_3', title: 'Recruit for the Arena', description: 'Invite 3 friends to join the Shadow Arena.', xp: 150, reward: { type: 'SHADOW', amount: 100 }},
 ];
 
-const initialUserToSeed: User[] = [{
-    id: 'default_user',
-    name: 'Shadow Agent 001',
-    xp: 1850,
-    signalsGenerated: 78,
-    signalsWon: 62,
-    bsaiEarned: 12450.00,
-    avatarUrl: 'https://placehold.co/100x100.png',
-    walletAddress: null,
-    walletChain: null,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    completedMissions: [],
-}];
+const initialSignals: Signal[] = [];
+const initialTrades: Trade[] = [];
+const initialUserMissions: Record<string, string[]> = { 'default_user': ['trade_5'] };
+
 
 async function fileExists(filePath: string): Promise<boolean> {
     try {
@@ -63,18 +56,17 @@ async function seedFile<T>(filePath: string, data: T) {
  */
 export async function setupAndSeedLocalData() {
     try {
-        // Ensure data directory exists
         await fs.mkdir(DATA_DIR, { recursive: true });
 
-        // Seed initial data if files don't exist
         await Promise.all([
-            seedFile(USERS_PATH, initialUserToSeed),
-            seedFile(AGENTS_PATH, initialAgentsToSeed),
-            seedFile(MISSIONS_PATH, initialMissionsToSeed),
-            seedFile(SIGNALS_PATH, []) // Start with empty signals
+            seedFile(USERS_PATH, initialUsers),
+            seedFile(MISSIONS_PATH, initialMissions),
+            seedFile(SIGNALS_PATH, initialSignals),
+            seedFile(TRADES_PATH, initialTrades),
+            seedFile(USER_MISSIONS_PATH, initialUserMissions)
         ]);
 
-        console.log('Local data store setup check complete.');
+        console.log('Local data store setup check complete for Shadow Arena.');
 
     } catch (error) {
         console.error('Error setting up and seeding local data:', error);

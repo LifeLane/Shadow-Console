@@ -5,8 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
-  title: 'Shadow Trader',
-  description: 'AI-Powered Market Insights by Shadow Mind',
+  title: 'Shadow Arena',
+  description: 'AI-Powered Web3 Trading Competition',
 };
 
 export default function RootLayout({
@@ -26,7 +26,7 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <ThemeProvider
           attribute="class"
-          defaultTheme="theme-dark"
+          defaultTheme="theme-shadow"
           themes={['theme-light', 'theme-dark', 'theme-shadow']}
           disableTransitionOnChange
         >

@@ -1,52 +1,43 @@
+
 [
   {
-    "id": "signal",
-    "title": "Shadow Core: First Signal Test",
-    "description": "Use the Market Command Console to generate and analyze one signal. Your input trains the Core!",
-    "xp": 50,
-    "reward": {
-      "type": "NFT",
-      "name": "ShadowBox NFT (Common)"
-    }
-  },
-  {
-    "id": "wallet",
-    "title": "Sync Wallet with Polygon Network",
-    "description": "Connect your primary wallet (ETH, SOL, or TON) and perform a test sync via Polygon for BSAI airdrop eligibility.",
+    "id": "trade_5",
+    "title": "Arena Warmup",
+    "description": "Complete 5 trades in the Trade Arena today.",
     "xp": 100,
     "reward": {
-      "type": "Key",
-      "name": "ShadowNet Testnet Key"
+      "type": "SHADOW",
+      "amount": 20
     }
   },
   {
-    "id": "share",
-    "title": "Broadcast: Share Prediction on X",
-    "description": "Share one of your Shadow Core predictions on X (Twitter) with #ShadowTrader.",
-    "xp": 75,
+    "id": "signal_3",
+    "title": "Oracle Challenger",
+    "description": "Generate 3 correct AI signals in the Signal Console.",
+    "xp": 125,
     "reward": {
-      "type": "XP_Boost",
-      "name": "+20% XP Boost (24h)"
+      "type": "SHADOW",
+      "amount": 50
     }
   },
   {
-    "id": "learn",
-    "title": "Intel Briefing: ShadowScore Module",
-    "description": "Complete the \"Intro to ShadowScore\" learning module to understand Core analysis.",
-    "xp": 60,
+    "id": "stake_1000",
+    "title": "Vault Commitment",
+    "description": "Stake 1,000 SHADOW in the Wallet Vault.",
+    "xp": 200,
     "reward": {
-      "type": "Badge",
-      "name": "Shadow Analyst Badge"
+      "type": "NFT_SKIN",
+      "amount": 1
     }
   },
   {
-    "id": "daily_login",
-    "title": "Daily Check-in: Report to Core",
-    "description": "Log in daily to maintain your agent status and receive bonus XP.",
-    "xp": 25,
+    "id": "invite_3",
+    "title": "Recruit for the Arena",
+    "description": "Invite 3 friends to join the Shadow Arena.",
+    "xp": 150,
     "reward": {
-      "type": "Airdrop_Multiplier",
-      "name": "Airdrop Multiplier +0.1x"
+      "type": "SHADOW",
+      "amount": 100
     }
   }
 ]

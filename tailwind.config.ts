@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -55,16 +56,6 @@ export default {
           '4': 'hsl(var(--chart-4))',
           '5': 'hsl(var(--chart-5))',
         },
-        sidebar: {
-          DEFAULT: 'hsl(var(--sidebar-background))',
-          foreground: 'hsl(var(--sidebar-foreground))',
-          primary: 'hsl(var(--sidebar-primary))',
-          'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-          accent: 'hsl(var(--sidebar-accent))',
-          'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-          border: 'hsl(var(--sidebar-border))',
-          ring: 'hsl(var(--sidebar-ring))',
-        },
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -88,25 +79,10 @@ export default {
             height: '0',
           },
         },
-        'typewriter': {
-          '0%': { width: '0ch' },
-          '100%': { width: 'var(--typewriter-chars, 10ch)' },
-        },
-        'blink-caret': {
-          '0%, 100%': { borderColor: 'transparent' },
-          '50%': { borderColor: 'hsl(var(--accent))' },
-        },
-        'pulse-opacity': {
-          '0%, 100%': { opacity: '0.7' },
-          '50%': { opacity: '1' },
-        }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
-        'typewriter': 'typewriter 2s steps(var(--typewriter-steps, 10)) forwards',
-        'blink-caret': 'blink-caret 1s step-end infinite',
-        'pulse-opacity': 'pulse-opacity 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
     },
   },

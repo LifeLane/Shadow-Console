@@ -1,3 +1,4 @@
+
 'use server';
 
 import { fetchLatestPrice } from "@/services/binanceService";

@@ -1,26 +1,43 @@
-export interface AgentPerformance {
-    signals: number;
-    winRate: number; // as a percentage, e.g., 80 for 80%
-}
 
-export interface AgentParameters {
-    symbol: string;
-    tradeMode: string;
-    risk: 'Low' | 'Medium' | 'High';
-    indicators: string[];
-}
-
-export interface Agent {
+export interface User {
     id: string;
     name: string;
-    description: string;
-    status: 'Active' | 'Inactive' | 'Training';
-    isCustom: boolean;
-    parameters: AgentParameters;
-    code: string;
-    performance: AgentPerformance;
-    userId?: string;
-    strategyId?: string;
+    xp: number;
+    winRate: number; // Overall trade win rate %
+    signalAccuracy: number; // Prediction accuracy %
+    shadowBalance: number;
+    stakedAmount: number;
+    avatarUrl?: string;
+    completedMissions: string[];
+    walletAddress?: string;
+}
+
+export interface Trade {
+    id: number;
+    userId: string;
+    asset: string; // e.g., BTCUSDT
+    side: 'LONG' | 'SHORT';
+    entryPrice: number;
+    takeProfit: number;
+    stopLoss: number;
+    stake: number; // Amount of SHADOW tokens
+    status: 'OPEN' | 'CLOSED';
+    pnl?: number; // Profit and Loss in SHADOW tokens
+    timestamp: string;
+}
+
+export interface Signal {
+    id: number;
+    userId: string;
+    asset: string;
+    prediction: 'LONG' | 'SHORT' | 'HOLD';
+    confidence: number;
+    entryPrice: number;
+    takeProfit: number;
+    stopLoss: number;
+    status: 'PENDING' | 'WIN' | 'LOSS';
+    source: 'AI_ORACLE' | 'MANUAL';
+    timestamp: string;
 }
 
 export interface Mission {
@@ -29,46 +46,15 @@ export interface Mission {
     description: string;
     xp: number;
     reward: {
-        type: 'NFT' | 'Key' | 'XP_Boost' | 'Badge' | 'Airdrop_Multiplier';
-        name: string;
+        type: 'SHADOW' | 'XP_BOOST' | 'NFT_SKIN';
+        amount: number;
     };
 }
 
-export interface User {
-    id: string;
-    walletAddress: string | null;
-    walletChain: string | null;
-    signalsGenerated: number;
-    signalsWon: number;
-    bsaiEarned: number;
-    xp: number;
-    createdAt: string;
-    updatedAt: string;
-    name?: string;
-    avatarUrl?: string;
-    completedMissions: string[];
-}
-
-export interface UserMission {
+export interface WalletStats {
     userId: string;
-    missionId: string;
-    completedAt: string;
-}
-
-export interface Signal {
-    id?: number;
-    userId: string;
-    asset: string;
-    prediction: 'BUY' | 'SELL' | 'HOLD';
-    tradeMode: string;
-    outcome: 'TP_HIT' | 'SL_HIT' | 'PENDING';
-    rewardBsai: number;
-    rewardXp: number;
-    gasPaid: number;
-    createdAt?: string;
-    entryRange?: string;
-    stopLoss?: string;
-    takeProfit?: string;
-    confidence?: number;
-    shadowScore?: number;
+    shadowBalance: number;
+    stakedAmount: number;
+    miningPower: number; // SHADOW per hour
+    apr: number; // Annual Percentage Rate
 }

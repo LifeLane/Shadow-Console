@@ -14,11 +14,6 @@ interface Kline {
   close: string;
   volume: string;
   closeTime: number;
-  quoteAssetVolume: string;
-  numberOfTrades: number;
-  takerBuyBaseAssetVolume: string;
-  takerBuyQuoteAssetVolume: string;
-  ignore: string;
 }
 
 /**
@@ -26,7 +21,7 @@ interface Kline {
  * @param symbol Trading symbol, e.g., BTCUSDT
  * @returns An object containing the price or null if an error occurs.
  */
-export async function fetchLatestPrice(symbol: string): Promise<{ price: string } | null> {
+export async function fetchLatestPrice(symbol: string): Promise<{ symbol: string; price: string } | null> {
   try {
     const formattedSymbol = symbol.toUpperCase();
     const response = await fetch(
@@ -52,26 +47,15 @@ export async function fetchLatestPrice(symbol: string): Promise<{ price: string 
  * @param limit Number of klines to fetch
  * @returns A string summarizing the price feed or an error message.
  */
-export async function fetchPriceData(symbol: string, interval: string = '1h', limit: number = 5): Promise<string> {
-  const apiKey = process.env.BINANCE_API_KEY;
-  if (!apiKey) {
-    // Public endpoints like klines don't strictly need a key, but it's good practice for rate limits.
-    // We'll proceed but log a warning. For private endpoints, this would be a hard error.
-    console.warn("Binance API key not configured. Proceeding with public request.");
-  }
-
+export async function fetchPriceData(symbol: string, interval: string = '1h', limit: number = 20): Promise<string> {
   try {
     const formattedSymbol = symbol.toUpperCase();
     const url = `${BINANCE_API_BASE_URL}/klines?symbol=${formattedSymbol}&interval=${interval}&limit=${limit}`;
     
-    const response = await fetch(
-      url,
-      apiKey ? { headers: { 'X-MBX-APIKEY': apiKey } } : {}
-    );
+    const response = await fetch(url);
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error(`Binance API error for ${formattedSymbol}: ${response.status}`, errorData);
       return `Error fetching price data from Binance for ${formattedSymbol}: ${errorData.msg || response.statusText}.`;
     }
 
@@ -83,11 +67,6 @@ export async function fetchPriceData(symbol: string, interval: string = '1h', li
         close: k[4],
         volume: k[5],
         closeTime: k[6],
-        quoteAssetVolume: k[7],
-        numberOfTrades: k[8],
-        takerBuyBaseAssetVolume: k[9],
-        takerBuyQuoteAssetVolume: k[10],
-        ignore: k[11],
     }));
 
     if (!klines.length) {
@@ -95,7 +74,7 @@ export async function fetchPriceData(symbol: string, interval: string = '1h', li
     }
 
     const latestKline = klines[klines.length - 1];
-    const summary = `Latest price data for ${formattedSymbol} (${interval}): Close ${latestKline.close}, Volume ${latestKline.volume}. Open: ${latestKline.open}, High: ${latestKline.high}, Low: ${latestKline.low}. Period: ${new Date(latestKline.openTime).toISOString()} to ${new Date(latestKline.closeTime).toISOString()}.`;
+    const summary = `Latest price data for ${formattedSymbol} (${interval}): Close ${latestKline.close}, Volume ${latestKline.volume}. Period: ${new Date(latestKline.openTime).toISOString()} to ${new Date(latestKline.closeTime).toISOString()}.`;
     
     return summary;
   } catch (error) {

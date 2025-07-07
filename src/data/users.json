@@ -1,15 +1,39 @@
+
 [
   {
     "id": "default_user",
-    "name": "Shadow Agent 001",
-    "xp": 2289,
-    "signals_generated": 82,
-    "signals_won": 66,
-    "bsai_earned": 14535,
+    "name": "Neon Pilot",
+    "xp": 1250,
+    "winRate": 68,
+    "signalAccuracy": 74,
+    "shadowBalance": 5000,
+    "stakedAmount": 1500,
     "avatarUrl": "https://placehold.co/100x100.png",
-    "wallet_address": null,
-    "wallet_chain": null,
-    "created_at": "2025-06-23T13:11:50.131Z",
-    "updated_at": "2025-06-23T13:41:42.384Z"
+    "completedMissions": [],
+    "walletAddress": "0x123...abc"
+  },
+  {
+    "id": "bot_1",
+    "name": "Cypher Runner",
+    "xp": 8420,
+    "winRate": 75,
+    "signalAccuracy": 81,
+    "shadowBalance": 1000,
+    "stakedAmount": 0,
+    "avatarUrl": "https://placehold.co/100x100.png",
+    "completedMissions": [],
+    "walletAddress": "0x456...def"
+  },
+  {
+    "id": "bot_2",
+    "name": "Grid Ghost",
+    "xp": 5100,
+    "winRate": 62,
+    "signalAccuracy": 68,
+    "shadowBalance": 1000,
+    "stakedAmount": 0,
+    "avatarUrl": "https://placehold.co/100x100.png",
+    "completedMissions": [],
+    "walletAddress": "0x789...ghi"
   }
 ]

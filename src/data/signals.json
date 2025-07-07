@@ -1,55 +1,29 @@
+
 [
   {
-    "asset": "BTCUSDT",
-    "prediction": "BUY",
-    "trade_mode": "Scalping",
-    "outcome": "TP_HIT",
-    "reward_bsai": 455,
-    "reward_xp": 64,
-    "gas_paid": 3,
-    "entryRange": "$101350 - $101450",
-    "stopLoss": "$101200",
-    "takeProfit": "$101750",
-    "confidence": 60,
-    "shadowScore": 55,
-    "user_id": "default_user",
-    "id": 4,
-    "created_at": "2025-06-23T13:41:42.377Z"
-  },
-  {
-    "asset": "BTCUSDT",
-    "prediction": "SELL",
-    "trade_mode": "Scalping",
-    "outcome": "TP_HIT",
-    "reward_bsai": 557,
-    "reward_xp": 125,
-    "gas_paid": 1,
-    "user_id": "default_user",
-    "id": 3,
-    "created_at": "2025-06-23T13:31:25.889Z"
-  },
-  {
-    "asset": "BTCUSDT",
-    "prediction": "HOLD",
-    "trade_mode": "Scalping",
-    "outcome": "TP_HIT",
-    "reward_bsai": 425,
-    "reward_xp": 114,
-    "gas_paid": 3,
-    "user_id": "default_user",
-    "id": 2,
-    "created_at": "2025-06-23T13:20:26.829Z"
-  },
-  {
-    "asset": "BTCUSDT",
-    "prediction": "HOLD",
-    "trade_mode": "Intraday",
-    "outcome": "TP_HIT",
-    "reward_bsai": 648,
-    "reward_xp": 61,
-    "gas_paid": 5,
-    "user_id": "default_user",
     "id": 1,
-    "created_at": "2025-06-23T13:19:42.972Z"
+    "userId": "default_user",
+    "asset": "BTCUSDT",
+    "prediction": "LONG",
+    "confidence": 82,
+    "entryPrice": 68050,
+    "takeProfit": 69200,
+    "stopLoss": 67500,
+    "status": "WIN",
+    "source": "AI_ORACLE",
+    "timestamp": "2023-10-27T10:00:00Z"
+  },
+  {
+    "id": 2,
+    "userId": "default_user",
+    "asset": "ETHUSDT",
+    "prediction": "SHORT",
+    "confidence": 75,
+    "entryPrice": 2100,
+    "takeProfit": 2050,
+    "stopLoss": 2125,
+    "status": "LOSS",
+    "source": "MANUAL",
+    "timestamp": "2023-10-27T11:30:00Z"
   }
 ]

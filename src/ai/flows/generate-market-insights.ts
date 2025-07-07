@@ -2,135 +2,74 @@
 'use server';
 
 /**
- * @fileOverview A flow to generate market insights using the Gemini Pro API.
- * It now fetches live data from Binance, CoinDesk (conceptual), and Polygon.
+ * @fileOverview A flow to generate a trading signal using the Gemini Pro API.
+ * This flow analyzes market context to produce a simple trading signal.
  *
- * - generateMarketInsights - A function that generates market insights.
- * - MarketInsightsInput - The input type for the generateMarketInsights function (client-facing).
- * - MarketInsightsOutput - The return type for the generateMarketInsights function.
+ * - generateSignal - A function that generates a trading signal.
+ * - GenerateSignalInput - The input type for the generateSignal function.
+ * - GenerateSignalOutput - The return type for the generateSignal function.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import * as binanceService from '@/services/binanceService';
-import * as coindeskService from '@/services/coindeskService';
-import * as polygonService from '@/services/polygonService';
 
-// Schema for input from the client
-const MarketInsightsInputSchema = z.object({
-  target: z.string().describe('The target market (e.g., BTCUSDT).'),
-  tradeMode: z.string().describe('The selected trading mode (e.g., Intraday, Scalping).'),
-  risk: z.string().describe('The risk level (e.g., Low, Medium, High).'),
+const GenerateSignalInputSchema = z.object({
+  market: z.string().describe('The target market (e.g., BTCUSDT).'),
+  marketData: z.string().describe('A summary of recent market data, including price, volume, and major news headlines.'),
 });
-export type MarketInsightsInput = z.infer<typeof MarketInsightsInputSchema>;
+export type GenerateSignalInput = z.infer<typeof GenerateSignalInputSchema>;
 
-// Schema for the data passed to the AI prompt (includes fetched API data)
-const PromptDataSchema = MarketInsightsInputSchema.extend({
-  priceFeed: z.string().describe('Price data summary from Binance API, including recent klines (candlesticks).'),
-  sentimentNews: z.string().describe('Sentiment and news data summary, conceptually from CoinDesk or similar sources.'),
-  walletTransaction: z.string().describe('Summary of recent wallet actions or token transfers on Polygon relevant to the asset.'),
-});
-
-const MarketInsightsOutputSchema = z.object({
-  prediction: z.string().describe('The predicted market action (BUY, HOLD, SELL).'),
+const GenerateSignalOutputSchema = z.object({
+  prediction: z.string().describe('The predicted market action (LONG, SHORT, HOLD).'),
   confidence: z.number().describe('The confidence score for the prediction (0-100).'),
-  entryRange: z.string().describe('The recommended entry range for the trade.'),
-  stopLoss: z.string().describe('The recommended take profit price.'),
-  takeProfit: z.string().describe('The recommended take profit price.'),
-  shadowScore: z.number().describe('A score reflecting the overall quality of the signal (0-100).'),
-  thought: z.string().describe('The AI-generated thought process behind the prediction.'),
+  reasoning: z.string().describe('A brief, one-sentence rationale for the prediction.'),
+  entry: z.number().describe('A suggested entry price for the trade.'),
+  takeProfit: z.number().describe('A suggested take profit price.'),
+  stopLoss: z.number().describe('A suggested stop loss price.'),
 });
-export type MarketInsightsOutput = z.infer<typeof MarketInsightsOutputSchema>;
+export type GenerateSignalOutput = z.infer<typeof GenerateSignalOutputSchema>;
 
-export async function generateMarketInsights(input: MarketInsightsInput): Promise<MarketInsightsOutput> {
-  return generateMarketInsightsFlow(input);
+
+export async function generateSignal(input: GenerateSignalInput): Promise<GenerateSignalOutput> {
+  return generateSignalFlow(input);
 }
 
-// Helper to map Trade Mode to a technical chart timeframe for the API
-const tradeModeToKlineInterval = (tradeMode: string): string => {
-  switch (tradeMode.toLowerCase()) {
-    case 'scalping':
-      return '5m';
-    case 'intraday':
-      return '1h';
-    case 'swing trading':
-      return '4h';
-    case 'position trading':
-    case 'options':
-    case 'futures':
-      return '1d';
-    default:
-      return '1d'; // Default to daily for unknown modes
-  }
-};
+const signalPrompt = ai.definePrompt({
+  name: 'signalPrompt',
+  input: {schema: GenerateSignalInputSchema},
+  output: {schema: GenerateSignalOutputSchema},
+  prompt: `You are Shadow Oracle, an AI market analyst providing concise trading signals for a gamified trading arena.
+  
+  Analyze the provided market data for {{{market}}}. Based *only* on this data, generate a trading signal.
 
-const marketInsightsPrompt = ai.definePrompt({
-  name: 'marketInsightsPrompt',
-  input: {schema: PromptDataSchema}, // Prompt uses the extended schema with API data
-  output: {schema: MarketInsightsOutputSchema},
-  prompt: `You are an AI-powered market analyst providing insights on cryptocurrency trends.
+  Market Data: {{{marketData}}}
 
-  Analyze ALL the following market data comprehensively to generate a precise trading signal. Do not default to "HOLD" unless there is truly no clear BUY or SELL indication from the aggregated data. The prediction should be a decisive BUY, SELL, or HOLD based on strong signals.
+  Your response must be a clear signal (LONG, SHORT, or HOLD), a confidence score, a suggested entry price, take-profit, stop-loss, and a very brief thought process.
+  The prices should be realistic based on the current market data provided.
+  The reasoning should be a single, punchy sentence.
 
-  Target Market: {{{target}}}
-  Trade Mode: {{{tradeMode}}}
-  Risk Level: {{{risk}}}
-
-  Price Feed Data (from Binance): {{{priceFeed}}}
-  Sentiment & News Data (conceptual, from CoinDesk/general sources): {{{sentimentNews}}}
-  Recent Wallet Transaction/Token Activity (from Polygon): {{{walletTransaction}}}
-
-  Based on this information, provide a prediction (BUY, HOLD, or SELL), a confidence score, an entry range, a stop loss, a take profit, a shadow score, and a brief thought process.
-  Ensure values like entryRange, stopLoss, and takeProfit are plausible for the {{{target}}} market and align with the prediction.
-  Confidence and ShadowScore should be between 0 and 100. The ShadowScore should reflect the overall quality and conviction of the signal.
-
-  Example Output Format:
+  Example Output:
   {
-    "prediction": "BUY",
+    "prediction": "LONG",
     "confidence": 75,
-    "entryRange": "$25,200 - $25,500",
-    "stopLoss": "$24,800",
-    "takeProfit": "$26,200",
-    "shadowScore": 85,
-    "thought": "Volume is diverging against retail flow, with positive sentiment and notable on-chain accumulation, indicating a potential upward trend."
+    "entry": 68500,
+    "takeProfit": 69500,
+    "stopLoss": 68000,
+    "reasoning": "Positive sentiment and a key support level holding strong suggest a potential bounce."
   }
   `
 });
 
-const generateMarketInsightsFlow = ai.defineFlow(
+const generateSignalFlow = ai.defineFlow(
   {
-    name: 'generateMarketInsightsFlow',
-    inputSchema: MarketInsightsInputSchema, // Flow accepts client-defined inputs
-    outputSchema: MarketInsightsOutputSchema,
+    name: 'generateSignalFlow',
+    inputSchema: GenerateSignalInputSchema,
+    outputSchema: GenerateSignalOutputSchema,
   },
-  async (clientInput: MarketInsightsInput) => {
-    console.log('Received client input for flow:', clientInput);
-
-    // Map the user-facing tradeMode to a technical kline interval
-    const klineInterval = tradeModeToKlineInterval(clientInput.tradeMode);
-
-    // Fetch data from external services
-    const priceFeedData = await binanceService.fetchPriceData(clientInput.target, klineInterval);
-    // For sentiment news, we might pass the base asset (e.g., BTC from BTCUSDT)
-    const baseAssetForNews = clientInput.target.replace(/USDT$|USD$/i, ''); 
-    const sentimentNewsData = await coindeskService.fetchSentimentNews(baseAssetForNews || clientInput.target);
-    const walletTransactionData = await polygonService.fetchRecentTransactions(clientInput.target);
-
-    console.log('Fetched Price Feed:', priceFeedData);
-    console.log('Fetched Sentiment News:', sentimentNewsData);
-    console.log('Fetched Wallet Transactions:', walletTransactionData);
-    
-    // Construct the full input for the AI prompt
-    const promptData: z.infer<typeof PromptDataSchema> = {
-      ...clientInput,
-      priceFeed: priceFeedData,
-      sentimentNews: sentimentNewsData,
-      walletTransaction: walletTransactionData,
-    };
-
-    const {output} = await marketInsightsPrompt(promptData);
+  async (input) => {
+    const {output} = await signalPrompt(input);
     if (!output) {
-        throw new Error("AI prompt did not return an output.");
+        throw new Error("The Shadow Oracle did not return a signal.");
     }
     return output;
   }

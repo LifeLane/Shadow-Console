@@ -1,13 +1,14 @@
+
 'use server';
 
-import { getLeaderboardData } from '@/services/userService';
+import { getUser, getLeaderboardData } from '@/services/userService';
 import type { User } from '@/lib/types';
 
+export async function getProfileAction(): Promise<User | null> {
+    // For now, always gets the default user's profile
+    return getUser('default_user');
+}
+
 export async function getLeaderboardAction(): Promise<User[]> {
-    try {
-        return await getLeaderboardData();
-    } catch (error) {
-        console.error('Action Error: Failed to get leaderboard data.', error);
-        return [];
-    }
+    return getLeaderboardData();
 }
