@@ -107,7 +107,7 @@ const BackgroundAnimation = () => {
                 top: 0,
                 left: 0,
                 zIndex: -1,
-                opacity: 0.15,
+                opacity: 0.2,
                 pointerEvents: 'none',
             }}
         />
