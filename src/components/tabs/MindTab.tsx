@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -39,12 +39,12 @@ interface MindTabProps {
 }
 
 const MarketStat = ({ label, value, icon: Icon, valueClassName }: { label: string; value: string | React.ReactNode; icon: React.ElementType, valueClassName?: string }) => (
-    <div className="bg-card/60 border border-primary/20 rounded-lg p-3 flex flex-col justify-center text-center">
-        <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+    <div className="bg-card/60 border border-primary/20 rounded-lg p-2 flex flex-col justify-center text-center">
+        <div className="flex items-center justify-center gap-1.5 text-[0.6rem] sm:text-xs text-muted-foreground">
             <span>{label}</span>
             <Icon className="h-3 w-3 shrink-0" />
         </div>
-        <div className={cn("text-lg font-bold font-code mt-1 truncate", valueClassName)}>
+        <div className={cn("text-base sm:text-lg font-bold font-code mt-1 truncate", valueClassName)}>
             {value}
         </div>
     </div>
@@ -60,7 +60,7 @@ const SignalCard = ({ signal, onExecute }: { signal: Signal; onExecute: (signal:
                     signal.prediction === 'LONG' ? 'bg-green-500/80 text-white' :
                     signal.prediction === 'SHORT' ? 'bg-red-500/80 text-white' : 'bg-muted text-muted-foreground'
                 )}>{signal.prediction}</Badge>
-                <span className="font-semibold sm:text-lg">{signal.asset}</span>
+                <span className="font-semibold text-sm sm:text-base">{signal.asset}</span>
             </div>
             <TooltipProvider>
                 <Tooltip>
@@ -76,7 +76,7 @@ const SignalCard = ({ signal, onExecute }: { signal: Signal; onExecute: (signal:
             </TooltipProvider>
         </div>
 
-        <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 font-code text-sm mb-3">
+        <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 font-code text-xs sm:text-sm mb-3">
             <div className="text-muted-foreground">Shadow Score</div>
             <div className="text-right font-semibold">{signal.confidence}%</div>
             
@@ -95,8 +95,8 @@ const SignalCard = ({ signal, onExecute }: { signal: Signal; onExecute: (signal:
             </div>
         </div>
         
-        <div className="pt-3 border-t border-border/20">
-             <p className="text-xs text-muted-foreground/80 flex items-start gap-1.5">
+        <div className="pt-2 border-t border-border/20">
+             <p className="text-[0.6rem] sm:text-xs text-muted-foreground/80 flex items-start gap-1.5">
                 <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                 <span>Shadow Signals are AI-generated for gamified purposes only and do not constitute financial advice. Trade at your own risk.</span>
             </p>
@@ -109,15 +109,15 @@ const ModeButton = ({ icon: Icon, label, selected, ...props }: { icon: React.Ele
         type="button"
         variant="outline"
         className={cn(
-            "h-auto p-3 flex flex-row justify-center items-center gap-2 border-2 text-center transition-all duration-200",
+            "h-auto p-2 flex flex-row justify-center items-center gap-2 border-2 text-center transition-all duration-200",
             selected
                 ? "bg-accent text-accent-foreground border-accent glow-border-accent"
-                : "bg-card/80 border-border hover:bg-accent/10 hover:border-accent hover:text-primary"
+                : "bg-card/80 border-border text-foreground hover:bg-accent/10 hover:border-accent hover:text-primary"
         )}
         {...props}
     >
         <Icon className="w-4 h-4" />
-        <span className="font-semibold text-sm">{label}</span>
+        <span className="font-semibold text-xs sm:text-sm">{label}</span>
     </Button>
 );
 
@@ -130,6 +130,7 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
   const [signalHistory, setSignalHistory] = useState<Signal[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const { toast } = useToast();
+  const signalLogRef = useRef<HTMLDivElement>(null);
 
   const form = useForm<MindFormValues>({
     resolver: zodResolver(mindFormSchema),
@@ -193,12 +194,16 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
     try {
       const newSignal = await generateAiSignalAction(data.market, data.tradingMode, data.risk, 'RSI, MACD');
       // Prepend the new signal to the history for immediate feedback
-      setSignalHistory(prev => [newSignal, ...prev.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())]);
+      setSignalHistory(prev => [newSignal, ...prev]);
       toast({
         title: "SHADOW Signal Generated!",
         description: "Review the new signal in your Signal Log below.",
         className: "bg-accent text-accent-foreground border-primary",
       });
+      // Scroll to the signal log after a short delay to allow DOM to update
+      setTimeout(() => {
+        signalLogRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     } catch (error) {
       toast({ title: "AI Oracle Error", description: "Failed to generate signal. The Oracle may be busy.", variant: "destructive" });
     } finally {
@@ -251,7 +256,7 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
   const pendingSignals = signalHistory.filter(s => s.status === 'PENDING');
 
   return (
-    <div className="h-full flex flex-col space-y-3 bg-background">
+    <div className="h-full flex flex-col space-y-3 sm:space-y-4 bg-background">
         {/* Top Section: Console */}
         <div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
@@ -355,7 +360,7 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
         </div>
 
         {/* Bottom Section: Signal Log */}
-        <div className="flex-grow flex flex-col min-h-0">
+        <div ref={signalLogRef} className="flex-grow flex flex-col min-h-0">
             <Tabs defaultValue="all" className="flex-grow flex flex-col">
                 <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="all" className="text-xs sm:text-sm">Signal Log</TabsTrigger>
