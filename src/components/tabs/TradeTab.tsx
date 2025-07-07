@@ -15,7 +15,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ScrollArea } from '../ui/scroll-area';
 
 const StatCard = ({ icon: Icon, label, value, valuePrefix = '', valueClassName = '' }: { icon: React.ElementType, label: string, value: string | number, valuePrefix?: string, valueClassName?: string }) => (
-    <Card className="bg-card/70 border border-green-500/20 glow-border-accent">
+    <Card className="bg-card/70 border border-accent/20 glow-border-accent">
         <CardContent className="p-3">
             <div className="flex items-center space-x-2 mb-1">
                 <Icon className="h-4 w-4 text-muted-foreground" />
@@ -141,7 +141,7 @@ export default function TradeTab({ isDbInitialized, setActiveTab }: {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <StatCard icon={Briefcase} label="Invested" value={stats?.invested ?? 0} valuePrefix="$" />
                         <StatCard icon={BarChart} label="Live PnL" value={stats?.livePnl.toFixed(2) ?? "0.00"} valuePrefix="$" valueClassName={stats && stats.livePnl >= 0 ? 'text-accent' : 'text-destructive'}/>
                         <StatCard icon={List} label="Trades" value={stats?.totalTrades ?? 0}/>
