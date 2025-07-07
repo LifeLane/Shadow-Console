@@ -11,19 +11,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Loader2, Zap, BrainCircuit, ArrowUp, ArrowDown, TrendingUp, Clock, Crosshair, Sparkles, Send, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import type { Signal, Market, Ticker24h } from '@/lib/types';
+import type { Signal, Market, Ticker24h, User } from '@/lib/types';
 import { generateAiSignalAction, getSignalHistoryAction } from '@/app/mind/actions';
 import { getAvailableMarketsAction, getTicker24hAction } from '@/app/actions';
 import { cn } from '@/lib/utils';
 import TerminalExecutionAnimation from '../TerminalExecutionAnimation';
-import { Card, CardContent } from '../ui/card';
+import { Card } from '../ui/card';
 import { ScrollArea } from '../ui/scroll-area';
 import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '../ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
-import { placeTradeAction } from '@/app/agents/actions';
+import { getTradesAction, placeTradeAction } from '@/app/agents/actions';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-
+import AirdropForm from '../AirdropForm';
+import { getProfileAction } from '@/app/profile/actions';
 
 const mindFormSchema = z.object({
   market: z.string().min(1, 'Please select a market.'),
@@ -71,7 +72,7 @@ const SignalCard = ({ signal, onExecute }: { signal: Signal; onExecute: (signal:
         </div>
 
         <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 font-code text-xs sm:text-sm mb-3">
-            <div className="text-muted-foreground">Shadow Score</div>
+             <div className="text-muted-foreground">Shadow Score</div>
             <div className="text-right font-semibold">{signal.confidence}%</div>
             
             <div className="text-muted-foreground">Entry</div>
@@ -125,6 +126,8 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const { toast } = useToast();
   const signalLogRef = useRef<HTMLDivElement>(null);
+  const [isAirdropModalOpen, setIsAirdropModalOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   const form = useForm<MindFormValues>({
     resolver: zodResolver(mindFormSchema),
@@ -132,6 +135,21 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
   });
   
   const selectedMarket = form.watch('market');
+
+  const loadUserData = useCallback(async () => {
+    if (!isDbInitialized) return;
+    try {
+      const user = await getProfileAction();
+      setCurrentUser(user);
+    } catch (error) {
+      console.error("Error loading user data:", error);
+    }
+  }, [isDbInitialized]);
+
+  useEffect(() => {
+    loadUserData();
+  }, [loadUserData]);
+
 
   useEffect(() => {
     async function loadMarkets() {
@@ -184,6 +202,21 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
   }, [loadHistory]);
 
   const handleGenerateSignal = async (type: 'instant' | 'shadow') => {
+    if (!currentUser) {
+        toast({ title: "Loading...", description: "User data is being loaded. Please wait.", variant: "destructive" });
+        return;
+    }
+
+    if (signalHistory.length >= 10 && !currentUser.hasRegisteredForAirdrop) {
+        toast({
+            title: "Signal Limit Reached",
+            description: "Please complete the airdrop registration to generate more signals.",
+            variant: "destructive"
+        });
+        setIsAirdropModalOpen(true);
+        return;
+    }
+
     await form.trigger();
     if (!form.formState.isValid) {
         toast({
@@ -219,7 +252,24 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
         toast({ title: "Cannot Execute HOLD", description: "This signal is advisory. Only LONG or SHORT signals can be executed.", variant: "destructive"});
         return;
     }
+
+    if (!currentUser) {
+        toast({ title: "Loading...", description: "User data is being loaded. Please wait.", variant: "destructive" });
+        return;
+    }
+    
     try {
+      const trades = await getTradesAction();
+      if (trades.length >= 3 && !currentUser.hasRegisteredForAirdrop) {
+          toast({
+              title: "Trade Limit Reached",
+              description: "Complete the airdrop registration to place more trades.",
+              variant: "destructive"
+          });
+          setIsAirdropModalOpen(true);
+          return;
+      }
+      
       await placeTradeAction({
         asset: signal.asset,
         side: signal.prediction,
@@ -236,6 +286,9 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
       setActiveTab('trade');
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+        if (errorMessage.includes("Trade limit reached")) {
+            setIsAirdropModalOpen(true);
+        }
         toast({ title: 'Trade Execution Failed', description: errorMessage, variant: 'destructive' });
     }
   }
@@ -246,6 +299,11 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
       { id: 'Intraday', label: 'Intraday', icon: Clock },
       { id: 'Swing', label: 'Swing', icon: TrendingUp },
   ];
+  
+  const onAirdropSuccess = () => {
+    loadUserData();
+    loadHistory();
+  };
   
   if (isGenerating) {
     return (
@@ -259,6 +317,8 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
   const pendingSignals = signalHistory.filter(s => s.status === 'PENDING');
 
   return (
+    <>
+    <AirdropForm isOpen={isAirdropModalOpen} onOpenChange={setIsAirdropModalOpen} onSuccess={onAirdropSuccess} />
     <div className="h-full flex flex-col space-y-3 sm:space-y-4 bg-background">
         <div>
              <div className="w-full bg-card/60 rounded-lg border border-primary/30 flex divide-x divide-primary/20">
@@ -405,5 +465,6 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
             <p>Shadow Signals are AI-generated for gamified purposes and do not constitute financial advice. All trades are simulated. Trade at your own risk.</p>
         </div>
     </div>
+    </>
   );
 }

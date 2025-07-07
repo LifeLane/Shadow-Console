@@ -3,6 +3,7 @@
 
 import { readDb, writeDb } from '@/lib/file-system-db';
 import type { User } from '@/lib/types';
+import { revalidatePath } from 'next/cache';
 import path from 'path';
 
 const USERS_DB_PATH = path.resolve(process.cwd(), 'src/data/users.json');
@@ -31,6 +32,7 @@ export async function updateUser(updatedUser: User): Promise<void> {
     if (userIndex > -1) {
         users[userIndex] = updatedUser;
         await writeDb(USERS_DB_PATH, users);
+        revalidatePath('/'); // Revalidate all paths to ensure UI updates everywhere
     } else {
         throw new Error(`User with ID ${updatedUser.id} not found.`);
     }

@@ -3,20 +3,20 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Award, BrainCircuit, Gem, ShieldCheck, Loader2, KeyRound, User, MessageCircle, Send } from 'lucide-react';
+import { Award, BrainCircuit, Gem, ShieldCheck, Loader2, KeyRound, User, MessageCircle, Send, Edit } from 'lucide-react';
 import type { User as UserType } from '@/lib/types';
-import { getProfileAction, askOracleAction } from '@/app/profile/actions';
+import { getProfileAction, askOracleAction, updateUserAction } from '@/app/profile/actions';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
-import { Form, FormControl, FormField, FormItem } from '../ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '../ui/form';
 import { useForm } from 'react-hook-form';
+import AnimatedAvatar from '../AnimatedAvatar';
 
 const getTierStyling = (xp: number) => {
     if (xp >= 9000) return { name: 'Oracle Lord', className: 'text-purple-400 border-purple-400', progress: 100 };
@@ -106,11 +106,7 @@ const OracleChat = () => {
                                 )}
                             >
                                 {message.role === 'model' && (
-                                    <Avatar className="w-8 h-8 border-2 border-accent">
-                                        <AvatarFallback className="bg-accent/20">
-                                            <MessageCircle className="w-4 h-4 text-accent"/>
-                                        </AvatarFallback>
-                                    </Avatar>
+                                    <AnimatedAvatar name="Oracle" className="w-8 h-8 border-2 border-accent" />
                                 )}
                                 <div className={cn(
                                     "max-w-[80%] rounded-lg px-3 py-2 text-sm",
@@ -121,19 +117,13 @@ const OracleChat = () => {
                                     {message.text}
                                 </div>
                                 {message.role === 'user' && (
-                                    <Avatar className="w-8 h-8">
-                                         <AvatarFallback><User className="w-4 h-4"/></AvatarFallback>
-                                    </Avatar>
+                                    <AnimatedAvatar name="User" className="w-8 h-8" />
                                 )}
                             </div>
                         ))}
                         {isSending && (
                             <div className="flex items-start gap-3 justify-start">
-                                <Avatar className="w-8 h-8 border-2 border-accent">
-                                    <AvatarFallback className="bg-accent/20">
-                                        <Loader2 className="w-4 h-4 text-accent animate-spin"/>
-                                    </AvatarFallback>
-                                </Avatar>
+                                <AnimatedAvatar name="Oracle" className="w-8 h-8 border-2 border-accent" />
                                 <div className="bg-muted text-muted-foreground rounded-lg px-3 py-2 text-sm">...</div>
                             </div>
                         )}
@@ -169,23 +159,41 @@ export default function ProfileTab({ isDbInitialized }: { isDbInitialized: boole
     const [profile, setProfile] = useState<UserType | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
+    const nameForm = useForm<{ name: string }>();
+
+    const loadProfile = useCallback(async () => {
+        if (!isDbInitialized) return;
+        setIsLoading(true);
+        try {
+            const profileData = await getProfileAction();
+            setProfile(profileData);
+            if (profileData) {
+                nameForm.setValue('name', profileData.name);
+            }
+        } catch (error) {
+            toast({ title: "Error", description: "Could not load profile data.", variant: "destructive" });
+        } finally {
+            setIsLoading(false);
+        }
+    }, [isDbInitialized, toast, nameForm]);
 
     useEffect(() => {
-        async function loadProfileData() {
-            if (!isDbInitialized) return;
-            setIsLoading(true);
-            try {
-                const profileData = await getProfileAction();
-                setProfile(profileData);
-            } catch (error) {
-                toast({ title: "Error", description: "Could not load profile data.", variant: "destructive" });
-            } finally {
-                setIsLoading(false);
-            }
-        }
-        loadProfileData();
-    }, [isDbInitialized, toast]);
+        loadProfile();
+    }, [loadProfile]);
 
+    const handleNameChange = async (values: { name: string }) => {
+        if (!profile || !profile.nameEditable) return;
+
+        try {
+            const updatedUser = { ...profile, name: values.name, nameEditable: false };
+            await updateUserAction(updatedUser);
+            setProfile(updatedUser);
+            toast({ title: "Name Updated!", description: "Your pilot callsign has been set." });
+        } catch (error) {
+            toast({ title: "Error", description: "Could not update your name.", variant: "destructive" });
+        }
+    };
+    
     const userTier = useMemo(() => profile ? getTierStyling(profile.xp) : null, [profile]);
 
     if (isLoading) {
@@ -222,10 +230,7 @@ export default function ProfileTab({ isDbInitialized }: { isDbInitialized: boole
                             <div className="lg:col-span-1 space-y-4 sm:space-y-6">
                                 <Card className="glow-border-accent">
                                     <CardHeader className="items-center text-center p-4">
-                                        <Avatar className="h-20 w-20 sm:h-24 sm:w-24 mb-4 border-2 border-accent">
-                                            <AvatarImage src={profile.avatarUrl} alt={profile.name} data-ai-hint="futuristic pilot" />
-                                            <AvatarFallback>{profile.name.charAt(0)}</AvatarFallback>
-                                        </Avatar>
+                                        <AnimatedAvatar name={profile.name} className="h-20 w-20 sm:h-24 sm:w-24 mb-4" />
                                         <CardTitle className="text-xl sm:text-2xl text-accent">{profile.name}</CardTitle>
                                         {userTier && <Badge variant="outline" className={cn("text-sm sm:text-base mt-2", userTier.className)}>{userTier.name}</Badge>}
                                     </CardHeader>
@@ -268,6 +273,34 @@ export default function ProfileTab({ isDbInitialized }: { isDbInitialized: boole
                     </TabsContent>
 
                     <TabsContent value="settings" className="mt-6 space-y-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center text-lg sm:text-xl"><Edit className="mr-2"/> Pilot Callsign</CardTitle>
+                                <CardDescription className="text-sm">
+                                    {profile.nameEditable 
+                                        ? "Set your unique callsign. This can only be done once." 
+                                        : "Your callsign is permanently set."}
+                                </CardDescription>
+                             </CardHeader>
+                             <CardContent className="p-4 pt-0">
+                                <Form {...nameForm}>
+                                    <form onSubmit={nameForm.handleSubmit(handleNameChange)} className="flex items-center gap-2">
+                                        <FormField
+                                            control={nameForm.control}
+                                            name="name"
+                                            render={({ field }) => (
+                                                <FormItem className="flex-grow">
+                                                    <FormControl>
+                                                        <Input {...field} disabled={!profile.nameEditable} />
+                                                    </FormControl>
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <Button type="submit" disabled={!profile.nameEditable}>Save</Button>
+                                    </form>
+                                </Form>
+                            </CardContent>
+                        </Card>
                          <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center text-lg sm:text-xl"><KeyRound className="mr-2"/> API Keys</CardTitle>

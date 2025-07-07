@@ -13,7 +13,17 @@ export async function getTradesAction(): Promise<Trade[]> {
 
 export async function placeTradeAction(trade: Omit<Trade, 'id' | 'timestamp' | 'userId' | 'status' | 'pnl' | 'closePrice'>): Promise<Trade> {
     const user = await getUser('default_user');
-    if (!user || user.shadowBalance < trade.stake) {
+    if (!user) {
+        throw new Error("User not found.");
+    }
+    
+    // This is a server-side check, but the primary gating is handled client-side to show the modal.
+    const allTrades = await getTrades('default_user', 999);
+    if (allTrades.length >= 3 && !user.hasRegisteredForAirdrop) {
+        throw new Error("Trade limit reached. Please register for the airdrop to continue trading.");
+    }
+
+    if (user.shadowBalance < trade.stake) {
         throw new Error("Insufficient SHADOW balance.");
     }
 

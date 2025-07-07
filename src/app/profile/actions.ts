@@ -1,9 +1,11 @@
+
 'use server';
 
-import { getUser, getLeaderboardData } from '@/services/userService';
+import { getUser, updateUser, getLeaderboardData } from '@/services/userService';
 import type { User } from '@/lib/types';
 import { chatWithOracle } from "@/ai/flows/chat-with-oracle";
 import type { Message } from '@/components/tabs/ProfileTab';
+import { revalidatePath } from 'next/cache';
 
 export async function getProfileAction(): Promise<User | null> {
     // For now, always gets the default user's profile
@@ -32,4 +34,9 @@ export async function askOracleAction(history: Message[], newMessage: string): P
         console.error("Error in askOracleAction:", error);
         return "The Oracle is currently recalibrating... please try again in a moment.";
     }
+}
+
+export async function updateUserAction(user: User): Promise<void> {
+    await updateUser(user);
+    revalidatePath('/');
 }

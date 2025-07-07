@@ -2,7 +2,7 @@
 'use server';
 
 import { writeDb } from '@/lib/file-system-db';
-import type { User, Mission, Signal, Trade } from '@/lib/types';
+import type { User, Mission, Signal, Trade, AirdropRegistration } from '@/lib/types';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -13,14 +13,17 @@ const MISSIONS_PATH = path.join(DATA_DIR, 'missions.json');
 const SIGNALS_PATH = path.join(DATA_DIR, 'signals.json');
 const TRADES_PATH = path.join(DATA_DIR, 'trades.json');
 const USER_MISSIONS_PATH = path.join(DATA_DIR, 'user_missions.json');
+const AIRDROP_REGISTRATIONS_PATH = path.join(DATA_DIR, 'airdrop_registrations.json');
 
+// Generate a random 4-digit number for the default user name
+const randomId = Math.floor(1000 + Math.random() * 9000);
 
 // Initial seed data
 const initialUsers: User[] = [
-    { id: 'default_user', name: 'Neon Pilot', xp: 1250, winRate: 68, signalAccuracy: 74, shadowBalance: 5000, stakedAmount: 1500, avatarUrl: 'https://placehold.co/100x100.png', completedMissions: ['trade_5'], walletAddress: '0x123...abc' },
-    { id: 'bot_1', name: 'Cypher Runner', xp: 8420, winRate: 75, signalAccuracy: 81, shadowBalance: 1000, stakedAmount: 0, avatarUrl: 'https://placehold.co/100x100.png', completedMissions: [], walletAddress: '0x456...def'},
-    { id: 'bot_2', name: 'Grid Ghost', xp: 5100, winRate: 62, signalAccuracy: 68, shadowBalance: 1000, stakedAmount: 0, avatarUrl: 'https://placehold.co/100x100.png', completedMissions: [], walletAddress: '0x789...ghi'},
-    { id: 'bot_3', name: 'Oracle Lord', xp: 9500, winRate: 88, signalAccuracy: 92, shadowBalance: 1000, stakedAmount: 0, avatarUrl: 'https://placehold.co/100x100.png', completedMissions: [], walletAddress: '0xabc...123'},
+    { id: 'default_user', name: `SHADOW_${randomId}`, xp: 0, winRate: 0, signalAccuracy: 0, shadowBalance: 500, stakedAmount: 0, avatarUrl: '', completedMissions: [], walletAddress: '', hasRegisteredForAirdrop: false, nameEditable: false },
+    { id: 'bot_1', name: 'Cypher Runner', xp: 8420, winRate: 75, signalAccuracy: 81, shadowBalance: 1000, stakedAmount: 0, avatarUrl: 'https://placehold.co/100x100.png', completedMissions: [], walletAddress: '0x456...def', hasRegisteredForAirdrop: true, nameEditable: false },
+    { id: 'bot_2', name: 'Grid Ghost', xp: 5100, winRate: 62, signalAccuracy: 68, shadowBalance: 1000, stakedAmount: 0, avatarUrl: 'https://placehold.co/100x100.png', completedMissions: [], walletAddress: '0x789...ghi', hasRegisteredForAirdrop: true, nameEditable: false },
+    { id: 'bot_3', name: 'Oracle Lord', xp: 9500, winRate: 88, signalAccuracy: 92, shadowBalance: 1000, stakedAmount: 0, avatarUrl: 'https://placehold.co/100x100.png', completedMissions: [], walletAddress: '0xabc...123', hasRegisteredForAirdrop: true, nameEditable: false },
 ];
 
 const initialMissions: Mission[] = [
@@ -32,7 +35,8 @@ const initialMissions: Mission[] = [
 
 const initialSignals: Signal[] = [];
 const initialTrades: Trade[] = [];
-const initialUserMissions: Record<string, string[]> = { 'default_user': ['trade_5'] };
+const initialUserMissions: Record<string, string[]> = { 'default_user': [] };
+const initialAirdropRegistrations: AirdropRegistration[] = [];
 
 
 async function fileExists(filePath: string): Promise<boolean> {
@@ -63,7 +67,8 @@ export async function setupAndSeedLocalData() {
             seedFile(MISSIONS_PATH, initialMissions),
             seedFile(SIGNALS_PATH, initialSignals),
             seedFile(TRADES_PATH, initialTrades),
-            seedFile(USER_MISSIONS_PATH, initialUserMissions)
+            seedFile(USER_MISSIONS_PATH, initialUserMissions),
+            seedFile(AIRDROP_REGISTRATIONS_PATH, initialAirdropRegistrations)
         ]);
 
         console.log('Local data store setup check complete for Shadow Arena.');

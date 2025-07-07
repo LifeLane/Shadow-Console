@@ -7,12 +7,11 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle, XCircle, HelpCircle, Gift, Wallet, ListChecks, UserPlus, Loader2, Check, Send, Trophy, Award, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { getMissionsDataAction, completeMissionAction, type MissionData } from '@/app/tasks/actions';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { User as UserType } from '@/lib/types';
 import { getLeaderboardAction, getProfileAction } from '@/app/leaderboard/actions';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
+import AnimatedAvatar from '../AnimatedAvatar';
 
 const getRankStyling = (rank: number) => {
     if (rank === 0) return 'bg-yellow-400 text-yellow-900 border-yellow-300';
@@ -227,10 +226,7 @@ export default function MissionsTab({ isDbInitialized }: { isDbInitialized: bool
                                     currentUser && user.id === currentUser.id ? 'bg-primary/20 border-primary' : 'bg-muted/30 border-transparent'
                                 )}>
                                     <span className={cn('flex items-center justify-center h-7 w-7 sm:h-8 sm:w-8 rounded-full text-sm font-bold border-2', getRankStyling(index))}>{index + 1}</span>
-                                    <Avatar className="h-9 w-9 sm:h-10 sm:w-10">
-                                        <AvatarImage src={user.avatarUrl} data-ai-hint="futuristic pilot" />
-                                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
+                                    <AnimatedAvatar name={user.name} className="h-9 w-9 sm:h-10 sm:w-10" />
                                     <div className="flex-1">
                                         <p className="font-semibold text-sm sm:text-base">{user.name}</p>
                                         <div className="flex items-center text-xs text-muted-foreground">

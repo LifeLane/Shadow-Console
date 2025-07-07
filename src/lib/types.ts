@@ -1,15 +1,18 @@
 
+
 export interface User {
     id: string;
-    name: string;
+    name: string; // This will be the editable username
     xp: number;
     winRate: number; // Overall trade win rate %
     signalAccuracy: number; // Prediction accuracy %
     shadowBalance: number;
     stakedAmount: number;
-    avatarUrl?: string;
+    avatarUrl?: string; // Kept for potential future use, but replaced by AnimatedAvatar
     completedMissions: string[];
-    walletAddress?: string;
+    walletAddress?: string; // This is the user's main wallet
+    hasRegisteredForAirdrop: boolean; // Tracks airdrop form completion
+    nameEditable: boolean; // Tracks if the name can be changed
 }
 
 export interface Trade {
@@ -93,4 +96,16 @@ export interface Ticker24h {
     firstId: number;
     lastId: number;
     count: number;
+}
+
+export interface AirdropRegistration {
+    userId: string;
+    email?: string;
+    phone?: string;
+    twitterHandle?: string;
+    telegramHandle?: string;
+    youtubeHandle?: string;
+    airdropWalletType: 'ETH' | 'SOL' | 'TON';
+    airdropWalletAddress: string;
+    timestamp: string;
 }
