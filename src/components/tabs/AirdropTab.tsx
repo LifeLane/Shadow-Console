@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { BadgeCheck, Check, Gift, Loader2, SendSquare } from 'lucide-react';
+import { BadgeCheck, Check, Gift, Loader2, Send } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -87,7 +87,7 @@ export default function AirdropTab({ isDbInitialized }: { isDbInitialized: boole
                                 disabled={isCompleted || isCompleting}
                                 className={cn(isCompleted ? "bg-green-500/80" : "bg-accent hover:bg-accent/90")}
                             >
-                                {isCompleting ? <Loader2 className="animate-spin"/> : isCompleted ? <Check/> : <SendSquare/>}
+                                {isCompleting ? <Loader2 className="animate-spin"/> : isCompleted ? <Check/> : <Send/>}
                             </Button>
                         </Card>
                     )
