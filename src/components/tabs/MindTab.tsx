@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { Signal, Market, Ticker24h, User } from '@/lib/types';
 import { generateAiSignalAction, getSignalHistoryAction } from '@/app/mind/actions';
 import { getAvailableMarketsAction, getTicker24hAction } from '@/app/actions';
+import { getTradesAction, placeTradeAction } from '@/app/agents/actions';
 import { cn } from '@/lib/utils';
 import TerminalExecutionAnimation from '../TerminalExecutionAnimation';
 import { Card } from '../ui/card';
@@ -21,7 +22,6 @@ import { ScrollArea } from '../ui/scroll-area';
 import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '../ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
-import { getTradesAction, placeTradeAction } from '@/app/agents/actions';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import AirdropForm from '../AirdropForm';
 import { getProfileAction } from '@/app/profile/actions';
@@ -40,64 +40,66 @@ interface MindTabProps {
 }
 
 const MarketStat = ({ label, value, icon: Icon, valueClassName }: { label: string; value: string | React.ReactNode; icon: React.ElementType, valueClassName?: string }) => (
-    <div className="flex-1 px-2 py-1 text-center">
+    <div className="px-2 py-2 text-center">
         <p className="text-muted-foreground uppercase text-[0.6rem] sm:text-xs tracking-wider flex items-center justify-center gap-1.5">{label} <Icon className="h-3 w-3 shrink-0" /></p>
-        <p className={cn("font-bold font-code text-xs sm:text-sm truncate", valueClassName)}>{value}</p>
+        <p className={cn("font-bold font-code text-sm sm:text-base truncate", valueClassName)}>{value}</p>
     </div>
 );
 
-const SignalCard = ({ signal, onExecute }: { signal: Signal; onExecute: (signal: Signal) => void; }) => (
-    <Card className="p-3 bg-card/50 border-primary/20">
-        <div className="flex items-start justify-between gap-2 mb-2">
-            <div className="flex items-center gap-2">
-                <Badge className={cn(
-                    "py-0.5 px-2 text-xs font-bold rounded-md",
-                    signal.prediction === 'LONG' ? 'bg-green-500/80 text-white' :
-                    signal.prediction === 'SHORT' ? 'bg-red-500/80 text-white' : 'bg-muted text-muted-foreground'
-                )}>{signal.prediction}</Badge>
-                <span className="font-semibold text-sm sm:text-base">{signal.asset}</span>
+const SignalCard = ({ signal, onExecute }: { signal: Signal; onExecute: (signal: Signal) => void; }) => {
+    return (
+        <Card className="p-3 bg-card/50 border-primary/20">
+            <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="flex items-center gap-2">
+                    <Badge className={cn(
+                        "py-0.5 px-2 text-xs font-bold rounded-md",
+                        signal.prediction === 'LONG' ? 'bg-green-500/80 text-white' :
+                        signal.prediction === 'SHORT' ? 'bg-red-500/80 text-white' : 'bg-muted text-muted-foreground'
+                    )}>{signal.prediction}</Badge>
+                    <span className="font-semibold text-sm sm:text-base">{signal.asset}</span>
+                </div>
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-accent hover:bg-accent/20" onClick={() => onExecute(signal)} disabled={signal.prediction === 'HOLD'}>
+                                <Send className="h-4 w-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>Execute Trade</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
             </div>
-            <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button size="icon" variant="ghost" className="h-8 w-8 text-accent hover:bg-accent/20" onClick={() => onExecute(signal)} disabled={signal.prediction === 'HOLD'}>
-                            <Send className="h-4 w-4" />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p>Execute Trade</p>
-                    </TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
-        </div>
 
-        <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 font-code text-xs sm:text-sm mb-3">
-             <div className="text-muted-foreground">Shadow Score</div>
-            <div className="text-right font-semibold">{signal.confidence}%</div>
-            
-            <div className="text-muted-foreground">Entry</div>
-            <div className="text-right font-semibold">${signal.entryPrice.toLocaleString()}</div>
+            <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 font-code text-xs sm:text-sm mb-3">
+                 <div className="text-muted-foreground">Shadow Score</div>
+                <div className="text-right font-semibold">{signal.confidence}%</div>
+                
+                <div className="text-muted-foreground">Entry</div>
+                <div className="text-right font-semibold">${signal.entryPrice.toLocaleString()}</div>
 
-            <div className="text-muted-foreground">TP</div>
-            <div className="text-right font-semibold text-accent">${signal.takeProfit.toLocaleString()}</div>
-            
-            <div className="text-muted-foreground">SL</div>
-            <div className="text-right font-semibold text-destructive">${signal.stopLoss.toLocaleString()}</div>
-            
-            <div className="text-muted-foreground">Generated</div>
-            <div className="text-right font-semibold">
-                {formatDistanceToNow(new Date(signal.timestamp), { addSuffix: true })}
+                <div className="text-muted-foreground">TP</div>
+                <div className="text-right font-semibold text-accent">${signal.takeProfit.toLocaleString()}</div>
+                
+                <div className="text-muted-foreground">SL</div>
+                <div className="text-right font-semibold text-destructive">${signal.stopLoss.toLocaleString()}</div>
+                
+                <div className="text-muted-foreground">Generated</div>
+                <div className="text-right font-semibold">
+                    {formatDistanceToNow(new Date(signal.timestamp), { addSuffix: true })}
+                </div>
             </div>
-        </div>
-        
-        <div className="pt-2 border-t border-border/20">
-             <p className="text-[0.6rem] sm:text-xs text-muted-foreground/80 flex items-start gap-1.5">
-                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-                <span>Shadow Signals are AI-generated for gamified purposes only and do not constitute financial advice. Trade at your own risk.</span>
-            </p>
-        </div>
-    </Card>
-);
+            
+            <div className="pt-2 border-t border-border/20">
+                 <p className="text-[0.6rem] sm:text-xs text-muted-foreground/80 flex items-start gap-1.5">
+                    <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                    <span>Shadow Signals are AI-generated for gamified purposes only and do not constitute financial advice. Trade at your own risk.</span>
+                </p>
+            </div>
+        </Card>
+    );
+};
 
 const ModeButton = ({ icon: Icon, label, selected, ...props }: { icon: React.ElementType; label: string; selected: boolean } & React.ComponentProps<typeof Button>) => (
     <Button
@@ -321,7 +323,7 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
     <AirdropForm isOpen={isAirdropModalOpen} onOpenChange={setIsAirdropModalOpen} onSuccess={onAirdropSuccess} />
     <div className="h-full flex flex-col space-y-3 sm:space-y-4 bg-background">
         <div>
-             <div className="w-full bg-card/60 rounded-lg border border-primary/30 flex divide-x divide-primary/20">
+            <div className="grid grid-cols-2 sm:grid-cols-4 w-full bg-card/60 rounded-lg border border-primary/30 divide-x divide-y sm:divide-y-0 divide-primary/20">
                 <MarketStat label="Price" value={tickerData ? `$${parseFloat(tickerData.lastPrice).toLocaleString()}`: <Loader2 className="h-4 w-4 animate-spin mx-auto" />} icon={Zap} valueClassName="text-white" />
                 <MarketStat label="24h" value={tickerData ? `${parseFloat(tickerData.priceChangePercent).toFixed(2)}%`: <Loader2 className="h-4 w-4 animate-spin mx-auto" />} icon={TrendingUp} valueClassName={tickerData && parseFloat(tickerData.priceChangePercent) >= 0 ? 'text-accent' : 'text-red-500'} />
                 <MarketStat label="High" value={tickerData ? `$${parseFloat(tickerData.highPrice).toLocaleString()}`: <Loader2 className="h-4 w-4 animate-spin mx-auto" />} icon={ArrowUp} />
@@ -468,3 +470,5 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
     </>
   );
 }
+
+    
