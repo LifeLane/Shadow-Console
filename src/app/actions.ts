@@ -1,8 +1,8 @@
 
 'use server';
 
-import { fetchLatestPrice, fetchTradableUsdtPairs } from "@/services/binanceService";
-import type { Market } from "@/lib/types";
+import { fetchLatestPrice, fetchTradableUsdtPairs, fetchTicker24h } from "@/services/binanceService";
+import type { Market, Ticker24h } from "@/lib/types";
 
 /**
  * A Server Action to fetch the latest price for a given symbol.
@@ -19,6 +19,21 @@ export async function getLivePrice(symbol: string): Promise<string | null> {
         return null;
     } catch (error) {
         console.error(`Server Action getLivePrice failed for ${symbol}:`, error);
+        return null;
+    }
+}
+
+/**
+ * A Server Action to fetch the 24h ticker data for a given symbol.
+ * @param symbol The trading symbol (e.g., 'BTCUSDT').
+ * @returns The ticker data, or null if an error occurs.
+ */
+export async function getTicker24hAction(symbol: string): Promise<Ticker24h | null> {
+    if (!symbol) return null;
+    try {
+        return await fetchTicker24h(symbol);
+    } catch (error) {
+        console.error(`Server Action getTicker24hAction failed for ${symbol}:`, error);
         return null;
     }
 }

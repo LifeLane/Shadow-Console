@@ -22,7 +22,7 @@ export async function saveSignalAction(signal: Omit<Signal, 'id' | 'timestamp' |
 
 export async function generateAiSignalAction(
     market: string, 
-    timeframe: string,
+    tradingMode: string,
     risk: string,
     indicators: string
 ): Promise<Signal> {
@@ -40,7 +40,7 @@ export async function generateAiSignalAction(
         On-Chain Activity: ${onChainData}.
     `;
 
-    const aiResult = await generateSignal({ market, marketData: marketDataSummary, timeframe, risk, indicators });
+    const aiResult = await generateSignal({ market, marketData: marketDataSummary, tradingMode, risk, indicators });
 
     const newSignal: Omit<Signal, 'id' | 'userId' | 'timestamp'> = {
         asset: market,

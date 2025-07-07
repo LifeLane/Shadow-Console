@@ -44,7 +44,7 @@ const pageTransitionVariants = {
 
 
 export default function AppLayout() {
-  const [activeTab, setActiveTab] = useState<TabId>('trade');
+  const [activeTab, setActiveTab] = useState<TabId>('mind');
   const [executableSignal, setExecutableSignal] = useState<Signal | null>(null);
   const { toast } = useToast();
   const [isDbInitialized, setIsDbInitialized] = useState(false);
@@ -114,11 +114,11 @@ export default function AppLayout() {
       <header className="sticky top-0 z-50 flex items-center justify-between p-3 sm:p-4 bg-background/90 backdrop-blur-md border-b border-border/50">
         <div className="flex items-center">
           <Sparkles className="h-7 w-7 sm:h-8 sm:w-8 mr-2 text-primary animate-pulse" />
-          <h1 className="text-xl sm:text-2xl font-headline font-bold text-foreground">Shadow <span className="text-primary">Trader</span></h1>
+          <h1 className="text-xl sm:text-2xl font-headline font-bold text-foreground">Block<span className="text-primary">SHADOW</span></h1>
         </div>
       </header>
 
-      <main className="flex-grow container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+      <main className="flex-grow flex flex-col">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -127,6 +127,7 @@ export default function AppLayout() {
             exit="exit"
             variants={pageTransitionVariants}
             transition={pageTransitionVariants.transition}
+            className="flex-grow flex flex-col"
           >
             <ActiveComponent 
               isDbInitialized={isDbInitialized}

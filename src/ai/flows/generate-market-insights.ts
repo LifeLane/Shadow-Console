@@ -15,7 +15,7 @@ import {z} from 'genkit';
 
 const GenerateSignalInputSchema = z.object({
   market: z.string().describe('The target market (e.g., BTCUSDT).'),
-  timeframe: z.string().describe('The timeframe for analysis (e.g., 15m, 1h, 4h).'),
+  tradingMode: z.string().describe('The trading style (e.g., Scalper, Sniper, Intraday, Swing).'),
   risk: z.string().describe('The user-defined risk tolerance (e.g., Low, Medium, High).'),
   indicators: z.string().describe('A comma-separated list of technical indicators to consider (e.g., RSI, MACD, ATR).'),
   marketData: z.string().describe('A comprehensive summary of recent market data, including current price, recent k-line price action, market sentiment/news, and simulated on-chain activity.'),
@@ -46,7 +46,7 @@ const signalPrompt = ai.definePrompt({
   Your task is to analyze a comprehensive data feed for {{{market}}} and generate a high-probability trading signal. You must synthesize information from all provided sources to form your conclusion.
 
   User-defined parameters:
-  - Timeframe: {{{timeframe}}}
+  - Trading Mode: {{{tradingMode}}}
   - Risk Level: {{{risk}}}
   - Key Indicators: {{{indicators}}}
 

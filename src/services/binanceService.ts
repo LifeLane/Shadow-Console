@@ -3,7 +3,7 @@
 /**
  * @fileOverview Service for fetching data from Binance API.
  */
-import type { Market } from '@/lib/types';
+import type { Market, Ticker24h } from '@/lib/types';
 
 const BINANCE_API_BASE_URL = 'https://api.binance.com/api/v3';
 
@@ -36,6 +36,29 @@ export async function fetchLatestPrice(symbol: string): Promise<{ symbol: string
     return data;
   } catch (error) {
     console.error(`Failed to fetch latest price from Binance for ${symbol}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Fetches 24-hour ticker price change statistics.
+ * @param symbol Trading symbol, e.g., BTCUSDT
+ * @returns An object containing the 24h stats or null if an error occurs.
+ */
+export async function fetchTicker24h(symbol: string): Promise<Ticker24h | null> {
+  try {
+    const formattedSymbol = symbol.toUpperCase();
+    const response = await fetch(
+      `${BINANCE_API_BASE_URL}/ticker/24hr?symbol=${formattedSymbol}`
+    );
+    if (!response.ok) {
+      console.error(`Binance API error for 24hr ticker ${formattedSymbol}: ${response.status}`);
+      return null;
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(`Failed to fetch 24hr ticker from Binance for ${symbol}:`, error);
     return null;
   }
 }

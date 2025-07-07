@@ -1,68 +1,78 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, Zap, AlertTriangle, CheckCircle, Clock, BrainCircuit, Quote } from 'lucide-react';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Loader2, Zap, BrainCircuit, ArrowUp, ArrowDown, TrendingUp, Clock, Crosshair, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import type { Signal, Market } from '@/lib/types';
-import { getSignalHistoryAction, generateAiSignalAction } from '@/app/mind/actions';
-import { getAvailableMarketsAction } from '@/app/actions';
-import PulsingText from '../PulsingText';
-import { Badge } from '../ui/badge';
+import type { Signal, Market, Ticker24h } from '@/lib/types';
+import { generateAiSignalAction } from '@/app/mind/actions';
+import { getAvailableMarketsAction, getTicker24hAction } from '@/app/actions';
 import { cn } from '@/lib/utils';
-import TypewriterText from '../TypewriterText';
+import TerminalExecutionAnimation from '../TerminalExecutionAnimation';
 
 const mindFormSchema = z.object({
   market: z.string().min(1, 'Please select a market.'),
-  timeframe: z.string().min(1, 'Please select a timeframe.'),
-  risk: z.string().min(1, 'Please select a risk level.'),
-  indicators: z.string().optional(),
+  tradingMode: z.enum(['Scalper', 'Sniper', 'Intraday', 'Swing']),
+  risk: z.enum(['Low', 'Medium', 'High']),
+  executionType: z.enum(['instant', 'optimal']),
 });
 
 type MindFormValues = z.infer<typeof mindFormSchema>;
 
 interface MindTabProps {
   isDbInitialized: boolean;
-  setExecutableSignal: (signal: Signal) => void;
+  setExecutableSignal: (signal: Signal | null) => void;
   setActiveTab: (tabId: 'wallet' | 'trade' | 'mind' | 'missions' | 'vault') => void;
 }
 
+const MarketStat = ({ label, value, change, icon: Icon, valueClassName }: { label: string; value: string | React.ReactNode; change?: number; icon: React.ElementType, valueClassName?: string }) => (
+    <div className="bg-card/70 border border-border/50 rounded-lg p-3 sm:p-4">
+        <div className="flex items-center text-muted-foreground text-xs sm:text-sm">
+            <Icon className="w-4 h-4 mr-2" />
+            <span>{label}</span>
+        </div>
+        <div className={cn("text-lg sm:text-xl font-bold font-code mt-1", valueClassName)}>
+            {value}
+        </div>
+    </div>
+);
+
+const ModeButton = ({ icon: Icon, label, selected, ...props }: { icon: React.ElementType; label: string; selected: boolean } & React.ComponentProps<typeof Button>) => (
+    <Button
+        variant="outline"
+        className={cn(
+            "h-auto p-4 flex flex-col justify-center items-center space-y-2 border-2 text-center transition-all duration-200",
+            selected
+                ? "bg-accent text-accent-foreground border-accent glow-border-accent"
+                : "bg-card/80 border-border hover:bg-accent/10 hover:border-accent"
+        )}
+        {...props}
+    >
+        <Icon className="w-7 h-7" />
+        <span className="font-semibold text-sm">{label}</span>
+    </Button>
+);
+
 export default function MindTab({ isDbInitialized, setExecutableSignal, setActiveTab }: MindTabProps) {
-  const [history, setHistory] = useState<Signal[]>([]);
   const [markets, setMarkets] = useState<Market[]>([]);
-  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [isLoadingMarkets, setIsLoadingMarkets] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedSignal, setGeneratedSignal] = useState<Signal | null>(null);
+  const [tickerData, setTickerData] = useState<Ticker24h | null>(null);
   const { toast } = useToast();
 
   const form = useForm<MindFormValues>({
     resolver: zodResolver(mindFormSchema),
-    defaultValues: { market: '', timeframe: '1h', risk: 'Medium', indicators: 'RSI, MACD' },
+    defaultValues: { market: 'BTCUSDT', tradingMode: 'Sniper', risk: 'Medium', executionType: 'optimal' },
   });
-
-  useEffect(() => {
-    if (!isDbInitialized) return;
-    async function loadHistory() {
-      setIsLoadingHistory(true);
-      try {
-        setHistory(await getSignalHistoryAction());
-      } catch (error) {
-        toast({ title: "Error", description: "Could not load signal history.", variant: "destructive" });
-      } finally {
-        setIsLoadingHistory(false);
-      }
-    }
-    loadHistory();
-  }, [isDbInitialized, toast]);
+  
+  const selectedMarket = form.watch('market');
 
   useEffect(() => {
     async function loadMarkets() {
@@ -70,7 +80,7 @@ export default function MindTab({ isDbInitialized, setExecutableSignal, setActiv
       try {
         const availableMarkets = await getAvailableMarketsAction();
         setMarkets(availableMarkets);
-        if (availableMarkets.length > 0) {
+        if (availableMarkets.length > 0 && !form.getValues('market')) {
           form.setValue('market', availableMarkets[0].symbol);
         }
       } catch (error) {
@@ -82,16 +92,27 @@ export default function MindTab({ isDbInitialized, setExecutableSignal, setActiv
     loadMarkets();
   }, [form, toast]);
 
+  useEffect(() => {
+    let isMounted = true;
+    async function loadTickerData() {
+        if (!selectedMarket) return;
+        setTickerData(null);
+        const data = await getTicker24hAction(selectedMarket);
+        if(isMounted) {
+            setTickerData(data);
+        }
+    }
+    loadTickerData();
+    return () => { isMounted = false };
+  }, [selectedMarket]);
+
   const onSubmit = async (data: MindFormValues) => {
     setIsGenerating(true);
-    setGeneratedSignal(null);
     try {
-      const newSignal = await generateAiSignalAction(data.market, data.timeframe, data.risk, data.indicators || '');
-      setGeneratedSignal(newSignal);
-      setHistory(prev => [newSignal, ...prev]);
+      const newSignal = await generateAiSignalAction(data.market, data.tradingMode, data.risk, 'RSI, MACD');
       setExecutableSignal(newSignal);
       toast({
-        title: "Signal Generated!",
+        title: "SHADOW Signal Generated!",
         description: "Executable signal sent to the Trade tab.",
         className: "bg-accent text-accent-foreground border-primary",
         action: <Button onClick={() => setActiveTab('trade')}>Go to Trade</Button>
@@ -102,139 +123,127 @@ export default function MindTab({ isDbInitialized, setExecutableSignal, setActiv
       setIsGenerating(false);
     }
   };
-
-  const getStatusIcon = (status: Signal['status']) => {
-    switch (status) {
-      case 'WIN': return <CheckCircle className="text-accent" />;
-      case 'LOSS': return <AlertTriangle className="text-red-500" />;
-      default: return <Clock className="text-yellow-500" />;
-    }
+  
+  const handleExecutionClick = (type: 'instant' | 'optimal') => {
+    form.setValue('executionType', type);
+    form.handleSubmit(onSubmit)();
   };
 
+  const tradingModes = [
+      { id: 'Scalper', label: 'Scalper', icon: Zap },
+      { id: 'Sniper', label: 'Sniper', icon: Crosshair },
+      { id: 'Intraday', label: 'Intraday', icon: Clock },
+      { id: 'Swing', label: 'Swing', icon: TrendingUp },
+  ];
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-      <Card className="glow-border">
-        <CardHeader>
-          <CardTitle className="text-2xl text-primary flex items-center"><BrainCircuit className="mr-3" /> Market Command Console</CardTitle>
-          <CardDescription>Engage the AI to analyze markets and generate predictive signals.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="market"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Target</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingMarkets || isGenerating}>
-                      <FormControl>
-                        <SelectTrigger>
-                          {isLoadingMarkets ? <Loader2 className="h-4 w-4 animate-spin" /> : <SelectValue placeholder="Select a market" />}
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {markets.map((market) => (
-                          <SelectItem key={market.symbol} value={market.symbol}>{market.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="grid grid-cols-2 gap-4">
-                <FormField control={form.control} name="timeframe" render={({ field }) => (
-                    <FormItem> <FormLabel>Timeframe</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isGenerating}>
-                            <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                            <SelectContent>
-                                <SelectItem value="15m">15 Minutes</SelectItem>
-                                <SelectItem value="1h">1 Hour</SelectItem>
-                                <SelectItem value="4h">4 Hours</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </FormItem>
-                )}/>
-                <FormField control={form.control} name="risk" render={({ field }) => (
-                    <FormItem> <FormLabel>Risk</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isGenerating}>
-                            <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                            <SelectContent>
-                                <SelectItem value="Low">Low</SelectItem>
-                                <SelectItem value="Medium">Medium</SelectItem>
-                                <SelectItem value="High">High</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </FormItem>
-                )}/>
-              </div>
-              <Button type="submit" disabled={isGenerating || isLoadingMarkets} className="w-full h-12 text-lg bg-accent text-accent-foreground hover:bg-accent/90">
-                {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Zap className="mr-2" />}
-                Generate Signal
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+    <div className="flex-grow flex flex-col p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 bg-background">
+        {isGenerating ? (
+            <div className="flex-grow flex flex-col justify-center items-center space-y-4">
+                <TerminalExecutionAnimation target={form.getValues('market')} tradeMode={form.getValues('tradingMode')} risk={form.getValues('risk')} />
+                <Button onClick={() => setIsGenerating(false)} variant="destructive">Cancel</Button>
+            </div>
+        ) : (
+            <>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+                    <MarketStat label="Current Price" value={tickerData ? `$${parseFloat(tickerData.lastPrice).toLocaleString()}`: <Loader2 className="h-5 w-5 animate-spin" />} icon={Zap} valueClassName="text-white" />
+                    <MarketStat label="24h Change" value={tickerData ? `${parseFloat(tickerData.priceChangePercent).toFixed(2)}%`: <Loader2 className="h-5 w-5 animate-spin" />} icon={TrendingUp} valueClassName={tickerData && parseFloat(tickerData.priceChangePercent) >= 0 ? 'text-accent' : 'text-red-500'} />
+                    <MarketStat label="24h High" value={tickerData ? `$${parseFloat(tickerData.highPrice).toLocaleString()}`: <Loader2 className="h-5 w-5 animate-spin" />} icon={ArrowUp} />
+                    <MarketStat label="24h Low" value={tickerData ? `$${parseFloat(tickerData.lowPrice).toLocaleString()}`: <Loader2 className="h-5 w-5 animate-spin" />} icon={ArrowDown} />
+                    <MarketStat label="Volume (BTC)" value={tickerData ? `${(parseFloat(tickerData.volume) / 1000).toFixed(2)}K`: <Loader2 className="h-5 w-5 animate-spin" />} icon={BrainCircuit} />
+                    <MarketStat label="Volume (USDT)" value={tickerData ? `$${(parseFloat(tickerData.quoteVolume) / 1000000).toFixed(2)}M`: <Loader2 className="h-5 w-5 animate-spin" />} icon={BrainCircuit} />
+                </div>
 
-      <div className="space-y-6">
-         <Card className="min-h-[200px] flex flex-col justify-center items-center bg-card/80 glow-border-accent">
-            <CardHeader className="w-full">
-                <CardTitle className="text-accent flex items-center"><Quote className="mr-2"/> Current Thought</CardTitle>
-            </CardHeader>
-            <CardContent className="flex-grow flex items-center justify-center w-full">
-                {isGenerating && <PulsingText text="Analyzing data streams..." className="text-lg"/>}
-                {!isGenerating && generatedSignal?.reasoning && (
-                     <TypewriterText text={`"${generatedSignal.reasoning}"`} className="text-lg text-center italic" showCaretAfterComplete={true} />
-                )}
-                 {!isGenerating && !generatedSignal && (
-                    <p className="text-muted-foreground">Awaiting new signal execution...</p>
-                 )}
-            </CardContent>
-         </Card>
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="flex-grow flex flex-col space-y-4 sm:space-y-6">
+                        <FormField
+                            control={form.control}
+                            name="market"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-muted-foreground flex items-center"><BrainCircuit className="w-4 h-4 mr-2"/> Target Asset</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingMarkets}>
+                                        <FormControl>
+                                            <SelectTrigger className="h-12 text-base border-2 border-border focus:border-primary">
+                                                {isLoadingMarkets ? <Loader2 className="h-4 w-4 animate-spin" /> : <SelectValue />}
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {markets.map((market) => (
+                                                <SelectItem key={market.symbol} value={market.symbol}>{market.label}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </FormItem>
+                            )}
+                        />
+                        
+                        <FormField
+                            control={form.control}
+                            name="tradingMode"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-muted-foreground flex items-center"><Sparkles className="w-4 h-4 mr-2"/> Trading Mode</FormLabel>
+                                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                                        {tradingModes.map((mode) => (
+                                            <ModeButton
+                                                key={mode.id}
+                                                icon={mode.icon}
+                                                label={mode.label}
+                                                selected={field.value === mode.id}
+                                                onClick={() => field.onChange(mode.id)}
+                                            />
+                                        ))}
+                                    </div>
+                                </FormItem>
+                            )}
+                        />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Signal History</CardTitle>
-            <CardDescription>Review of your last 10 signals.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoadingHistory ? (
-              <div className="flex justify-center items-center h-40"><Loader2 className="animate-spin h-8 w-8 text-primary" /></div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Asset</TableHead>
-                    <TableHead>Prediction</TableHead>
-                    <TableHead className="text-right">Confidence</TableHead>
-                    <TableHead className="text-right">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {history.slice(0, 5).map((signal) => (
-                    <TableRow key={signal.id}>
-                      <TableCell className="font-medium">{signal.asset}</TableCell>
-                      <TableCell>
-                         <Badge className={cn(
-                            signal.prediction === 'LONG' ? 'bg-green-500/80' :
-                            signal.prediction === 'SHORT' ? 'bg-red-500/80' : 'bg-gray-500/80',
-                            'text-white'
-                          )}>
-                            {signal.prediction}
-                          </Badge>
-                      </TableCell>
-                      <TableCell className="text-right font-code">{signal.confidence}%</TableCell>
-                      <TableCell className="flex justify-end">{getStatusIcon(signal.status)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                        <FormField
+                            control={form.control}
+                            name="risk"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-muted-foreground flex items-center"><Crosshair className="w-4 h-4 mr-2"/> Risk Profile</FormLabel>
+                                    <Controller
+                                        control={form.control}
+                                        name="risk"
+                                        render={({ field }) => (
+                                            <ToggleGroup
+                                                type="single"
+                                                value={field.value}
+                                                onValueChange={(value) => value && field.onChange(value as 'Low' | 'Medium' | 'High')}
+                                                className="grid grid-cols-3 gap-2 sm:gap-4 h-12 border-2 border-border rounded-lg p-1"
+                                            >
+                                                <ToggleGroupItem value="Low" className="h-full">Low</ToggleGroupItem>
+                                                <ToggleGroupItem value="Medium" className="h-full">Medium</ToggleGroupItem>
+                                                <ToggleGroupItem value="High" className="h-full">High</ToggleGroupItem>
+                                            </ToggleGroup>
+                                        )}
+                                    />
+                                </FormItem>
+                            )}
+                        />
+
+                        <div className="!mt-auto grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-4">
+                            <Button type="button" onClick={() => handleExecutionClick('instant')} className="h-auto py-3 text-base border-2 border-accent text-accent bg-transparent hover:bg-accent hover:text-accent-foreground">
+                                <div className="text-left">
+                                    <p className="font-bold flex items-center"><Zap className="w-4 h-4 mr-2" />Instant Signal</p>
+                                    <p className="text-xs font-normal opacity-80">Executes immediately at market price.</p>
+                                </div>
+                            </Button>
+                             <Button type="button" onClick={() => handleExecutionClick('optimal')} className="h-auto py-3 text-base bg-accent text-accent-foreground hover:bg-accent/90">
+                                <div className="text-left">
+                                    <p className="font-bold flex items-center"><BrainCircuit className="w-4 h-4 mr-2" />SHADOW's Signal</p>
+                                    <p className="text-xs font-normal opacity-80">SHADOW finds the optimal entry.</p>
+                                </div>
+                            </Button>
+                        </div>
+                        <p className="text-center text-xs text-muted-foreground !mt-2">Analyses today: 0 / 3. Register for <span className="text-primary underline cursor-pointer">unlimited</span>.</p>
+                    </form>
+                </Form>
+            </>
+        )}
     </div>
   );
 }
