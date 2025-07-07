@@ -27,6 +27,7 @@ import AirdropForm from '../AirdropForm';
 import { getProfileAction } from '@/app/profile/actions';
 import { Separator } from '../ui/separator';
 import InfoGridItem from '../InfoGridItem';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 const mindFormSchema = z.object({
   market: z.string().min(1, 'Please select a market.'),
@@ -213,7 +214,7 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
         return;
     }
 
-    if (signalHistory.length >= 10 && !currentUser.hasRegisteredForAirdrop) {
+    if (signalHistory.length >= 3 && !currentUser.hasRegisteredForAirdrop) {
         toast({
             title: "Signal Limit Reached",
             description: "Please complete the airdrop registration to generate more signals.",
@@ -309,6 +310,7 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
   const onAirdropSuccess = () => {
     loadUserData();
     loadHistory();
+    setIsAirdropModalOpen(false);
   };
   
   if (isGenerating) {
@@ -324,7 +326,11 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
 
   return (
     <>
-    <AirdropForm isOpen={isAirdropModalOpen} onOpenChange={setIsAirdropModalOpen} onSuccess={onAirdropSuccess} />
+    <Dialog open={isAirdropModalOpen} onOpenChange={setIsAirdropModalOpen}>
+        <DialogContent className="max-w-2xl bg-transparent p-0 border-none shadow-none">
+            <AirdropForm onSuccess={onAirdropSuccess} />
+        </DialogContent>
+    </Dialog>
     <div className="h-full flex flex-col space-y-3 sm:space-y-4 bg-background">
         <div>
             <div className="grid grid-cols-2 sm:grid-cols-4 w-full bg-card/60 rounded-lg border border-primary/30 divide-x divide-y sm:divide-y-0 divide-primary/20">
