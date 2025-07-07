@@ -33,12 +33,12 @@ interface MindTabProps {
 }
 
 const MarketStat = ({ label, value, change, icon: Icon, valueClassName }: { label: string; value: string | React.ReactNode; change?: number; icon: React.ElementType, valueClassName?: string }) => (
-    <div className="bg-card/70 border border-border/50 rounded-lg p-3 sm:p-4">
-        <div className="flex items-center text-muted-foreground text-xs sm:text-sm">
-            <Icon className="w-4 h-4 mr-2" />
+    <div className="bg-card/70 border border-border/50 rounded-lg p-2 sm:p-3">
+        <div className="flex items-center text-muted-foreground text-[0.6rem] sm:text-xs">
+            <Icon className="w-3 h-3 mr-1.5" />
             <span>{label}</span>
         </div>
-        <div className={cn("text-lg sm:text-xl font-bold font-code mt-1", valueClassName)}>
+        <div className={cn("text-base sm:text-lg font-bold font-code mt-1", valueClassName)}>
             {value}
         </div>
     </div>
@@ -48,15 +48,15 @@ const ModeButton = ({ icon: Icon, label, selected, ...props }: { icon: React.Ele
     <Button
         variant="outline"
         className={cn(
-            "h-auto p-4 flex flex-col justify-center items-center space-y-2 border-2 text-center transition-all duration-200",
+            "h-auto p-3 flex flex-col justify-center items-center space-y-1.5 border-2 text-center transition-all duration-200",
             selected
                 ? "bg-accent text-accent-foreground border-accent glow-border-accent"
                 : "bg-card/80 border-border hover:bg-accent/10 hover:border-accent"
         )}
         {...props}
     >
-        <Icon className="w-7 h-7" />
-        <span className="font-semibold text-sm">{label}</span>
+        <Icon className="w-6 h-6" />
+        <span className="font-semibold text-xs">{label}</span>
     </Button>
 );
 
@@ -137,7 +137,7 @@ export default function MindTab({ isDbInitialized, setExecutableSignal, setActiv
   ];
 
   return (
-    <div className="flex-grow flex flex-col p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 bg-background">
+    <div className="flex-grow flex flex-col p-4 space-y-4 bg-background">
         {isGenerating ? (
             <div className="flex-grow flex flex-col justify-center items-center space-y-4">
                 <TerminalExecutionAnimation target={form.getValues('market')} tradeMode={form.getValues('tradingMode')} risk={form.getValues('risk')} />
@@ -145,7 +145,7 @@ export default function MindTab({ isDbInitialized, setExecutableSignal, setActiv
             </div>
         ) : (
             <>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
                     <MarketStat label="Current Price" value={tickerData ? `$${parseFloat(tickerData.lastPrice).toLocaleString()}`: <Loader2 className="h-5 w-5 animate-spin" />} icon={Zap} valueClassName="text-white" />
                     <MarketStat label="24h Change" value={tickerData ? `${parseFloat(tickerData.priceChangePercent).toFixed(2)}%`: <Loader2 className="h-5 w-5 animate-spin" />} icon={TrendingUp} valueClassName={tickerData && parseFloat(tickerData.priceChangePercent) >= 0 ? 'text-accent' : 'text-red-500'} />
                     <MarketStat label="24h High" value={tickerData ? `$${parseFloat(tickerData.highPrice).toLocaleString()}`: <Loader2 className="h-5 w-5 animate-spin" />} icon={ArrowUp} />
@@ -155,7 +155,7 @@ export default function MindTab({ isDbInitialized, setExecutableSignal, setActiv
                 </div>
 
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="flex-grow flex flex-col space-y-4 sm:space-y-6">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="flex-grow flex flex-col space-y-4">
                         <FormField
                             control={form.control}
                             name="market"
@@ -184,7 +184,7 @@ export default function MindTab({ isDbInitialized, setExecutableSignal, setActiv
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className="text-muted-foreground flex items-center"><Sparkles className="w-4 h-4 mr-2"/> Trading Mode</FormLabel>
-                                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                         {tradingModes.map((mode) => (
                                             <ModeButton
                                                 key={mode.id}
@@ -225,7 +225,7 @@ export default function MindTab({ isDbInitialized, setExecutableSignal, setActiv
                             )}
                         />
 
-                        <div className="!mt-auto grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-4">
+                        <div className="!mt-auto grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                             <Button type="button" onClick={() => handleExecutionClick('instant')} className="h-auto py-3 text-base border-2 border-accent text-accent bg-transparent hover:bg-accent hover:text-accent-foreground">
                                 <div className="text-left">
                                     <p className="font-bold flex items-center"><Zap className="w-4 h-4 mr-2" />Instant Signal</p>
