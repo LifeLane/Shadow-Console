@@ -59,3 +59,20 @@ export async function getLeaderboardData(): Promise<User[]> {
     // Exclude the default_user from the bots on the leaderboard for display purposes
     return users.filter(u => u.id !== 'default_user').sort((a, b) => b.xp - a.xp).slice(0, 10);
 }
+
+/**
+ * Gets a string summary of a user's performance stats for the AI tool.
+ */
+export async function getUserStatsSummary(userId: string): Promise<string> {
+    const user = await getUser(userId);
+    if (!user) {
+        return "User not found.";
+    }
+    const stats = {
+        name: user.name,
+        winRate: user.winRate,
+        signalAccuracy: user.signalAccuracy,
+        shadowBalance: user.shadowBalance
+    };
+    return JSON.stringify(stats);
+}

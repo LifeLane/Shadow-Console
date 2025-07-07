@@ -1,16 +1,24 @@
 
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Award, BarChart2, BrainCircuit, Gem, ShieldCheck, User, Users, Loader2 } from 'lucide-react';
+import { Award, BarChart2, BrainCircuit, Gem, ShieldCheck, User, Users, Loader2, Send } from 'lucide-react';
 import type { User as UserType } from '@/lib/types';
-import { getProfileAction, getLeaderboardAction } from '@/app/leaderboard/actions';
+import { getProfileAction, getLeaderboardAction, askOracleAction } from '@/app/profile/actions';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '../ui/scroll-area';
+import { Input } from '../ui/input';
+import { Button } from '../ui/button';
+
+export type Message = {
+    role: 'user' | 'model';
+    text: string;
+};
 
 const getTierStyling = (xp: number) => {
     if (xp >= 9000) return { name: 'Oracle Lord', className: 'text-purple-400 border-purple-400', progress: 100 };
@@ -45,6 +53,15 @@ export default function ProfileTab({ isDbInitialized }: { isDbInitialized: boole
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
 
+    // Chat state
+    const [messages, setMessages] = useState<Message[]>([
+        { role: 'model', text: 'The data streams are open, Pilot. What knowledge do you seek?' }
+    ]);
+    const [isChatting, setIsChatting] = useState(false);
+    const chatInputRef = useRef<HTMLInputElement>(null);
+    const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+
     useEffect(() => {
         async function loadProfileData() {
             if (!isDbInitialized) return;
@@ -64,6 +81,37 @@ export default function ProfileTab({ isDbInitialized }: { isDbInitialized: boole
         }
         loadProfileData();
     }, [isDbInitialized, toast]);
+
+     useEffect(() => {
+        // Auto-scroll to bottom of chat
+        if (scrollAreaRef.current) {
+            const scrollElement = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+            if (scrollElement) {
+                scrollElement.scrollTo({ top: scrollElement.scrollHeight, behavior: 'smooth' });
+            }
+        }
+    }, [messages]);
+
+    const handleChatSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const userInput = chatInputRef.current?.value;
+        if (!userInput || isChatting) return;
+
+        const newMessages: Message[] = [...messages, { role: 'user', text: userInput }];
+        setMessages(newMessages);
+        setIsChatting(true);
+        if(chatInputRef.current) chatInputRef.current.value = '';
+
+        try {
+            const oracleResponse = await askOracleAction(newMessages, userInput);
+            setMessages(prev => [...prev, { role: 'model', text: oracleResponse }]);
+        } catch (error) {
+            setMessages(prev => [...prev, { role: 'model', text: "Connection to the Oracle flickered and was lost. Try again." }]);
+        } finally {
+            setIsChatting(false);
+        }
+    };
+
 
     const userTier = useMemo(() => profile ? getTierStyling(profile.xp) : null, [profile]);
 
@@ -142,10 +190,36 @@ export default function ProfileTab({ isDbInitialized }: { isDbInitialized: boole
                 <Card>
                     <CardHeader>
                         <CardTitle>AI Configuration</CardTitle>
-                        <CardDescription>Customize your Shadow Oracle experience.</CardDescription>
+                        <CardDescription>Chat directly with your AI trading assistant.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                       <p className="text-center text-muted-foreground py-8">AI Settings & Chat Interface Coming Soon</p>
+                        <div className="flex flex-col h-[400px]">
+                            <ScrollArea className="flex-grow p-4 border rounded-md bg-muted/20" ref={scrollAreaRef}>
+                                <div className="space-y-4">
+                                    {messages.map((msg, index) => (
+                                        <div key={index} className={cn("flex items-start gap-3", msg.role === 'user' ? 'justify-end' : 'justify-start')}>
+                                            {msg.role === 'model' && <Avatar className="w-8 h-8"><AvatarFallback><BrainCircuit/></AvatarFallback></Avatar>}
+                                            <div className={cn("p-3 rounded-lg max-w-sm", msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary')}>
+                                                <p className="text-sm break-words">{msg.text}</p>
+                                            </div>
+                                            {msg.role === 'user' && <Avatar className="w-8 h-8"><AvatarFallback><User/></AvatarFallback></Avatar>}
+                                        </div>
+                                    ))}
+                                    {isChatting && (
+                                        <div className="flex items-start gap-3 justify-start">
+                                            <Avatar className="w-8 h-8"><AvatarFallback><BrainCircuit/></AvatarFallback></Avatar>
+                                            <div className="p-3 rounded-lg bg-secondary flex items-center justify-center">
+                                                <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </ScrollArea>
+                            <form onSubmit={handleChatSubmit} className="flex items-center gap-2 pt-4">
+                                <Input ref={chatInputRef} placeholder="Ask the Oracle..." disabled={isChatting} />
+                                <Button type="submit" disabled={isChatting}><Send/></Button>
+                            </form>
+                        </div>
                     </CardContent>
                 </Card>
             </div>

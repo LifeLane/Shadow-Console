@@ -6,7 +6,7 @@
     "entryPrice": 108900,
     "takeProfit": 109300,
     "stopLoss": 108500,
-    "status": "PENDING",
+    "status": "WIN",
     "source": "AI_ORACLE",
     "userId": "default_user",
     "id": 3,
