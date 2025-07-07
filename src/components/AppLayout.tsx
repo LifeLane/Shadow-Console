@@ -2,12 +2,13 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { BrainCircuit, Trophy, Gift, ScrollText, Settings, Sparkles } from 'lucide-react';
+import { BrainCircuit, Landmark, Gift, Shield, BarChart, Sparkles } from 'lucide-react';
 import MindTab from '@/components/tabs/MindTab';
-import LeaderboardTab from '@/components/tabs/LeaderboardTab';
-import AirdropTab from '@/components/tabs/AirdropTab';
-import TasksTab from '@/components/tabs/TasksTab';
-import SettingsTab from '@/components/tabs/SettingsTab';
+import WalletTab from '@/components/tabs/WalletTab';
+import MissionsTab from '@/components/tabs/MissionsTab';
+import VaultTab from '@/components/tabs/VaultTab';
+import TradeTab from '@/components/tabs/TradeTab';
+
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,8 +16,9 @@ import { setupAndSeedLocalData } from '@/services/setupService';
 import { useToast } from '@/hooks/use-toast';
 import { resolveOpenTradesAction } from '@/app/agents/actions';
 import { resolvePendingSignalsAction } from '@/app/mind/actions';
+import type { Signal } from '@/lib/types';
 
-type TabId = 'mind' | 'leaderboard' | 'airdrop' | 'tasks' | 'settings';
+type TabId = 'wallet' | 'trade' | 'mind' | 'missions' | 'vault';
 
 interface Tab {
   id: TabId;
@@ -26,11 +28,11 @@ interface Tab {
 }
 
 const tabs: Tab[] = [
+  { id: 'wallet', label: "Wallet", icon: Landmark, component: WalletTab },
+  { id: 'trade', label: "Trade", icon: BarChart, component: TradeTab },
   { id: 'mind', label: "Mind", icon: BrainCircuit, component: MindTab },
-  { id: 'leaderboard', label: "Leaderboard", icon: Trophy, component: LeaderboardTab },
-  { id: 'airdrop', label: 'Airdrop', icon: Gift, component: AirdropTab },
-  { id: 'tasks', label: 'Tasks', icon: ScrollText, component: TasksTab },
-  { id: 'settings', label: 'Settings', icon: Settings, component: SettingsTab },
+  { id: 'missions', label: 'Missions', icon: Gift, component: MissionsTab },
+  { id: 'vault', label: 'Vault', icon: Shield, component: VaultTab },
 ];
 
 const pageTransitionVariants = {
@@ -42,7 +44,8 @@ const pageTransitionVariants = {
 
 
 export default function AppLayout() {
-  const [activeTab, setActiveTab] = useState<TabId>('mind');
+  const [activeTab, setActiveTab] = useState<TabId>('trade');
+  const [executableSignal, setExecutableSignal] = useState<Signal | null>(null);
   const { toast } = useToast();
   const [isDbInitialized, setIsDbInitialized] = useState(false);
 
@@ -127,6 +130,10 @@ export default function AppLayout() {
           >
             <ActiveComponent 
               isDbInitialized={isDbInitialized}
+              // Pass signal state to relevant tabs
+              executableSignal={executableSignal}
+              setExecutableSignal={setExecutableSignal}
+              setActiveTab={setActiveTab}
             />
           </motion.div>
         </AnimatePresence>

@@ -12,9 +12,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowDown, ArrowUp, BarChart, Loader2, ListOrdered, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowDown, ArrowUp, BarChart, Loader2, ListOrdered, X, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import type { Trade, Market } from '@/lib/types';
+import type { Trade, Market, Signal } from '@/lib/types';
 import { getTradesAction, placeTradeAction } from '@/app/agents/actions';
 import { getLivePrice, getAvailableMarketsAction } from '@/app/actions';
 import { Badge } from '../ui/badge';
@@ -31,7 +31,13 @@ const tradeFormSchema = z.object({
 
 type TradeFormValues = z.infer<typeof tradeFormSchema>;
 
-export default function TradeTab({ isDbInitialized }: { isDbInitialized: boolean }) {
+interface TradeTabProps {
+  isDbInitialized: boolean;
+  executableSignal: Signal | null;
+  setExecutableSignal: (signal: Signal | null) => void;
+}
+
+export default function TradeTab({ isDbInitialized, executableSignal, setExecutableSignal }: TradeTabProps) {
     const [trades, setTrades] = useState<Trade[]>([]);
     const [markets, setMarkets] = useState<Market[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -76,7 +82,7 @@ export default function TradeTab({ isDbInitialized }: { isDbInitialized: boolean
             try {
                 const availableMarkets = await getAvailableMarketsAction();
                 setMarkets(availableMarkets);
-                if (availableMarkets.length > 0) {
+                if (availableMarkets.length > 0 && !form.getValues('asset')) {
                     form.setValue('asset', availableMarkets[0].symbol);
                 }
             } catch (error) {
@@ -89,7 +95,7 @@ export default function TradeTab({ isDbInitialized }: { isDbInitialized: boolean
     }, [form, toast]);
     
     useEffect(() => {
-        let interval: NodeJS.Timeout;
+        let interval: NodeJS.Timeout | null = null;
         const fetchPrice = async () => {
             if (selectedAsset) {
                 const price = await getLivePrice(selectedAsset);
@@ -97,19 +103,20 @@ export default function TradeTab({ isDbInitialized }: { isDbInitialized: boolean
             }
         }
         if (selectedAsset) {
-            fetchPrice(); // initial fetch
-            interval = setInterval(fetchPrice, 5000); // fetch every 5 seconds
+            fetchPrice();
+            interval = setInterval(fetchPrice, 5000);
         }
-        return () => clearInterval(interval);
+        return () => {
+            if(interval) clearInterval(interval)
+        };
     }, [selectedAsset]);
     
     useEffect(() => {
-        // Set initial TP/SL based on live price when asset changes
-        if (livePrice) {
+        if (livePrice && !form.getValues('takeProfit') && !form.getValues('stopLoss')) {
             const price = parseFloat(livePrice);
             if (!isNaN(price)) {
-                form.setValue('takeProfit', parseFloat((price * 1.02).toFixed(2))); // Default 2% TP
-                form.setValue('stopLoss', parseFloat((price * 0.99).toFixed(2))); // Default 1% SL
+                form.setValue('takeProfit', parseFloat((price * 1.02).toFixed(2)));
+                form.setValue('stopLoss', parseFloat((price * 0.99).toFixed(2)));
             }
         }
     }, [livePrice, selectedAsset, form]);
@@ -120,7 +127,7 @@ export default function TradeTab({ isDbInitialized }: { isDbInitialized: boolean
         try {
             const newTrade = await placeTradeAction({
               ...data,
-              entryPrice: parseFloat(livePrice || '0') // Use live price for entry
+              entryPrice: parseFloat(livePrice || '0')
             });
             setTrades(prev => [newTrade, ...prev]);
             toast({
@@ -138,6 +145,32 @@ export default function TradeTab({ isDbInitialized }: { isDbInitialized: boolean
             setIsSubmitting(false);
         }
     };
+    
+    const handleUseSignal = () => {
+        if (!executableSignal) return;
+
+        if (executableSignal.prediction === 'HOLD') {
+            toast({
+                title: "Signal is 'HOLD'",
+                description: "Cannot execute a 'HOLD' signal. Please choose LONG or SHORT manually.",
+                variant: "destructive",
+            });
+            setExecutableSignal(null);
+            return;
+        }
+
+        form.setValue('asset', executableSignal.asset);
+        form.setValue('side', executableSignal.prediction as 'LONG' | 'SHORT');
+        form.setValue('takeProfit', executableSignal.takeProfit);
+        form.setValue('stopLoss', executableSignal.stopLoss);
+        
+        setExecutableSignal(null);
+        toast({
+            title: "Signal Applied",
+            description: `Trade parameters for ${executableSignal.asset} have been set.`,
+            className: "bg-accent text-accent-foreground border-primary"
+        });
+    };
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
@@ -152,6 +185,24 @@ export default function TradeTab({ isDbInitialized }: { isDbInitialized: boolean
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
+                        {executableSignal && (
+                            <Card className="mb-6 border-accent glow-border-accent bg-accent/10">
+                                <CardHeader className="p-4">
+                                    <CardTitle className="text-accent flex items-center justify-between text-lg">
+                                    <span className="flex items-center"><Zap className="mr-2"/> Executable Signal</span>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setExecutableSignal(null)}>
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="p-4 pt-0 space-y-2 text-sm">
+                                    <div className="flex justify-between"><span>Asset:</span> <span className="font-bold">{executableSignal.asset}</span></div>
+                                    <div className="flex justify-between"><span>Prediction:</span> <span className="font-bold">{executableSignal.prediction}</span></div>
+                                    <div className="flex justify-between"><span>Confidence:</span> <span className="font-bold">{executableSignal.confidence}%</span></div>
+                                    <Button onClick={handleUseSignal} className="w-full mt-2 bg-accent hover:bg-accent/90 text-accent-foreground">Use this Signal</Button>
+                                </CardContent>
+                            </Card>
+                        )}
                         <Form {...form}>
                             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                                 <FormField control={form.control} name="asset" render={({ field }) => (
@@ -175,7 +226,7 @@ export default function TradeTab({ isDbInitialized }: { isDbInitialized: boolean
                                 
                                 <FormField control={form.control} name="side" render={({ field }) => (
                                     <FormItem>
-                                        <Tabs defaultValue={field.value} onValueChange={(value) => field.onChange(value as 'LONG' | 'SHORT')} className="w-full">
+                                        <Tabs value={field.value} onValueChange={(value) => field.onChange(value as 'LONG' | 'SHORT')} className="w-full">
                                             <TabsList className="grid w-full grid-cols-2">
                                                 <TabsTrigger value="LONG">Long <ArrowUp className="h-4 w-4 ml-2 text-green-500"/></TabsTrigger>
                                                 <TabsTrigger value="SHORT">Short <ArrowDown className="h-4 w-4 ml-2 text-red-500"/></TabsTrigger>

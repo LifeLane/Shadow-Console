@@ -29,7 +29,13 @@ const mindFormSchema = z.object({
 
 type MindFormValues = z.infer<typeof mindFormSchema>;
 
-export default function MindTab({ isDbInitialized }: { isDbInitialized: boolean }) {
+interface MindTabProps {
+  isDbInitialized: boolean;
+  setExecutableSignal: (signal: Signal) => void;
+  setActiveTab: (tabId: 'wallet' | 'trade' | 'mind' | 'missions' | 'vault') => void;
+}
+
+export default function MindTab({ isDbInitialized, setExecutableSignal, setActiveTab }: MindTabProps) {
   const [history, setHistory] = useState<Signal[]>([]);
   const [markets, setMarkets] = useState<Market[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
@@ -83,6 +89,13 @@ export default function MindTab({ isDbInitialized }: { isDbInitialized: boolean 
       const newSignal = await generateAiSignalAction(data.market, data.timeframe, data.risk, data.indicators || '');
       setGeneratedSignal(newSignal);
       setHistory(prev => [newSignal, ...prev]);
+      setExecutableSignal(newSignal);
+      toast({
+        title: "Signal Generated!",
+        description: "Executable signal sent to the Trade tab.",
+        className: "bg-accent text-accent-foreground border-primary",
+        action: <Button onClick={() => setActiveTab('trade')}>Go to Trade</Button>
+      });
     } catch (error) {
       toast({ title: "AI Oracle Error", description: "Failed to generate signal. The Oracle may be busy.", variant: "destructive" });
     } finally {
@@ -158,7 +171,7 @@ export default function MindTab({ isDbInitialized }: { isDbInitialized: boolean 
               </div>
               <Button type="submit" disabled={isGenerating || isLoadingMarkets} className="w-full h-12 text-lg bg-accent text-accent-foreground hover:bg-accent/90">
                 {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Zap className="mr-2" />}
-                Execute
+                Generate Signal
               </Button>
             </form>
           </Form>
