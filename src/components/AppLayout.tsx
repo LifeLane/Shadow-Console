@@ -139,7 +139,7 @@ export default function AppLayout() {
   };
 
   return (
-    <div className="relative flex flex-col min-h-screen text-foreground font-body">
+    <div className="relative flex flex-col min-h-screen text-foreground font-body bg-background">
       <BackgroundAnimation />
       <header className="sticky top-0 z-50 flex items-center justify-between p-3 sm:p-4 bg-background/90 backdrop-blur-md border-b border-border/50">
         <div className="flex items-center gap-2">
@@ -224,3 +224,5 @@ export default function AppLayout() {
     </div>
   );
 }
+
+    

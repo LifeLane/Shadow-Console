@@ -259,7 +259,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -332,3 +332,5 @@
     color: hsl(var(--primary-foreground));
   }
 }
+
+    
