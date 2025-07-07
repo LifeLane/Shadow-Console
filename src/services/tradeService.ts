@@ -36,3 +36,17 @@ export async function saveTrade(trade: Omit<Trade, 'id' | 'timestamp'> & { userI
     
     return newTrade;
 }
+
+/**
+ * Updates an existing trade.
+ */
+export async function updateTrade(updatedTrade: Trade): Promise<void> {
+    const allTrades = await readDb<Trade[]>(TRADES_DB_PATH);
+    const tradeIndex = allTrades.findIndex(t => t.id === updatedTrade.id);
+    if (tradeIndex > -1) {
+        allTrades[tradeIndex] = updatedTrade;
+        await writeDb(TRADES_DB_PATH, allTrades);
+    } else {
+        throw new Error(`Trade with ID ${updatedTrade.id} not found.`);
+    }
+}

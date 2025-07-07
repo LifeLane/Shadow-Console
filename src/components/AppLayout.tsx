@@ -8,12 +8,12 @@ import SignalTab from '@/components/tabs/SignalTab';
 import AirdropTab from '@/components/tabs/AirdropTab';
 import WalletTab from '@/components/tabs/WalletTab';
 import ProfileTab from '@/components/tabs/ProfileTab';
-import MainnetStats from '@/components/MainnetStats';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { setupAndSeedLocalData } from '@/services/setupService';
 import { useToast } from '@/hooks/use-toast';
+import { resolveOpenTradesAction } from '@/app/agents/actions';
 
 type TabId = 'trade' | 'signal' | 'airdrop' | 'wallet' | 'profile';
 
@@ -63,6 +63,27 @@ export default function AppLayout() {
     }
     initializeDataStore();
   }, [toast]);
+  
+  useEffect(() => {
+    if (!isDbInitialized) return;
+
+    const tradeResolverInterval = setInterval(async () => {
+      try {
+        const resolvedTrades = await resolveOpenTradesAction();
+        resolvedTrades.forEach(trade => {
+          toast({
+            title: `Trade ${trade.result === 'WIN' ? 'Successful' : 'Closed'}`,
+            description: trade.message,
+            variant: trade.result === 'WIN' ? 'default' : 'destructive'
+          });
+        });
+      } catch (error) {
+        console.error("Error resolving trades:", error);
+      }
+    }, 15000); // Check every 15 seconds
+
+    return () => clearInterval(tradeResolverInterval);
+  }, [isDbInitialized, toast]);
 
   const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || (() => <div className="text-center p-8">Select a tab.</div>);
   
@@ -77,7 +98,7 @@ export default function AppLayout() {
       <header className="sticky top-0 z-50 flex items-center justify-between p-3 sm:p-4 bg-background/90 backdrop-blur-md border-b border-border/50">
         <div className="flex items-center">
           <Sparkles className="h-7 w-7 sm:h-8 sm:w-8 mr-2 text-accent animate-pulse-glow-accent" />
-          <h1 className="text-xl sm:text-2xl font-headline font-bold text-foreground">Shadow <span className="text-accent">Trader</span></h1>
+          <h1 className="text-xl sm:text-2xl font-headline font-bold text-foreground">Shadow <span className="text-accent">Arena</span></h1>
         </div>
       </header>
 

@@ -1,5 +1,17 @@
-
 [
+  {
+    "asset": "BTCUSDT",
+    "prediction": "HOLD",
+    "confidence": 60,
+    "entryPrice": 108900,
+    "takeProfit": 109300,
+    "stopLoss": 108500,
+    "status": "PENDING",
+    "source": "AI_ORACLE",
+    "userId": "default_user",
+    "id": 3,
+    "timestamp": "2025-07-07T08:35:41.121Z"
+  },
   {
     "id": 1,
     "userId": "default_user",

@@ -17,6 +17,8 @@ import { useToast } from '@/hooks/use-toast';
 import type { Trade } from '@/lib/types';
 import { getTradesAction, placeTradeAction } from '@/app/agents/actions';
 import { getLivePrice } from '@/app/actions';
+import { Badge } from '../ui/badge';
+import { cn } from '@/lib/utils';
 
 const tradeFormSchema = z.object({
     asset: z.string().min(1, 'Please select an asset.'),
@@ -67,18 +69,35 @@ export default function TradeTab({ isDbInitialized }: { isDbInitialized: boolean
     useEffect(() => {
         let interval: NodeJS.Timeout;
         const fetchPrice = async () => {
-            const price = await getLivePrice(selectedAsset);
-            setLivePrice(price);
+            if (selectedAsset) {
+                const price = await getLivePrice(selectedAsset);
+                setLivePrice(price);
+            }
         }
         fetchPrice(); // initial fetch
         interval = setInterval(fetchPrice, 5000); // fetch every 5 seconds
         return () => clearInterval(interval);
     }, [selectedAsset]);
+    
+    useEffect(() => {
+        // Set initial TP/SL based on live price when asset changes
+        if (livePrice) {
+            const price = parseFloat(livePrice);
+            if (!isNaN(price)) {
+                form.setValue('takeProfit', parseFloat((price * 1.02).toFixed(2))); // Default 2% TP
+                form.setValue('stopLoss', parseFloat((price * 0.99).toFixed(2))); // Default 1% SL
+            }
+        }
+    }, [livePrice, selectedAsset, form]);
+
 
     const onSubmit = async (data: TradeFormValues) => {
         setIsSubmitting(true);
         try {
-            const newTrade = await placeTradeAction(data);
+            const newTrade = await placeTradeAction({
+              ...data,
+              entryPrice: parseFloat(livePrice || '0') // Use live price for entry
+            });
             setTrades(prev => [newTrade, ...prev]);
             toast({
                 title: 'Trade Placed',
@@ -127,7 +146,7 @@ export default function TradeTab({ isDbInitialized }: { isDbInitialized: boolean
                                 
                                 <FormField control={form.control} name="side" render={({ field }) => (
                                     <FormItem>
-                                        <Tabs defaultValue={field.value} onValueChange={field.onChange} className="w-full">
+                                        <Tabs defaultValue={field.value} onValueChange={(value) => field.onChange(value as 'LONG' | 'SHORT')} className="w-full">
                                             <TabsList className="grid w-full grid-cols-2">
                                                 <TabsTrigger value="LONG">Long <ArrowUp className="h-4 w-4 ml-2 text-green-500"/></TabsTrigger>
                                                 <TabsTrigger value="SHORT">Short <ArrowDown className="h-4 w-4 ml-2 text-red-500"/></TabsTrigger>
@@ -147,7 +166,7 @@ export default function TradeTab({ isDbInitialized }: { isDbInitialized: boolean
                                 <FormField control={form.control} name="takeProfit" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Take Profit ($)</FormLabel>
-                                        <FormControl><Input type="number" {...field} /></FormControl>
+                                        <FormControl><Input type="number" step="any" {...field} /></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}/>
@@ -155,12 +174,12 @@ export default function TradeTab({ isDbInitialized }: { isDbInitialized: boolean
                                 <FormField control={form.control} name="stopLoss" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Stop Loss ($)</FormLabel>
-                                        <FormControl><Input type="number" {...field} /></FormControl>
+                                        <FormControl><Input type="number" step="any" {...field} /></FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}/>
 
-                                <Button type="submit" disabled={isSubmitting} className="w-full h-12 text-lg">
+                                <Button type="submit" disabled={isSubmitting || !livePrice} className="w-full h-12 text-lg">
                                     {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : 'Place Trade'}
                                 </Button>
                             </form>
@@ -191,16 +210,19 @@ export default function TradeTab({ isDbInitialized }: { isDbInitialized: boolean
                                 </TableHeader>
                                 <TableBody>
                                     {trades.map((trade) => (
-                                        <TableRow key={trade.id}>
+                                        <TableRow key={trade.id} className={trade.status === 'CLOSED' ? 'opacity-70' : ''}>
                                             <TableCell className="font-medium">{trade.asset}</TableCell>
-                                            <TableCell className={trade.side === 'LONG' ? 'text-green-500' : 'text-red-500'}>{trade.side}</TableCell>
+                                            <TableCell className={cn("font-semibold", trade.side === 'LONG' ? 'text-green-500' : 'text-red-500')}>{trade.side}</TableCell>
                                             <TableCell>{trade.stake}</TableCell>
                                             <TableCell>${trade.entryPrice.toLocaleString()}</TableCell>
                                             <TableCell>
-                                                {trade.status === 'OPEN' ? <span className="text-yellow-500">OPEN</span> : <span className="text-gray-400">CLOSED</span>}
+                                                {trade.status === 'OPEN' ? 
+                                                    <Badge variant="outline" className="text-yellow-400 border-yellow-400">OPEN</Badge> : 
+                                                    <Badge variant="secondary" className={cn(trade.pnl && trade.pnl > 0 ? "bg-primary/20 text-primary" : "bg-destructive/20 text-destructive")}>CLOSED</Badge>
+                                                }
                                             </TableCell>
-                                            <TableCell className={`text-right font-medium ${trade.pnl && trade.pnl > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                               {trade.pnl ? `${trade.pnl > 0 ? '+' : ''}${trade.pnl}` : '-'}
+                                            <TableCell className={`text-right font-medium font-code ${trade.pnl && trade.pnl > 0 ? 'text-primary' : 'text-destructive'}`}>
+                                               {trade.status === 'CLOSED' && trade.pnl ? `${trade.pnl > 0 ? '+' : ''}${trade.pnl}` : '-'}
                                             </TableCell>
                                         </TableRow>
                                     ))}

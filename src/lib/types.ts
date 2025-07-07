@@ -23,6 +23,7 @@ export interface Trade {
     stake: number; // Amount of SHADOW tokens
     status: 'OPEN' | 'CLOSED';
     pnl?: number; // Profit and Loss in SHADOW tokens
+    closePrice?: number;
     timestamp: string;
 }
 

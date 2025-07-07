@@ -1,2 +1,26 @@
-
-[]
+[
+  {
+    "asset": "BTCUSDT",
+    "side": "LONG",
+    "stake": 100,
+    "takeProfit": 50,
+    "stopLoss": 10,
+    "status": "OPEN",
+    "pnl": 0,
+    "userId": "default_user",
+    "id": 2,
+    "timestamp": "2025-07-07T08:36:43.277Z"
+  },
+  {
+    "asset": "BTCUSDT",
+    "side": "LONG",
+    "stake": 100,
+    "takeProfit": 100,
+    "stopLoss": 50,
+    "status": "OPEN",
+    "pnl": 0,
+    "userId": "default_user",
+    "id": 1,
+    "timestamp": "2025-07-07T08:36:13.365Z"
+  }
+]

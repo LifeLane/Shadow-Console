@@ -1,4 +1,3 @@
-
 [
   {
     "id": "default_user",
@@ -6,7 +5,7 @@
     "xp": 1250,
     "winRate": 68,
     "signalAccuracy": 74,
-    "shadowBalance": 5000,
+    "shadowBalance": 4800,
     "stakedAmount": 1500,
     "avatarUrl": "https://placehold.co/100x100.png",
     "completedMissions": [],
