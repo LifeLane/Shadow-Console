@@ -16,7 +16,7 @@ import { generateAiSignalAction, getSignalHistoryAction } from '@/app/mind/actio
 import { getAvailableMarketsAction, getTicker24hAction } from '@/app/actions';
 import { cn } from '@/lib/utils';
 import TerminalExecutionAnimation from '../TerminalExecutionAnimation';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent } from '../ui/card';
 import { ScrollArea } from '../ui/scroll-area';
 import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '../ui/badge';
@@ -39,20 +39,17 @@ interface MindTabProps {
 }
 
 const MarketStat = ({ label, value, icon: Icon, valueClassName }: { label: string; value: string | React.ReactNode; icon: React.ElementType, valueClassName?: string }) => (
-    <Card className="bg-card/70 border-border/50">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-3">
-            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground flex items-center gap-1.5">
-                {label}
-                <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
-            </CardTitle>
-        </CardHeader>
-        <CardContent className="p-2 sm:p-3 pt-0">
-            <div className={cn("text-lg sm:text-xl font-bold font-code", valueClassName)}>
-                {value}
-            </div>
-        </CardContent>
-    </Card>
+    <div className="bg-card/60 border border-primary/20 rounded-lg p-3 flex flex-col justify-center text-center">
+        <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+            <span>{label}</span>
+            <Icon className="h-3 w-3 shrink-0" />
+        </div>
+        <div className={cn("text-lg font-bold font-code mt-1 truncate", valueClassName)}>
+            {value}
+        </div>
+    </div>
 );
+
 
 const SignalCard = ({ signal, onExecute }: { signal: Signal; onExecute: (signal: Signal) => void; }) => (
     <Card className="p-3 bg-card/50 border-primary/20">
@@ -99,7 +96,7 @@ const SignalCard = ({ signal, onExecute }: { signal: Signal; onExecute: (signal:
         </div>
         
         <div className="pt-3 border-t border-border/20">
-            <p className="text-xs text-muted-foreground/80 flex items-start gap-1.5">
+             <p className="text-xs text-muted-foreground/80 flex items-start gap-1.5">
                 <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                 <span>Shadow Signals are AI-generated for gamified purposes only and do not constitute financial advice. Trade at your own risk.</span>
             </p>
@@ -112,17 +109,18 @@ const ModeButton = ({ icon: Icon, label, selected, ...props }: { icon: React.Ele
         type="button"
         variant="outline"
         className={cn(
-            "h-auto p-2 sm:p-3 flex flex-col justify-center items-center space-y-1.5 border-2 text-center transition-all duration-200",
+            "h-auto p-3 flex flex-row justify-center items-center gap-2 border-2 text-center transition-all duration-200",
             selected
                 ? "bg-accent text-accent-foreground border-accent glow-border-accent"
-                : "bg-card/80 border-border hover:bg-accent/10 hover:border-accent"
+                : "bg-card/80 border-border hover:bg-accent/10 hover:border-accent hover:text-primary"
         )}
         {...props}
     >
-        <Icon className="w-5 h-5 sm:w-6 sm:w-6" />
-        <span className="font-semibold text-xs">{label}</span>
+        <Icon className="w-4 h-4" />
+        <span className="font-semibold text-sm">{label}</span>
     </Button>
 );
+
 
 export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps) {
   const [markets, setMarkets] = useState<Market[]>([]);
@@ -256,7 +254,7 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
     <div className="h-full flex flex-col space-y-3 bg-background">
         {/* Top Section: Console */}
         <div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
                 <MarketStat label="Current Price" value={tickerData ? `$${parseFloat(tickerData.lastPrice).toLocaleString()}`: <Loader2 className="h-5 w-5 animate-spin" />} icon={Zap} valueClassName="text-white" />
                 <MarketStat label="24h Change" value={tickerData ? `${parseFloat(tickerData.priceChangePercent).toFixed(2)}%`: <Loader2 className="h-5 w-5 animate-spin" />} icon={TrendingUp} valueClassName={tickerData && parseFloat(tickerData.priceChangePercent) >= 0 ? 'text-accent' : 'text-red-500'} />
                 <MarketStat label="24h High" value={tickerData ? `$${parseFloat(tickerData.highPrice).toLocaleString()}`: <Loader2 className="h-5 w-5 animate-spin" />} icon={ArrowUp} />
