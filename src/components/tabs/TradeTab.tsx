@@ -13,6 +13,7 @@ import { Badge } from '../ui/badge';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ScrollArea } from '../ui/scroll-area';
+import { Separator } from '../ui/separator';
 
 const StatCard = ({ icon: Icon, label, value, valuePrefix = '', valueClassName = '' }: { icon: React.ElementType, label: string, value: string | number, valuePrefix?: string, valueClassName?: string }) => (
     <Card className="bg-card/70">
@@ -30,6 +31,8 @@ const StatCard = ({ icon: Icon, label, value, valuePrefix = '', valueClassName =
 
 const TradeItem = ({ trade }: { trade: Trade }) => {
     const isWin = trade.pnl !== undefined && trade.pnl > 0;
+    const pnlPrefix = isWin ? '+' : '';
+
     return (
         <Card className="p-3 bg-card/50 border-primary/20">
             <div className="flex items-start justify-between gap-2 mb-2">
@@ -45,33 +48,47 @@ const TradeItem = ({ trade }: { trade: Trade }) => {
                     <Badge variant="secondary" className={cn("text-xs", isWin ? "bg-accent/20 text-accent" : "bg-destructive/20 text-destructive")}>CLOSED</Badge>
                  }
             </div>
+            
+            <Separator className="my-2 bg-border/20"/>
 
-            <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 font-code text-sm">
-                 <div className="text-muted-foreground">Entry</div>
-                 <div className="text-right font-semibold">${trade.entryPrice.toLocaleString()}</div>
-                        
+            <div className="grid grid-cols-2 gap-2 mt-3 text-center">
+                <div className="flex flex-col p-2 rounded-lg bg-muted/40">
+                    <span className="text-muted-foreground text-xs">Entry Price</span>
+                    <span className="text-lg font-bold font-code text-foreground">${trade.entryPrice.toLocaleString()}</span>
+                </div>
+                <div className="flex flex-col p-2 rounded-lg bg-muted/40">
+                    <span className="text-muted-foreground text-xs">Stake</span>
+                    <span className="text-lg font-bold font-code text-primary">{trade.stake.toLocaleString()} SHADOW</span>
+                </div>
+
                 {trade.status === 'CLOSED' ? (
                     <>
-                        <div className="text-muted-foreground">Close</div>
-                        <div className="text-right font-semibold">${trade.closePrice?.toLocaleString() ?? 'N/A'}</div>
-                        
-                        <div className="text-muted-foreground">PNL</div>
-                        <div className={cn("text-right font-semibold", isWin ? 'text-accent' : 'text-destructive')}>
-                            {isWin ? '+' : ''}{trade.pnl?.toLocaleString() ?? '0'}
+                        <div className="flex flex-col p-2 rounded-lg bg-muted/40">
+                            <span className="text-muted-foreground text-xs">Close Price</span>
+                            <span className="text-lg font-bold font-code text-foreground">${trade.closePrice?.toLocaleString() ?? 'N/A'}</span>
+                        </div>
+                        <div className="flex flex-col p-2 rounded-lg bg-muted/40">
+                            <span className="text-muted-foreground text-xs">PNL</span>
+                            <span className={cn("text-lg font-bold font-code", isWin ? 'text-accent' : 'text-destructive')}>
+                                {pnlPrefix}{trade.pnl?.toLocaleString() ?? '0'} SHADOW
+                            </span>
                         </div>
                     </>
                 ) : (
                     <>
-                        <div className="text-muted-foreground">TP</div>
-                        <div className="text-right font-semibold text-accent">${trade.takeProfit.toLocaleString()}</div>
-                        
-                        <div className="text-muted-foreground">SL</div>
-                        <div className="text-right font-semibold text-destructive">${trade.stopLoss.toLocaleString()}</div>
+                        <div className="flex flex-col p-2 rounded-lg bg-muted/40">
+                            <span className="text-muted-foreground text-xs">Take Profit</span>
+                            <span className="text-lg font-bold font-code text-accent">${trade.takeProfit.toLocaleString()}</span>
+                        </div>
+                        <div className="flex flex-col p-2 rounded-lg bg-muted/40">
+                            <span className="text-muted-foreground text-xs">Stop Loss</span>
+                            <span className="text-lg font-bold font-code text-destructive">${trade.stopLoss.toLocaleString()}</span>
+                        </div>
                     </>
                 )}
             </div>
 
-            <div className="pt-3 mt-3 border-t border-border/20">
+            <div className="pt-3 mt-2">
                 <p className="text-xs text-muted-foreground text-right">
                     {formatDistanceToNow(new Date(trade.timestamp), { addSuffix: true })}
                 </p>

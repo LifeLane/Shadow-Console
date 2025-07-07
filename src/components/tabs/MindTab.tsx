@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Loader2, Zap, BrainCircuit, ArrowUp, ArrowDown, TrendingUp, Clock, Crosshair, Sparkles, Send, AlertTriangle } from 'lucide-react';
+import { Loader2, Zap, BrainCircuit, ArrowUp, ArrowDown, TrendingUp, Clock, Crosshair, Sparkles, Send, AlertTriangle, TrendingDown as TrendingDownIcon, HelpCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Signal, Market, Ticker24h, User } from '@/lib/types';
 import { generateAiSignalAction, getSignalHistoryAction } from '@/app/mind/actions';
@@ -25,6 +25,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import AirdropForm from '../AirdropForm';
 import { getProfileAction } from '@/app/profile/actions';
+import { Separator } from '../ui/separator';
 
 const mindFormSchema = z.object({
   market: z.string().min(1, 'Please select a market.'),
@@ -46,10 +47,27 @@ const MarketStat = ({ label, value, icon: Icon, valueClassName }: { label: strin
     </div>
 );
 
-const SignalCard = ({ signal, onExecute }: { signal: Signal; onExecute: (signal: Signal) => void; }) => {
+const InfoGridItem = ({ label, value, icon: Icon, valueClassName }: { label: string; value: React.ReactNode; icon?: React.ElementType, valueClassName?: string }) => (
+    <div className="flex flex-col p-2 rounded-lg bg-muted/40">
+        <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
+            {Icon && <Icon className="h-3 w-3" />}
+            <span>{label}</span>
+        </div>
+        <div className={cn("text-base sm:text-lg font-bold font-code text-foreground", valueClassName)}>
+            {value}
+        </div>
+    </div>
+);
+
+
+const SignalCard = ({ signal, onExecute, ticker }: { signal: Signal; onExecute: (signal: Signal) => void; ticker: Ticker24h | null }) => {
+    const isMatchingTicker = ticker && ticker.symbol === signal.asset;
+    const tickerHigh = isMatchingTicker ? `$${parseFloat(ticker.highPrice).toLocaleString()}` : 'N/A';
+    const tickerLow = isMatchingTicker ? `$${parseFloat(ticker.lowPrice).toLocaleString()}` : 'N/A';
+    
     return (
-        <Card className="p-3 bg-card/50 border-primary/20">
-            <div className="flex items-start justify-between gap-2 mb-2">
+        <Card className="p-3 bg-card/50 border-primary/20 flex flex-col">
+            <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2">
                     <Badge className={cn(
                         "py-0.5 px-2 text-xs font-bold rounded-md",
@@ -58,44 +76,42 @@ const SignalCard = ({ signal, onExecute }: { signal: Signal; onExecute: (signal:
                     )}>{signal.prediction}</Badge>
                     <span className="font-semibold text-sm sm:text-base">{signal.asset}</span>
                 </div>
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button size="icon" variant="ghost" className="h-8 w-8 text-accent hover:bg-accent/20" onClick={() => onExecute(signal)} disabled={signal.prediction === 'HOLD'}>
-                                <Send className="h-4 w-4" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>Execute Trade</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-            </div>
-
-            <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 font-code text-xs sm:text-sm mb-3">
-                 <div className="text-muted-foreground">Shadow Score</div>
-                <div className="text-right font-semibold">{signal.confidence}%</div>
-                
-                <div className="text-muted-foreground">Entry</div>
-                <div className="text-right font-semibold">${signal.entryPrice.toLocaleString()}</div>
-
-                <div className="text-muted-foreground">TP</div>
-                <div className="text-right font-semibold text-accent">${signal.takeProfit.toLocaleString()}</div>
-                
-                <div className="text-muted-foreground">SL</div>
-                <div className="text-right font-semibold text-destructive">${signal.stopLoss.toLocaleString()}</div>
-                
-                <div className="text-muted-foreground">Generated</div>
-                <div className="text-right font-semibold">
-                    {formatDistanceToNow(new Date(signal.timestamp), { addSuffix: true })}
+                 <div className="text-right">
+                    <p className="text-muted-foreground text-xs">Generated</p>
+                    <p className="font-semibold text-xs">
+                        {formatDistanceToNow(new Date(signal.timestamp), { addSuffix: true })}
+                    </p>
                 </div>
             </div>
-            
-            <div className="pt-2 border-t border-border/20">
-                 <p className="text-[0.6rem] sm:text-xs text-muted-foreground/80 flex items-start gap-1.5">
+
+            <Separator className="my-3 bg-border/20" />
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+                <InfoGridItem label="Shadow Score" value={`${signal.confidence}%`} valueClassName="text-primary" />
+                <InfoGridItem label="Entry" value={`$${signal.entryPrice.toLocaleString()}`} />
+                <InfoGridItem label="Take Profit" value={`$${signal.takeProfit.toLocaleString()}`} valueClassName="text-accent" />
+                <InfoGridItem label="Stop Loss" value={`$${signal.stopLoss.toLocaleString()}`} valueClassName="text-destructive" />
+                
+                <InfoGridItem label="24h High" value={tickerHigh} icon={TrendingUp} />
+                <InfoGridItem label="24h Low" value={tickerLow} icon={TrendingDownIcon} />
+
+                <InfoGridItem label="Market Cap" value="$1.3T" valueClassName="text-xs" icon={HelpCircle} />
+                <InfoGridItem label="Sentiment" value="Neutral" valueClassName="text-xs" icon={HelpCircle} />
+            </div>
+
+            <div className="mt-auto space-y-3">
+                <p className="text-[0.6rem] sm:text-xs text-muted-foreground/80 flex items-start gap-1.5">
                     <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                     <span>Shadow Signals are AI-generated for gamified purposes only and do not constitute financial advice. Trade at your own risk.</span>
                 </p>
+
+                <Button
+                    onClick={() => onExecute(signal)}
+                    disabled={signal.prediction === 'HOLD'}
+                    className="w-full h-11 bg-primary text-primary-foreground text-base hover:bg-primary/90"
+                >
+                    Trade and Earn
+                </Button>
             </div>
         </Card>
     );
@@ -109,7 +125,7 @@ const ModeButton = ({ icon: Icon, label, selected, ...props }: { icon: React.Ele
             "h-auto p-2 flex flex-row justify-center items-center gap-2 border-2 text-center transition-all duration-200",
             selected
                 ? "bg-accent text-accent-foreground border-accent glow-border-accent"
-                : "bg-card/80 border-border text-foreground hover:bg-accent/10 hover:border-accent hover:text-accent"
+                : "bg-card/80 border-border text-foreground hover:bg-accent/10 hover:border-accent"
         )}
         {...props}
     >
@@ -437,7 +453,7 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
                                 <p className="text-center text-muted-foreground py-10 text-sm">No signals generated yet. Use the console above.</p>
                             ) : (
                                 signalHistory.map((signal) => (
-                                    <SignalCard key={signal.id} signal={signal} onExecute={handleExecuteSignal} />
+                                    <SignalCard key={signal.id} signal={signal} onExecute={handleExecuteSignal} ticker={tickerData} />
                                 ))
                             )}
                         </div>
@@ -453,7 +469,7 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
                                 <p className="text-center text-muted-foreground py-10 text-sm">No pending signals.</p>
                             ) : (
                                 pendingSignals.map((signal) => (
-                                    <SignalCard key={signal.id} signal={signal} onExecute={handleExecuteSignal} />
+                                    <SignalCard key={signal.id} signal={signal} onExecute={handleExecuteSignal} ticker={tickerData} />
                                 ))
                             )}
                         </div>
@@ -470,5 +486,3 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
     </>
   );
 }
-
-    
