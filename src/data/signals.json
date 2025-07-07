@@ -1,5 +1,44 @@
 [
   {
+    "asset": "ETHUSDT",
+    "prediction": "LONG",
+    "confidence": 60,
+    "entryPrice": 2585,
+    "takeProfit": 2600,
+    "stopLoss": 2570,
+    "status": "PENDING",
+    "source": "AI_ORACLE",
+    "userId": "default_user",
+    "id": 6,
+    "timestamp": "2025-07-07T09:06:48.968Z"
+  },
+  {
+    "asset": "BTCUSDT",
+    "prediction": "HOLD",
+    "confidence": 60,
+    "entryPrice": 108800,
+    "takeProfit": 109200,
+    "stopLoss": 108500,
+    "status": "PENDING",
+    "source": "AI_ORACLE",
+    "userId": "default_user",
+    "id": 5,
+    "timestamp": "2025-07-07T09:06:38.124Z"
+  },
+  {
+    "asset": "BTCUSDT",
+    "prediction": "HOLD",
+    "confidence": 60,
+    "entryPrice": 108800,
+    "takeProfit": 109100,
+    "stopLoss": 108500,
+    "status": "PENDING",
+    "source": "AI_ORACLE",
+    "userId": "default_user",
+    "id": 4,
+    "timestamp": "2025-07-07T09:06:21.757Z"
+  },
+  {
     "asset": "BTCUSDT",
     "prediction": "HOLD",
     "confidence": 60,

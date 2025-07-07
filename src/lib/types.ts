@@ -1,4 +1,5 @@
 
+
 export interface User {
     id: string;
     name: string;
@@ -59,3 +60,8 @@ export interface WalletStats {
     miningPower: number; // SHADOW per hour
     apr: number; // Annual Percentage Rate
 }
+
+export type Message = {
+    role: 'user' | 'model';
+    text: string;
+};
