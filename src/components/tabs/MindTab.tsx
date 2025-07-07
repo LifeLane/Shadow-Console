@@ -42,7 +42,7 @@ interface MindTabProps {
 }
 
 const MarketStat = ({ label, value, icon: Icon, valueClassName }: { label: string; value: string | React.ReactNode; icon: React.ElementType, valueClassName?: string }) => (
-    <div className="px-2 py-2 text-center">
+    <div className="px-2 py-1 text-center">
         <p className="text-muted-foreground uppercase text-[0.6rem] sm:text-xs tracking-wider flex items-center justify-center gap-1.5">{label} <Icon className="h-3 w-3 shrink-0" /></p>
         <p className={cn("font-bold font-code text-sm sm:text-base truncate", valueClassName)}>{value}</p>
     </div>
@@ -65,8 +65,8 @@ const SignalCard = ({ signal, onExecute, ticker }: { signal: Signal; onExecute: 
                     <span className="font-semibold text-sm sm:text-base">{signal.asset}</span>
                 </div>
                  <div className="text-right">
-                    <p className="text-muted-foreground text-xs">Generated</p>
-                    <p className="font-semibold text-xs">
+                    <p className="text-muted-foreground text-[10px] sm:text-xs">Generated</p>
+                    <p className="font-semibold text-[10px] sm:text-xs">
                         {formatDistanceToNow(new Date(signal.timestamp), { addSuffix: true })}
                     </p>
                 </div>
@@ -113,7 +113,7 @@ const ModeButton = ({ icon: Icon, label, selected, ...props }: { icon: React.Ele
             "h-auto p-2 flex flex-row justify-center items-center gap-2 border-2 text-center transition-all duration-200",
             selected
                 ? "bg-accent text-accent-foreground border-accent glow-border-accent"
-                : "bg-card/80 border-border text-foreground hover:bg-accent/10 hover:border-accent"
+                : "bg-card/80 border-border text-foreground hover:bg-accent/10 hover:border-accent hover:text-accent-foreground"
         )}
         {...props}
     >
@@ -466,7 +466,7 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
             </Tabs>
         </div>
 
-        <div className="px-4 pb-2 text-center text-xs text-muted-foreground/80 flex items-center justify-center gap-1.5">
+        <div className="px-4 pb-2 text-center text-[10px] sm:text-xs text-muted-foreground/80 flex items-center justify-center gap-1.5">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <p>Shadow Signals are AI-generated for gamified purposes and do not constitute financial advice. All trades are simulated. Trade at your own risk.</p>
         </div>

@@ -6,11 +6,11 @@ import React from 'react';
 
 const InfoGridItem = ({ label, value, icon: Icon, valueClassName }: { label: string; value: React.ReactNode; icon?: React.ElementType; valueClassName?: string }) => (
     <div className="flex flex-col p-2 rounded-lg bg-muted/40">
-        <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
+        <div className="flex items-center gap-1.5 text-muted-foreground text-[10px] sm:text-xs">
             {Icon && <Icon className="h-3 w-3" />}
             <span>{label}</span>
         </div>
-        <div className={cn("text-base sm:text-lg font-bold font-code text-foreground", valueClassName)}>
+        <div className={cn("text-sm sm:text-base font-bold font-code text-foreground", valueClassName)}>
             {value}
         </div>
     </div>

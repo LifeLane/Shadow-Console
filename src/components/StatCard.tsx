@@ -10,9 +10,9 @@ const StatCard = ({ icon: Icon, label, value, valuePrefix = '', valueSuffix = ''
         <CardContent className="p-3 sm:p-4">
             <div className="flex items-center space-x-2 mb-1">
                 <Icon className="h-4 w-4 text-muted-foreground" />
-                <p className="text-xs sm:text-sm font-medium text-muted-foreground">{label}</p>
+                <p className="text-[10px] sm:text-sm font-medium text-muted-foreground">{label}</p>
             </div>
-            <p className={cn("text-xl sm:text-2xl font-bold font-code", valueClassName)}>
+            <p className={cn("text-lg sm:text-xl font-bold font-code", valueClassName)}>
                 {valuePrefix}
                 {typeof value === 'number' ? value.toLocaleString() : value}
                 {valueSuffix}
