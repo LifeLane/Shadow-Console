@@ -1,5 +1,18 @@
 [
   {
+    "asset": "BTCUSDT",
+    "prediction": "HOLD",
+    "confidence": 60,
+    "entryPrice": 108800,
+    "takeProfit": 109200,
+    "stopLoss": 108500,
+    "status": "PENDING",
+    "source": "AI_ORACLE",
+    "userId": "default_user",
+    "id": 7,
+    "timestamp": "2025-07-07T09:09:48.662Z"
+  },
+  {
     "asset": "ETHUSDT",
     "prediction": "LONG",
     "confidence": 60,

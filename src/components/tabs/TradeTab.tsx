@@ -19,6 +19,7 @@ import { getTradesAction, placeTradeAction } from '@/app/agents/actions';
 import { getLivePrice } from '@/app/actions';
 import { Badge } from '../ui/badge';
 import { cn } from '@/lib/utils';
+import { SUPPORTED_MARKETS } from '@/lib/constants';
 
 const tradeFormSchema = z.object({
     asset: z.string().min(1, 'Please select an asset.'),
@@ -41,7 +42,7 @@ export default function TradeTab({ isDbInitialized }: { isDbInitialized: boolean
     const form = useForm<TradeFormValues>({
         resolver: zodResolver(tradeFormSchema),
         defaultValues: {
-            asset: 'BTCUSDT',
+            asset: SUPPORTED_MARKETS[0].symbol,
             side: 'LONG',
             stake: 100,
             takeProfit: 0,
@@ -137,9 +138,9 @@ export default function TradeTab({ isDbInitialized }: { isDbInitialized: boolean
                                                 <SelectTrigger><SelectValue/></SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                <SelectItem value="BTCUSDT">BTC/USDT</SelectItem>
-                                                <SelectItem value="ETHUSDT">ETH/USDT</SelectItem>
-                                                <SelectItem value="MATICUSDT">MATIC/USDT</SelectItem>
+                                                {SUPPORTED_MARKETS.map((market) => (
+                                                  <SelectItem key={market.symbol} value={market.symbol}>{market.label}</SelectItem>
+                                                ))}
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />

@@ -5,8 +5,8 @@
     "xp": 1375,
     "winRate": 100,
     "signalAccuracy": 67,
-    "shadowBalance": 5200,
-    "stakedAmount": 1500,
+    "shadowBalance": 200,
+    "stakedAmount": 6500,
     "avatarUrl": "https://placehold.co/100x100.png",
     "completedMissions": [],
     "walletAddress": "0x123...abc"

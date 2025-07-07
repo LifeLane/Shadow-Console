@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils';
 import { ScrollArea } from '../ui/scroll-area';
 import { Input } from '../ui/input';
 import { Avatar, AvatarFallback } from '../ui/avatar';
+import { SUPPORTED_MARKETS } from '@/lib/constants';
 
 
 const signalFormSchema = z.object({
@@ -47,7 +48,7 @@ export default function SignalTab({ isDbInitialized }: { isDbInitialized: boolea
 
   const form = useForm<SignalFormValues>({
     resolver: zodResolver(signalFormSchema),
-    defaultValues: { market: 'BTCUSDT' },
+    defaultValues: { market: SUPPORTED_MARKETS[0].symbol },
   });
 
   useEffect(() => {
@@ -192,9 +193,9 @@ export default function SignalTab({ isDbInitialized }: { isDbInitialized: boolea
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="BTCUSDT">BTC/USDT</SelectItem>
-                              <SelectItem value="ETHUSDT">ETH/USDT</SelectItem>
-                              <SelectItem value="MATICUSDT">MATIC/USDT</SelectItem>
+                              {SUPPORTED_MARKETS.map((market) => (
+                                <SelectItem key={market.symbol} value={market.symbol}>{market.label}</SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                           <FormMessage />
