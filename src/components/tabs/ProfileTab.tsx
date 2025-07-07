@@ -1,19 +1,18 @@
 
 "use client";
 
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Award, BrainCircuit, Gem, ShieldCheck, Loader2, KeyRound, User, MessageCircle, Send, Edit, Gift, Wallet, ListChecks, CheckCircle, XCircle, HelpCircle, Sparkles } from 'lucide-react';
+import { Award, BrainCircuit, Gem, ShieldCheck, Loader2, KeyRound, User, Edit, Gift, Wallet, ListChecks, CheckCircle, XCircle, HelpCircle, Sparkles } from 'lucide-react';
 import type { User as UserType } from '@/lib/types';
-import { getProfileAction, askOracleAction, updateUserAction } from '@/app/profile/actions';
+import { getProfileAction, updateUserAction } from '@/app/profile/actions';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { ScrollArea } from '../ui/scroll-area';
 import { Form, FormControl, FormField, FormItem } from '../ui/form';
 import { useForm } from 'react-hook-form';
 import AnimatedAvatar from '../AnimatedAvatar';
@@ -27,121 +26,6 @@ const getTierStyling = (xp: number) => {
     if (xp < 5000) return { name: 'Neon Pilot', className: 'text-green-400 border-green-400', progress: (xp / 5000) * 100 };
     return { name: 'Neon Pilot', className: 'text-green-400 border-green-400', progress: (xp / 5000) * 100 };
 }
-
-export type Message = {
-  role: 'user' | 'model';
-  text: string;
-};
-
-
-const OracleChat = () => {
-    const [messages, setMessages] = useState<Message[]>([
-        { role: 'model', text: 'Welcome, Pilot. The data streams are open. What knowledge do you seek?' }
-    ]);
-    const [isSending, setIsSending] = useState(false);
-    const scrollAreaRef = useRef<HTMLDivElement>(null);
-
-    const form = useForm({
-        defaultValues: { message: '' }
-    });
-
-    const { toast } = useToast();
-
-    useEffect(() => {
-        // Auto-scroll to bottom when new messages are added
-        if (scrollAreaRef.current) {
-            scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
-        }
-    }, [messages]);
-
-    const handleSendMessage = async (values: { message: string }) => {
-        const newMessageText = values.message.trim();
-        if (!newMessageText) return;
-
-        const newMessages: Message[] = [...messages, { role: 'user', text: newMessageText }];
-        setMessages(newMessages);
-        form.reset();
-        setIsSending(true);
-
-        try {
-            const responseText = await askOracleAction(newMessages, newMessageText);
-            setMessages(prev => [...prev, { role: 'model', text: responseText }]);
-        } catch (error) {
-            toast({
-                title: 'Oracle Error',
-                description: 'The Oracle is currently recalibrating... please try again.',
-                variant: 'destructive',
-            });
-        } finally {
-            setIsSending(false);
-        }
-    };
-
-    return (
-        <Card className="flex flex-col h-[60vh] max-h-[700px]">
-            <CardHeader>
-                <CardTitle className="flex items-center text-lg sm:text-xl text-accent"><MessageCircle className="mr-2"/> Oracle's Insight</CardTitle>
-                <CardDescription className="text-sm">Chat directly with the Shadow Oracle AI.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-grow flex flex-col min-h-0 p-4 pt-0">
-                <ScrollArea className="flex-grow pr-4 -mr-4" ref={scrollAreaRef}>
-                    <div className="space-y-4">
-                        {messages.map((message, index) => (
-                            <div
-                                key={index}
-                                className={cn(
-                                    "flex items-start gap-3",
-                                    message.role === 'user' ? 'justify-end' : 'justify-start'
-                                )}
-                            >
-                                {message.role === 'model' && (
-                                    <AnimatedAvatar name="Oracle" className="w-8 h-8 border-2 border-accent" />
-                                )}
-                                <div className={cn(
-                                    "max-w-[80%] rounded-lg px-3 py-2 text-sm",
-                                    message.role === 'user'
-                                        ? 'bg-primary text-primary-foreground'
-                                        : 'bg-muted text-muted-foreground'
-                                )}>
-                                    {message.text}
-                                </div>
-                                {message.role === 'user' && (
-                                    <AnimatedAvatar name="User" className="w-8 h-8" />
-                                )}
-                            </div>
-                        ))}
-                        {isSending && (
-                            <div className="flex items-start gap-3 justify-start">
-                                <AnimatedAvatar name="Oracle" className="w-8 h-8 border-2 border-accent" />
-                                <div className="bg-muted text-muted-foreground rounded-lg px-3 py-2 text-sm">...</div>
-                            </div>
-                        )}
-                    </div>
-                </ScrollArea>
-                <div className="mt-4">
-                    <Form {...form}>
-                        <form onSubmit={form.handleSubmit(handleSendMessage)} className="flex items-center gap-2">
-                            <FormField
-                                control={form.control}
-                                name="message"
-                                render={({ field }) => (
-                                    <FormItem className="flex-grow">
-                                        <FormControl>
-                                            <Input {...field} placeholder="Ask the Oracle..." autoComplete="off" disabled={isSending} />
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
-                            <Button type="submit" size="icon" disabled={isSending}>
-                                <Send className="h-4 w-4" />
-                            </Button>
-                        </form>
-                    </Form>
-                </div>
-            </CardContent>
-        </Card>
-    );
-};
 
 const EligibilityItem = ({ icon, text, status, tip }: { icon: React.ElementType, text: string, status: 'complete' | 'incomplete' | 'pending', tip: string }) => {
     const statusIcons = {
@@ -233,9 +117,8 @@ export default function ProfileTab({ isDbInitialized }: { isDbInitialized: boole
             </CardHeader>
             <CardContent>
                 <Tabs defaultValue="profile" className="w-full">
-                    <TabsList className="grid w-full grid-cols-4">
+                    <TabsList className="grid w-full grid-cols-3">
                         <TabsTrigger value="profile" className="text-xs sm:text-sm">Profile</TabsTrigger>
-                        <TabsTrigger value="oracle" className="text-xs sm:text-sm">Oracle</TabsTrigger>
                         <TabsTrigger value="airdrop" className="text-xs sm:text-sm">Airdrop</TabsTrigger>
                         <TabsTrigger value="settings" className="text-xs sm:text-sm">Settings</TabsTrigger>
                     </TabsList>
@@ -283,10 +166,6 @@ export default function ProfileTab({ isDbInitialized }: { isDbInitialized: boole
                         </div>
                     </TabsContent>
                     
-                    <TabsContent value="oracle" className="mt-6">
-                        <OracleChat />
-                    </TabsContent>
-
                     <TabsContent value="airdrop" className="mt-6">
                          {profile.hasRegisteredForAirdrop ? (
                             <Card className="glow-border text-center">

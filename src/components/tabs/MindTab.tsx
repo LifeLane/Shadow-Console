@@ -49,7 +49,7 @@ const MarketStat = ({ label, value, icon: Icon, valueClassName }: { label: strin
     </div>
 );
 
-const SignalCard = ({ signal, onExecute, ticker }: { signal: Signal; onExecute: (signal: Signal) => void; ticker: Ticker24h | null }) => {
+const SignalCard = ({ signal, onExecute, onAnalyze, ticker }: { signal: Signal; onExecute: (signal: Signal) => void; onAnalyze: (signal: Signal) => void; ticker: Ticker24h | null }) => {
     const isMatchingTicker = ticker && ticker.symbol === signal.asset;
     const tickerHigh = isMatchingTicker ? `$${parseFloat(ticker.highPrice).toLocaleString()}` : 'N/A';
     const tickerLow = isMatchingTicker ? `$${parseFloat(ticker.lowPrice).toLocaleString()}` : 'N/A';
@@ -65,11 +65,25 @@ const SignalCard = ({ signal, onExecute, ticker }: { signal: Signal; onExecute: 
                     )}>{signal.prediction}</Badge>
                     <span className="font-semibold text-sm sm:text-base">{signal.asset}</span>
                 </div>
-                 <div className="text-right">
-                    <p className="text-muted-foreground text-[10px] sm:text-xs">Generated</p>
-                    <p className="font-semibold text-[10px] sm:text-xs">
-                        {formatDistanceToNow(new Date(signal.timestamp), { addSuffix: true })}
-                    </p>
+                 <div className="flex items-center gap-1 text-right">
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-6 w-6 text-accent" onClick={() => onAnalyze(signal)}>
+                                    <BrainCircuit className="h-4 w-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Simulate Oracle Analysis</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                    <div>
+                        <p className="text-muted-foreground text-[10px] sm:text-xs">Generated</p>
+                        <p className="font-semibold text-[10px] sm:text-xs">
+                            {formatDistanceToNow(new Date(signal.timestamp), { addSuffix: true })}
+                        </p>
+                    </div>
                 </div>
             </div>
 
@@ -135,6 +149,7 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
   const signalLogRef = useRef<HTMLDivElement>(null);
   const [isAirdropModalOpen, setIsAirdropModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [analyzingSignal, setAnalyzingSignal] = useState<Signal | null>(null);
 
   const form = useForm<MindFormValues>({
     resolver: zodResolver(mindFormSchema),
@@ -300,6 +315,10 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
     }
   }
 
+  const handleAnalyzeSignal = (signal: Signal) => {
+    setAnalyzingSignal(signal);
+  };
+
   const tradingModes = [
       { id: 'Scalper', label: 'Scalper', icon: Zap },
       { id: 'Sniper', label: 'Sniper', icon: Crosshair },
@@ -331,6 +350,18 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
             <AirdropForm onSuccess={onAirdropSuccess} />
         </DialogContent>
     </Dialog>
+    <Dialog open={!!analyzingSignal} onOpenChange={(isOpen) => !isOpen && setAnalyzingSignal(null)}>
+        <DialogContent className="max-w-2xl bg-transparent p-0 border-none shadow-none">
+            {analyzingSignal && (
+                <TerminalExecutionAnimation
+                    target={analyzingSignal.asset}
+                    tradeMode="Analysis"
+                    risk="Deep Scan"
+                />
+            )}
+        </DialogContent>
+    </Dialog>
+
     <div className="h-full flex flex-col space-y-3 sm:space-y-4 bg-background">
         <div>
             <div className="grid grid-cols-2 sm:grid-cols-4 w-full bg-card/60 rounded-lg border border-primary/30 divide-x divide-y sm:divide-y-0 divide-primary/20">
@@ -447,7 +478,7 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
                                 <p className="text-center text-muted-foreground py-10 text-sm">No signals generated yet. Use the console above.</p>
                             ) : (
                                 signalHistory.map((signal) => (
-                                    <SignalCard key={signal.id} signal={signal} onExecute={handleExecuteSignal} ticker={tickerData} />
+                                    <SignalCard key={signal.id} signal={signal} onExecute={handleExecuteSignal} onAnalyze={handleAnalyzeSignal} ticker={tickerData} />
                                 ))
                             )}
                         </div>
@@ -463,7 +494,7 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
                                 <p className="text-center text-muted-foreground py-10 text-sm">No pending signals.</p>
                             ) : (
                                 pendingSignals.map((signal) => (
-                                    <SignalCard key={signal.id} signal={signal} onExecute={handleExecuteSignal} ticker={tickerData} />
+                                    <SignalCard key={signal.id} signal={signal} onExecute={handleExecuteSignal} onAnalyze={handleAnalyzeSignal} ticker={tickerData} />
                                 ))
                             )}
                         </div>
