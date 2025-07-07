@@ -13,79 +13,88 @@
     --radius: 0.5rem;
   }
 
-  /* Shadow Trader Theme */
+  /* Solar Flare: Dark Mode (Eclipse) */
   :root, .theme-shadow {
-    --background: 270 6% 15%; /* #262429 Dark Gray */
-    --foreground: 270 25% 95%; /* Off-white */
+    --background: 212 28% 10%; /* #0D1117 */
+    --foreground: 212 18% 84%; /* #C9D1D9 */
     
-    --card: 270 6% 18%; /* Slightly lighter gray */
-    --card-foreground: 270 25% 95%;
+    --card: 213 19% 11%; /* #161B22 */
+    --card-foreground: 212 18% 84%;
     
-    --popover: 270 6% 10%;
-    --popover-foreground: 270 25% 95%;
+    --popover: 212 28% 7%;
+    --popover-foreground: 212 18% 84%;
     
-    --primary: 289 83% 55%; /* #BE29EC Electric Purple */
-    --primary-foreground: 289 83% 95%; /* Light purple for text on primary */
+    --primary: 39 100% 50%; /* #FFA500 */
+    --primary-foreground: 212 28% 10%; /* Dark text on bright orange */
     
-    --secondary: 270 10% 25%;
-    --secondary-foreground: 270 25% 85%;
+    --secondary: 213 19% 15%;
+    --secondary-foreground: 212 18% 75%;
     
-    --muted: 270 8% 22%;
-    --muted-foreground: 270 15% 65%;
+    --muted: 213 19% 18%;
+    --muted-foreground: 212 18% 65%;
     
-    --accent: 101 100% 60%; /* #6BFF33 Bright Green */
-    --accent-foreground: 101 100% 5%;
+    --accent: 212 92% 58%; /* #3088F6 */
+    --accent-foreground: 0 0% 100%;
     
-    --destructive: 0 80% 60%; /* Bright Red */
+    --destructive: 2 100% 60%; /* #FF3B30 */
     --destructive-foreground: 0 0% 100%;
     
-    --border: 270 6% 30%;
-    --input: 270 6% 20%;
-    --ring: 101 100% 60%; /* Green ring for focus */
+    --border: 213 30% 18%;
+    --input: 213 19% 11%;
+    --ring: 39 100% 50%; /* primary */
   }
 
+  /* Solar Flare: Light Mode (Daybreak) */
   .theme-light {
-    --background: 0 0% 98%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --background: 0 0% 100%; /* #FFFFFF */
+    --foreground: 213 9% 22%; /* #24292F */
+    
+    --card: 210 22% 97%; /* #F6F8FA */
+    --card-foreground: 213 9% 22%;
+    
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 289 83% 55%;
-    --primary-foreground: 289 83% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 101 100% 60%;
-    --accent-foreground: 101 100% 5%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 289 83% 55%;
+    --popover-foreground: 213 9% 22%;
+    
+    --primary: 27 95% 58%; /* #F9822D */
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 210 22% 95%;
+    --secondary-foreground: 213 9% 22%;
+    
+    --muted: 210 22% 95%;
+    --muted-foreground: 213 9% 45%;
+    
+    --accent: 212 92% 45%; /* #0969DA */
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 100% 41%; /* #D10000 */
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 210 14% 85%; /* #D0D7DE */
+    --input: 210 14% 85%;
+    --ring: 27 95% 58%; /* primary */
   }
 
   .theme-dark {
-    --background: 240 30% 6%;
-    --foreground: 180 70% 92%;
-    --card: 231 28% 11%;
-    --card-foreground: 180 70% 92%;
-    --popover: 240 30% 6%;
-    --popover-foreground: 180 70% 92%;
-    --primary: 289 83% 55%;
-    --primary-foreground: 0 0% 10%;
-    --secondary: 240 25% 25%;
-    --secondary-foreground: 180 40% 80%;
-    --muted: 231 28% 20%;
-    --muted-foreground: 180 30% 60%;
-    --accent: 101 100% 60%;
-    --accent-foreground: 0 0% 10%;
-    --destructive: 330 90% 60%;
+    --background: 212 28% 10%; /* #0D1117 */
+    --foreground: 212 18% 84%; /* #C9D1D9 */
+    --card: 213 19% 11%; /* #161B22 */
+    --card-foreground: 212 18% 84%;
+    --popover: 212 28% 7%;
+    --popover-foreground: 212 18% 84%;
+    --primary: 39 100% 50%; /* #FFA500 */
+    --primary-foreground: 212 28% 10%; /* Dark text on bright orange */
+    --secondary: 213 19% 15%;
+    --secondary-foreground: 212 18% 75%;
+    --muted: 213 19% 18%;
+    --muted-foreground: 212 18% 65%;
+    --accent: 212 92% 58%; /* #3088F6 */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 2 100% 60%; /* #FF3B30 */
     --destructive-foreground: 0 0% 100%;
-    --border: 289 83% 55%;
-    --input: 231 28% 11%;
-    --ring: 289 83% 55%;
+    --border: 213 30% 18%;
+    --input: 213 19% 11%;
+    --ring: 39 100% 50%; /* primary */
   }
 }
 
