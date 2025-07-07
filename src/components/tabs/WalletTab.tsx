@@ -28,10 +28,15 @@ const StatDisplay = ({ icon, label, value, unit, tooltip }: { icon: React.Elemen
     <TooltipProvider>
         <Tooltip>
             <TooltipTrigger asChild>
-                <div className="flex flex-col items-center justify-center p-3 sm:p-4 bg-muted/30 rounded-lg text-center h-full">
-                    {React.createElement(icon, { className: "h-6 w-6 sm:h-7 sm:w-7 text-accent mb-2" })}
-                    <span className="text-xs text-muted-foreground">{label}</span>
-                    <span className={`text-xl sm:text-2xl font-bold font-code text-primary`}>{value} <span className="text-lg text-muted-foreground">{unit}</span></span>
+                <div className="flex flex-col items-center justify-between p-3 bg-muted/30 rounded-lg text-center h-36">
+                    <div className="flex flex-col items-center gap-1">
+                        {React.createElement(icon, { className: "h-6 w-6 text-accent" })}
+                        <p className="text-sm text-muted-foreground leading-tight">{label}</p>
+                    </div>
+                    <div className="text-center">
+                        <p className="text-3xl font-bold font-code text-primary">{value}</p>
+                        {unit && <p className="text-base text-muted-foreground -mt-1">{unit}</p>}
+                    </div>
                 </div>
             </TooltipTrigger>
             <TooltipContent>
@@ -199,4 +204,5 @@ export default function WalletTab({ isDbInitialized }: { isDbInitialized: boolea
         </Tabs>
     </div>
   );
-}
+
+    
