@@ -22,10 +22,10 @@ const stakeFormSchema = z.object({
 type StakeFormValues = z.infer<typeof stakeFormSchema>;
 
 const StatDisplay = ({ icon, label, value, unit, className }: { icon: React.ElementType, label: string, value: string | number, unit?: string, className?: string }) => (
-    <div className="flex flex-col items-center justify-center p-4 bg-muted/30 rounded-lg text-center h-full">
-        {React.createElement(icon, { className: "h-8 w-8 text-accent mb-2" })}
-        <span className="text-sm text-muted-foreground">{label}</span>
-        <span className={`text-2xl font-bold font-code text-primary ${className}`}>{value} <span className="text-lg text-muted-foreground">{unit}</span></span>
+    <div className="flex flex-col items-center justify-center p-3 sm:p-4 bg-muted/30 rounded-lg text-center h-full">
+        {React.createElement(icon, { className: "h-6 w-6 sm:h-8 sm:w-8 text-accent mb-2" })}
+        <span className="text-xs sm:text-sm text-muted-foreground">{label}</span>
+        <span className={`text-lg sm:text-2xl font-bold font-code text-primary ${className}`}>{value} <span className="text-base sm:text-lg text-muted-foreground">{unit}</span></span>
     </div>
 );
 
@@ -99,14 +99,14 @@ export default function WalletTab({ isDbInitialized }: { isDbInitialized: boolea
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="space-y-4 sm:space-y-6">
       <Card className="glow-border-primary">
         <CardHeader>
-          <CardTitle className="text-primary flex items-center text-2xl"><Pickaxe className="mr-3" /> Mining Pools</CardTitle>
-          <CardDescription>Stake your SHADOW tokens in pools to earn rewards and power the network.</CardDescription>
+          <CardTitle className="text-primary flex items-center text-xl sm:text-2xl"><Pickaxe className="mr-3" /> Mining Pools</CardTitle>
+          <CardDescription className="text-sm">Stake your SHADOW tokens in pools to earn rewards and power the network.</CardDescription>
         </CardHeader>
         <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
                 <StatDisplay icon={Gem} label="SHADOW Balance" value={stats.shadowBalance.toLocaleString()} />
                 <StatDisplay icon={Pickaxe} label="Total Staked" value={stats.stakedAmount.toLocaleString()} />
                 <StatDisplay icon={ShieldQuestion} label="Avg. Staking APR" value={stats.apr.toFixed(2)} unit="%" />
@@ -115,30 +115,30 @@ export default function WalletTab({ isDbInitialized }: { isDbInitialized: boolea
         </CardContent>
       </Card>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
         {miningPools.map((pool) => (
             <Card key={pool.id} className="flex flex-col">
                 <CardHeader>
-                    <CardTitle className="flex items-center space-x-2 text-accent">
-                        <pool.icon className="h-6 w-6"/>
+                    <CardTitle className="flex items-center space-x-2 text-accent text-lg sm:text-xl">
+                        <pool.icon className="h-5 w-5 sm:h-6 sm:w-6"/>
                         <span>{pool.name}</span>
                     </CardTitle>
-                    <CardDescription>{pool.description}</CardDescription>
+                    <CardDescription className="text-xs sm:text-sm">{pool.description}</CardDescription>
                 </CardHeader>
-                <CardContent className="flex-grow space-y-4">
-                    <div className="flex justify-between items-center bg-muted/40 p-2 rounded-md">
-                        <span className="text-sm font-medium">APR</span>
+                <CardContent className="flex-grow space-y-2">
+                    <div className="flex justify-between items-center bg-muted/40 p-2 rounded-md text-sm">
+                        <span className="font-medium">APR</span>
                         <span className="font-bold text-accent font-code">{pool.apr}%</span>
                     </div>
-                     <div className="flex justify-between items-center bg-muted/40 p-2 rounded-md">
-                        <span className="text-sm font-medium">Min. Stake</span>
+                     <div className="flex justify-between items-center bg-muted/40 p-2 rounded-md text-sm">
+                        <span className="font-medium">Min. Stake</span>
                         <span className="font-bold font-code">{pool.minStake} SHADOW</span>
                     </div>
                 </CardContent>
-                <div className="p-6 pt-0">
+                <div className="p-4 pt-0">
                     <Dialog open={isStakeModalOpen} onOpenChange={setStakeModalOpen}>
                         <DialogTrigger asChild>
-                             <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">Stake in Pool</Button>
+                             <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground h-10 text-sm sm:text-base">Stake in Pool</Button>
                         </DialogTrigger>
                         <DialogContent>
                             <DialogHeader>
@@ -169,13 +169,13 @@ export default function WalletTab({ isDbInitialized }: { isDbInitialized: boolea
 
       <Card>
         <CardHeader>
-            <CardTitle>Withdraw Staked Tokens</CardTitle>
-            <CardDescription>Unstake your SHADOW tokens from all pools and return them to your main balance.</CardDescription>
+            <CardTitle className="text-lg sm:text-xl">Withdraw Staked Tokens</CardTitle>
+            <CardDescription className="text-sm">Unstake your SHADOW tokens from all pools and return them to your main balance.</CardDescription>
         </CardHeader>
         <CardContent>
             <Dialog open={isUnstakeModalOpen} onOpenChange={setUnstakeModalOpen}>
                 <DialogTrigger asChild>
-                     <Button variant="outline" className="w-full md:w-1/3">Initiate Withdrawal</Button>
+                     <Button variant="outline" className="w-full md:w-1/3 h-10 text-sm sm:text-base">Initiate Withdrawal</Button>
                 </DialogTrigger>
                 <DialogContent>
                     <DialogHeader>

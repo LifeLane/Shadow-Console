@@ -116,7 +116,7 @@ export default function AppLayout() {
         </div>
       </header>
 
-      <main className="flex-grow flex flex-col p-4">
+      <main className="flex-grow flex flex-col p-2 sm:p-4">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -143,7 +143,7 @@ export default function AppLayout() {
               variant="ghost"
               onClick={() => handleTabChange(tab.id)}
               className={cn(
-                "flex flex-col items-center justify-center h-full px-0.5 sm:px-1 text-[0.6rem] sm:text-xs group transition-all duration-300 ease-out transform hover:scale-105 w-full rounded-none",
+                "flex flex-col items-center justify-center h-full px-0.5 sm:px-1 text-xs sm:text-sm group transition-all duration-300 ease-out transform hover:scale-105 w-full rounded-none",
                 activeTab === tab.id
                   ? 'text-primary scale-110'
                   : 'text-muted-foreground hover:bg-primary/10 hover:text-primary'
@@ -160,7 +160,7 @@ export default function AppLayout() {
                  {activeTab === tab.id && <div className="absolute inset-0 rounded-full bg-primary animate-pulse z-0"></div>}
                 <tab.icon className="h-5 w-5 sm:h-6 sm:w-6 relative z-10" />
               </div>
-              <span className="mt-0.5 sm:mt-1 font-medium truncate max-w-[50px] sm:max-w-none">
+              <span className="mt-1 font-medium truncate max-w-[50px] sm:max-w-none">
                 {tab.label}
               </span>
             </Button>

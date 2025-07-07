@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Award, BrainCircuit, Gem, ShieldCheck, Users, Loader2, KeyRound, Paintbrush, User } from 'lucide-react';
+import { Award, BrainCircuit, Gem, ShieldCheck, Loader2, KeyRound, Paintbrush, User } from 'lucide-react';
 import type { User as UserType } from '@/lib/types';
 import { getProfileAction } from '@/app/profile/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -28,12 +28,12 @@ const getTierStyling = (xp: number) => {
 
 const StatCard = ({ icon, label, value, description }: { icon: React.ElementType, label: string, value: string | number, description?: string }) => (
     <Card className="bg-card/70">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4">
             <CardTitle className="text-sm font-medium">{label}</CardTitle>
             {React.createElement(icon, { className: "h-4 w-4 text-muted-foreground" })}
         </CardHeader>
-        <CardContent>
-            <div className="text-2xl font-bold">{value}</div>
+        <CardContent className="p-4 pt-0">
+            <div className="text-xl sm:text-2xl font-bold">{value}</div>
             {description && <p className="text-xs text-muted-foreground">{description}</p>}
         </CardContent>
     </Card>
@@ -76,43 +76,43 @@ export default function ProfileTab({ isDbInitialized }: { isDbInitialized: boole
                        userTier?.name === 'Grid Ghost' ? 7000 : 5000;
     const nextTierName = userTier?.name === 'Oracle Lord' ? 'MAX' :
                          userTier?.name === 'Cypher Runner' ? 'Oracle Lord' :
-                         userTier?.name === 'Grid Ghost' ? 'Cypher Runner' : 'Grid Ghost';
+                         userTier?.name === 'Grid Ghost' ? 'Cypher Runner' : 'Neon Pilot';
 
     return (
         <Card className="glow-border">
             <CardHeader>
-                <CardTitle className="text-primary flex items-center text-2xl"><User className="mr-3"/> Profile</CardTitle>
-                <CardDescription>Manage your profile and application preferences.</CardDescription>
+                <CardTitle className="text-primary flex items-center text-xl sm:text-2xl"><User className="mr-3"/> Profile</CardTitle>
+                <CardDescription className="text-sm">Manage your profile and application preferences.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Tabs defaultValue="profile" className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="profile">Profile</TabsTrigger>
-                        <TabsTrigger value="settings">Settings</TabsTrigger>
+                        <TabsTrigger value="profile" className="text-xs sm:text-sm">Profile</TabsTrigger>
+                        <TabsTrigger value="settings" className="text-xs sm:text-sm">Settings</TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="profile" className="mt-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-                            <div className="lg:col-span-1 space-y-6">
+                    <TabsContent value="profile" className="mt-4 sm:mt-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                            <div className="lg:col-span-1 space-y-4 sm:space-y-6">
                                 <Card className="glow-border-accent">
-                                    <CardHeader className="items-center text-center">
-                                        <Avatar className="h-24 w-24 mb-4 border-2 border-accent">
+                                    <CardHeader className="items-center text-center p-4">
+                                        <Avatar className="h-20 w-20 sm:h-24 sm:w-24 mb-4 border-2 border-accent">
                                             <AvatarImage src={profile.avatarUrl} alt={profile.name} data-ai-hint="futuristic pilot" />
                                             <AvatarFallback>{profile.name.charAt(0)}</AvatarFallback>
                                         </Avatar>
-                                        <CardTitle className="text-3xl text-accent">{profile.name}</CardTitle>
-                                        {userTier && <Badge variant="outline" className={cn("text-lg mt-2", userTier.className)}>{userTier.name}</Badge>}
+                                        <CardTitle className="text-xl sm:text-2xl text-accent">{profile.name}</CardTitle>
+                                        {userTier && <Badge variant="outline" className={cn("text-sm sm:text-base mt-2", userTier.className)}>{userTier.name}</Badge>}
                                     </CardHeader>
-                                    <CardContent className="text-center">
-                                        <div className="space-y-4">
+                                    <CardContent className="text-center p-4">
+                                        <div className="space-y-3">
                                             <div>
-                                                <div className="flex justify-between text-sm mb-1">
+                                                <div className="flex justify-between text-xs mb-1">
                                                     <span>XP</span>
                                                     <span>{profile.xp.toLocaleString()} / {nextTierXP.toLocaleString()}</span>
                                                 </div>
-                                                <Progress value={userTier?.progress} className="h-3 bg-muted" />
+                                                <Progress value={userTier?.progress} className="h-2 bg-muted" />
                                             </div>
-                                            <div className="text-sm text-muted-foreground">
+                                            <div className="text-xs text-muted-foreground">
                                                 Next Tier: {nextTierName}
                                             </div>
                                         </div>
@@ -122,11 +122,11 @@ export default function ProfileTab({ isDbInitialized }: { isDbInitialized: boole
 
                             <div className="lg:col-span-2">
                                  <Card>
-                                    <CardHeader>
-                                        <CardTitle>Performance Dashboard</CardTitle>
-                                        <CardDescription>Your lifetime statistics in the Shadow Arena.</CardDescription>
+                                    <CardHeader className="p-4">
+                                        <CardTitle className="text-lg sm:text-xl">Performance Dashboard</CardTitle>
+                                        <CardDescription className="text-sm">Your lifetime statistics in the Shadow Arena.</CardDescription>
                                     </CardHeader>
-                                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 pt-0">
                                         <StatCard icon={Award} label="Trade Win Rate" value={`${profile.winRate}%`} description="Based on all completed trades" />
                                         <StatCard icon={ShieldCheck} label="Signal Accuracy" value={`${profile.signalAccuracy}%`} description="AI signal prediction success" />
                                         <StatCard icon={Gem} label="SHADOW Balance" value={profile.shadowBalance.toLocaleString()} description="Your liquid token balance" />
@@ -137,24 +137,24 @@ export default function ProfileTab({ isDbInitialized }: { isDbInitialized: boole
                         </div>
                     </TabsContent>
 
-                    <TabsContent value="settings" className="mt-6 space-y-8">
+                    <TabsContent value="settings" className="mt-6 space-y-6">
                         <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center"><Paintbrush className="mr-2"/> Appearance</CardTitle>
-                                <CardDescription>Customize the look and feel of the application.</CardDescription>
+                                <CardTitle className="flex items-center text-lg sm:text-xl"><Paintbrush className="mr-2"/> Appearance</CardTitle>
+                                <CardDescription className="text-sm">Customize the look and feel of the application.</CardDescription>
                              </CardHeader>
                              <CardContent>
                                 <div className="flex items-center space-x-2">
                                     <Switch id="theme-switch" checked={theme !== 'theme-light'} onCheckedChange={(checked) => setTheme(checked ? 'theme-shadow' : 'theme-light')} />
-                                    <Label htmlFor="theme-switch">Dark Mode</Label>
+                                    <Label htmlFor="theme-switch" className="text-sm">Dark Mode</Label>
                                 </div>
                             </CardContent>
                         </Card>
                         
                          <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center"><KeyRound className="mr-2"/> API Keys</CardTitle>
-                                <CardDescription>Enter your own API keys for enhanced functionality (optional).</CardDescription>
+                                <CardTitle className="flex items-center text-lg sm:text-xl"><KeyRound className="mr-2"/> API Keys</CardTitle>
+                                <CardDescription className="text-sm">Enter your own API keys for enhanced functionality (optional).</CardDescription>
                              </CardHeader>
                              <CardContent>
                                 <div className="space-y-4">

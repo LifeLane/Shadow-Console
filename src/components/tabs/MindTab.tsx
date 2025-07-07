@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Loader2, Zap, BrainCircuit, ArrowUp, ArrowDown, TrendingUp, Clock, Crosshair, Sparkles, Send, History, AlertTriangle } from 'lucide-react';
+import { Loader2, Zap, BrainCircuit, ArrowUp, ArrowDown, TrendingUp, Clock, Crosshair, Sparkles, Send, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Signal, Market, Ticker24h } from '@/lib/types';
 import { generateAiSignalAction, getSignalHistoryAction } from '@/app/mind/actions';
@@ -40,11 +40,13 @@ interface MindTabProps {
 
 const MarketStat = ({ label, value, icon: Icon, valueClassName }: { label: string; value: string | React.ReactNode; icon: React.ElementType, valueClassName?: string }) => (
     <Card className="bg-card/70 border-border/50">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3">
-            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{label}</CardTitle>
-            <Icon className="h-4 w-4 text-muted-foreground" />
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-3">
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                {label}
+                <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
+            </CardTitle>
         </CardHeader>
-        <CardContent className="p-3 pt-0">
+        <CardContent className="p-2 sm:p-3 pt-0">
             <div className={cn("text-lg sm:text-xl font-bold font-code", valueClassName)}>
                 {value}
             </div>
@@ -53,39 +55,39 @@ const MarketStat = ({ label, value, icon: Icon, valueClassName }: { label: strin
 );
 
 const SignalCard = ({ signal, onExecute }: { signal: Signal; onExecute: (signal: Signal) => void; }) => (
-    <Card key={signal.id} className="p-3 bg-card/50 border border-primary/20">
-        <div className="flex items-center justify-between gap-2">
+    <Card className="p-3 bg-card/50 border border-primary/20">
+        <div className="flex items-start sm:items-center justify-between gap-2 flex-col sm:flex-row">
             <div className="flex-grow">
-                <div className="flex items-baseline gap-3 mb-2">
+                <div className="flex items-baseline gap-2 mb-2">
                     <Badge className={cn(
-                        "py-1 px-3 text-sm font-bold rounded-md",
+                        "py-0.5 px-2 text-sm font-bold rounded-md",
                         signal.prediction === 'LONG' ? 'bg-accent text-accent-foreground' :
                         signal.prediction === 'SHORT' ? 'bg-destructive text-destructive-foreground' : 'bg-muted text-muted-foreground'
                     )}>{signal.prediction}</Badge>
-                    <span className="font-bold text-lg">{signal.asset}</span>
-                    <span className="text-sm text-muted-foreground">(Conf: {signal.confidence}%)</span>
+                    <span className="font-bold text-base sm:text-lg">{signal.asset}</span>
+                    <span className="text-xs sm:text-sm text-muted-foreground">(Conf: {signal.confidence}%)</span>
                 </div>
-                <div className="grid grid-cols-3 gap-3 text-sm font-code">
+                <div className="grid grid-cols-3 gap-2 text-xs sm:text-sm font-code">
                     <div>
                         <p className="text-muted-foreground">Entry</p>
-                        <p className="font-bold text-base">${signal.entryPrice.toLocaleString()}</p>
+                        <p className="font-bold text-sm sm:text-base">${signal.entryPrice.toLocaleString()}</p>
                     </div>
                     <div>
                         <p className="text-muted-foreground">TP</p>
-                        <p className="font-bold text-base">${signal.takeProfit.toLocaleString()}</p>
+                        <p className="font-bold text-sm sm:text-base">${signal.takeProfit.toLocaleString()}</p>
                     </div>
                     <div>
                         <p className="text-muted-foreground">SL</p>
-                        <p className="font-bold text-base">${signal.stopLoss.toLocaleString()}</p>
+                        <p className="font-bold text-sm sm:text-base">${signal.stopLoss.toLocaleString()}</p>
                     </div>
                 </div>
             </div>
-            <div className="flex flex-col items-end justify-between space-y-2">
+            <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between space-x-2 sm:space-x-0 sm:space-y-2 w-full sm:w-auto mt-2 sm:mt-0">
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button size="icon" variant="ghost" className="h-9 w-9 text-accent hover:bg-accent/20" onClick={() => onExecute(signal)} disabled={signal.prediction === 'HOLD'}>
-                                <Send className="h-5 w-5" />
+                            <Button size="icon" variant="ghost" className="h-8 w-8 sm:h-9 sm:w-9 text-accent hover:bg-accent/20" onClick={() => onExecute(signal)} disabled={signal.prediction === 'HOLD'}>
+                                <Send className="h-4 w-4 sm:h-5 sm:w-5" />
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -93,14 +95,13 @@ const SignalCard = ({ signal, onExecute }: { signal: Signal; onExecute: (signal:
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
-
                 <p className="text-xs text-muted-foreground whitespace-nowrap">
                     {formatDistanceToNow(new Date(signal.timestamp), { addSuffix: true })}
                 </p>
             </div>
         </div>
         <div className="mt-2 pt-2 border-t border-border/20">
-            <p className="text-xs text-muted-foreground italic flex items-start gap-2">
+            <p className="text-xs text-muted-foreground italic flex items-start gap-1.5">
                 <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                 <span>Shadow Signals are AI-generated for gamified purposes only and do not constitute financial advice. Trade at your own risk.</span>
             </p>
@@ -113,14 +114,14 @@ const ModeButton = ({ icon: Icon, label, selected, ...props }: { icon: React.Ele
         type="button"
         variant="outline"
         className={cn(
-            "h-auto p-3 flex flex-col justify-center items-center space-y-1.5 border-2 text-center transition-all duration-200",
+            "h-auto p-2 sm:p-3 flex flex-col justify-center items-center space-y-1.5 border-2 text-center transition-all duration-200",
             selected
                 ? "bg-accent text-accent-foreground border-accent glow-border-accent"
                 : "bg-card/80 border-border hover:bg-accent/10 hover:border-accent"
         )}
         {...props}
     >
-        <Icon className="w-6 h-6" />
+        <Icon className="w-5 h-5 sm:w-6 sm:w-6" />
         <span className="font-semibold text-xs">{label}</span>
     </Button>
 );
@@ -256,8 +257,8 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
   return (
     <div className="h-full flex flex-col space-y-3 bg-background">
         {/* Top Section: Console */}
-        <div className="px-4 pt-3">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
                 <MarketStat label="Current Price" value={tickerData ? `$${parseFloat(tickerData.lastPrice).toLocaleString()}`: <Loader2 className="h-5 w-5 animate-spin" />} icon={Zap} valueClassName="text-white" />
                 <MarketStat label="24h Change" value={tickerData ? `${parseFloat(tickerData.priceChangePercent).toFixed(2)}%`: <Loader2 className="h-5 w-5 animate-spin" />} icon={TrendingUp} valueClassName={tickerData && parseFloat(tickerData.priceChangePercent) >= 0 ? 'text-accent' : 'text-red-500'} />
                 <MarketStat label="24h High" value={tickerData ? `$${parseFloat(tickerData.highPrice).toLocaleString()}`: <Loader2 className="h-5 w-5 animate-spin" />} icon={ArrowUp} />
@@ -273,10 +274,10 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
                         name="market"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="text-muted-foreground flex items-center"><BrainCircuit className="w-4 h-4 mr-2"/> Target Asset</FormLabel>
+                                <FormLabel className="text-muted-foreground text-sm flex items-center"><BrainCircuit className="w-4 h-4 mr-2"/> Target Asset</FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingMarkets}>
                                     <FormControl>
-                                        <SelectTrigger className="h-12 text-base border-2 border-border focus:border-primary">
+                                        <SelectTrigger className="h-11 text-sm sm:text-base border-2 border-border focus:border-primary">
                                             {isLoadingMarkets ? <Loader2 className="h-4 w-4 animate-spin" /> : <SelectValue />}
                                         </SelectTrigger>
                                     </FormControl>
@@ -290,61 +291,63 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
                         )}
                     />
                     
-                    <FormField
-                        control={form.control}
-                        name="tradingMode"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel className="text-muted-foreground flex items-center"><Sparkles className="w-4 h-4 mr-2"/> Trading Mode</FormLabel>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                    {tradingModes.map((mode) => (
-                                        <ModeButton
-                                            key={mode.id}
-                                            icon={mode.icon}
-                                            label={mode.label}
-                                            selected={field.value === mode.id}
-                                            onClick={() => form.setValue('tradingMode', mode.id as any, { shouldValidate: true })}
-                                        />
-                                    ))}
-                                </div>
-                            </FormItem>
-                        )}
-                    />
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <FormField
+                            control={form.control}
+                            name="tradingMode"
+                            render={({ field }) => (
+                                <FormItem className="col-span-2 sm:col-span-4">
+                                    <FormLabel className="text-muted-foreground text-sm flex items-center"><Sparkles className="w-4 h-4 mr-2"/> Trading Mode</FormLabel>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                        {tradingModes.map((mode) => (
+                                            <ModeButton
+                                                key={mode.id}
+                                                icon={mode.icon}
+                                                label={mode.label}
+                                                selected={field.value === mode.id}
+                                                onClick={() => form.setValue('tradingMode', mode.id as any, { shouldValidate: true })}
+                                            />
+                                        ))}
+                                    </div>
+                                </FormItem>
+                            )}
+                        />
 
-                    <FormField
-                        control={form.control}
-                        name="risk"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel className="text-muted-foreground flex items-center"><Crosshair className="w-4 h-4 mr-2"/> Risk Profile</FormLabel>
-                                <Controller
-                                    control={form.control}
-                                    name="risk"
-                                    render={({ field: controllerField }) => (
-                                        <ToggleGroup
-                                            type="single"
-                                            value={controllerField.value}
-                                            onValueChange={(value) => { if (value) form.setValue('risk', value as 'Low' | 'Medium' | 'High', { shouldValidate: true })}}
-                                            className="grid grid-cols-3 gap-2 sm:gap-4 h-11 border-2 border-border rounded-lg p-1"
-                                        >
-                                            <ToggleGroupItem value="Low" className="h-full">Low</ToggleGroupItem>
-                                            <ToggleGroupItem value="Medium" className="h-full">Medium</ToggleGroupItem>
-                                            <ToggleGroupItem value="High" className="h-full">High</ToggleGroupItem>
-                                        </ToggleGroup>
-                                    )}
-                                />
-                            </FormItem>
-                        )}
-                    />
+                        <FormField
+                            control={form.control}
+                            name="risk"
+                            render={({ field }) => (
+                                <FormItem className="col-span-2 sm:col-span-4">
+                                    <FormLabel className="text-muted-foreground text-sm flex items-center"><Crosshair className="w-4 h-4 mr-2"/> Risk Profile</FormLabel>
+                                    <Controller
+                                        control={form.control}
+                                        name="risk"
+                                        render={({ field: controllerField }) => (
+                                            <ToggleGroup
+                                                type="single"
+                                                value={controllerField.value}
+                                                onValueChange={(value) => { if (value) form.setValue('risk', value as 'Low' | 'Medium' | 'High', { shouldValidate: true })}}
+                                                className="grid grid-cols-3 gap-2 h-11 border-2 border-border rounded-lg p-1"
+                                            >
+                                                <ToggleGroupItem value="Low" className="h-full text-xs sm:text-sm">Low</ToggleGroupItem>
+                                                <ToggleGroupItem value="Medium" className="h-full text-xs sm:text-sm">Medium</ToggleGroupItem>
+                                                <ToggleGroupItem value="High" className="h-full text-xs sm:text-sm">High</ToggleGroupItem>
+                                            </ToggleGroup>
+                                        )}
+                                    />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                        <Button type="button" onClick={handleGenerateSignal} className="h-auto py-2 text-base border-2 border-accent text-accent bg-transparent hover:bg-accent hover:text-accent-foreground">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                        <Button type="button" onClick={handleGenerateSignal} className="h-auto py-2 text-sm sm:text-base border-2 border-accent text-accent bg-transparent hover:bg-accent hover:text-accent-foreground">
                             <div className="text-left">
                                 <p className="font-bold flex items-center"><Zap className="w-4 h-4 mr-2" />Instant Signal</p>
                                 <p className="text-xs font-normal opacity-80">Executes immediately at market price.</p>
                             </div>
                         </Button>
-                         <Button type="button" onClick={handleGenerateSignal} className="h-auto py-2 text-base bg-accent text-accent-foreground hover:bg-accent/90">
+                         <Button type="button" onClick={handleGenerateSignal} className="h-auto py-2 text-sm sm:text-base bg-accent text-accent-foreground hover:bg-accent/90">
                             <div className="text-left">
                                 <p className="font-bold flex items-center"><BrainCircuit className="w-4 h-4 mr-2" />SHADOW's Signal</p>
                                 <p className="text-xs font-normal opacity-80">SHADOW finds the optimal entry.</p>
@@ -356,20 +359,20 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
         </div>
 
         {/* Bottom Section: Signal Log */}
-        <div className="flex-grow flex flex-col min-h-0 px-4 pb-3">
+        <div className="flex-grow flex flex-col min-h-0">
             <Tabs defaultValue="all" className="flex-grow flex flex-col">
                 <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="all">Signal Log</TabsTrigger>
-                    <TabsTrigger value="pending">Pending ({pendingSignals.length})</TabsTrigger>
+                    <TabsTrigger value="all" className="text-xs sm:text-sm">Signal Log</TabsTrigger>
+                    <TabsTrigger value="pending" className="text-xs sm:text-sm">Pending ({pendingSignals.length})</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="all" className="flex-grow mt-4 overflow-hidden">
+                <TabsContent value="all" className="flex-grow mt-2 overflow-hidden">
                     <ScrollArea className="h-full">
-                        <div className="space-y-3 pr-4">
+                        <div className="space-y-2 pr-2">
                             {isLoadingHistory ? (
                                 <div className="flex justify-center items-center h-40"><Loader2 className="animate-spin h-8 w-8 text-primary" /></div>
                             ) : signalHistory.length === 0 ? (
-                                <p className="text-center text-muted-foreground py-10">No signals generated yet. Use the console above.</p>
+                                <p className="text-center text-muted-foreground py-10 text-sm">No signals generated yet. Use the console above.</p>
                             ) : (
                                 signalHistory.map((signal) => (
                                     <SignalCard key={signal.id} signal={signal} onExecute={handleExecuteSignal} />
@@ -379,13 +382,13 @@ export default function MindTab({ isDbInitialized, setActiveTab }: MindTabProps)
                     </ScrollArea>
                 </TabsContent>
 
-                <TabsContent value="pending" className="flex-grow mt-4 overflow-hidden">
+                <TabsContent value="pending" className="flex-grow mt-2 overflow-hidden">
                     <ScrollArea className="h-full">
-                        <div className="space-y-3 pr-4">
+                        <div className="space-y-2 pr-2">
                             {isLoadingHistory ? (
                                 <div className="flex justify-center items-center h-40"><Loader2 className="animate-spin h-8 w-8 text-primary" /></div>
                             ) : pendingSignals.length === 0 ? (
-                                <p className="text-center text-muted-foreground py-10">No pending signals.</p>
+                                <p className="text-center text-muted-foreground py-10 text-sm">No pending signals.</p>
                             ) : (
                                 pendingSignals.map((signal) => (
                                     <SignalCard key={signal.id} signal={signal} onExecute={handleExecuteSignal} />

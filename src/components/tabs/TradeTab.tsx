@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DollarSign, BarChart, ArrowUp, ArrowDown, Gift, AlertTriangle, Loader2, List, Briefcase, CheckCircle2, BrainCircuit } from 'lucide-react';
+import { BarChart, AlertTriangle, Loader2, List, Briefcase, CheckCircle2, TrendingUp, TrendingDown, Repeat, DollarSign } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Trade } from '@/lib/types';
 import { getTradesAction, getPerformanceStatsAction, closeAllPositionsAction, type PerformanceStats } from '@/app/agents/actions';
@@ -15,14 +15,14 @@ import { formatDistanceToNow } from 'date-fns';
 import { ScrollArea } from '../ui/scroll-area';
 
 const StatCard = ({ icon: Icon, label, value, valuePrefix = '', valueClassName = '' }: { icon: React.ElementType, label: string, value: string | number, valuePrefix?: string, valueClassName?: string }) => (
-    <Card className="bg-card/70 border border-accent/20 glow-border-accent">
-        <CardContent className="p-3">
+    <Card className="bg-card/70">
+        <CardContent className="p-3 sm:p-4">
             <div className="flex items-center space-x-2 mb-1">
                 <Icon className="h-4 w-4 text-muted-foreground" />
-                <p className="text-sm font-medium text-muted-foreground">{label}</p>
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">{label}</p>
             </div>
-            <p className={cn("text-2xl font-bold font-code", valueClassName)}>
-                {valuePrefix}{typeof value === 'number' ? value.toLocaleString() : value}
+            <p className={cn("text-xl sm:text-2xl font-bold font-code", valueClassName)}>
+                {valuePrefix}{typeof value === 'number' ? value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : value}
             </p>
         </CardContent>
     </Card>
@@ -32,39 +32,51 @@ const TradeItem = ({ trade }: { trade: Trade }) => {
     const isWin = trade.pnl !== undefined && trade.pnl > 0;
     return (
         <Card className="p-3 bg-card/50 border border-primary/20">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-start justify-between gap-2">
                 <div className="flex-grow">
-                    <div className="flex items-baseline gap-3 mb-2">
+                    <div className="flex items-baseline gap-2 mb-2">
                         <Badge className={cn(
-                            "py-1 px-3 text-sm font-bold rounded-md",
+                            "py-0.5 px-2 text-sm font-bold rounded-md",
                             trade.side === 'LONG' ? 'bg-green-500/80 text-white' : 'bg-red-500/80 text-white'
                         )}>{trade.side}</Badge>
-                        <span className="font-bold text-lg">{trade.asset}</span>
-                        <span className="text-sm text-muted-foreground">(Stake: ${trade.stake})</span>
+                        <span className="font-bold text-base sm:text-lg">{trade.asset}</span>
+                        <span className="text-xs sm:text-sm text-muted-foreground">(Stake: ${trade.stake})</span>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm font-code">
+                    <div className="grid grid-cols-3 gap-2 text-xs sm:text-sm font-code">
                         <div>
                             <p className="text-muted-foreground">Entry</p>
-                            <p className="font-bold text-base">${trade.entryPrice.toLocaleString()}</p>
+                            <p className="font-bold text-sm sm:text-base">${trade.entryPrice.toLocaleString()}</p>
                         </div>
                         {trade.status === 'CLOSED' && trade.closePrice && (
                              <div>
                                 <p className="text-muted-foreground">Close</p>
-                                <p className="font-bold text-base">${trade.closePrice.toLocaleString()}</p>
+                                <p className="font-bold text-sm sm:text-base">${trade.closePrice.toLocaleString()}</p>
                             </div>
                         )}
                         {trade.status === 'CLOSED' && trade.pnl !== undefined && (
-                             <div className={cn("font-bold text-base", isWin ? 'text-accent' : 'text-destructive')}>
+                             <div className={cn("font-bold", isWin ? 'text-accent' : 'text-destructive')}>
                                 <p className="text-muted-foreground">PNL</p>
-                                <p>{isWin ? '+' : ''}${trade.pnl.toLocaleString()}</p>
+                                <p className="text-sm sm:text-base">{isWin ? '+' : ''}${trade.pnl.toLocaleString()}</p>
                             </div>
+                        )}
+                         {trade.status === 'OPEN' && (
+                             <>
+                                <div>
+                                    <p className="text-muted-foreground">TP</p>
+                                    <p className="font-bold text-sm sm:text-base text-accent">${trade.takeProfit.toLocaleString()}</p>
+                                </div>
+                                <div>
+                                    <p className="text-muted-foreground">SL</p>
+                                    <p className="font-bold text-sm sm:text-base text-destructive">${trade.stopLoss.toLocaleString()}</p>
+                                </div>
+                             </>
                         )}
                     </div>
                 </div>
-                <div className="flex flex-col items-end justify-between space-y-2">
+                <div className="flex flex-col items-end justify-between space-y-2 shrink-0">
                      {trade.status === 'OPEN' ?
                         <Badge variant="outline" className="text-yellow-400 border-yellow-400">OPEN</Badge> :
-                        <Badge variant="secondary" className={cn(isWin ? "bg-accent/20 text-accent" : "bg-destructive/20 text-destructive")}>CLOSED</Badge>
+                        <Badge variant="secondary" className={cn("text-xs", isWin ? "bg-accent/20 text-accent" : "bg-destructive/20 text-destructive")}>CLOSED</Badge>
                      }
                     <p className="text-xs text-muted-foreground whitespace-nowrap">
                         {formatDistanceToNow(new Date(trade.timestamp), { addSuffix: true })}
@@ -75,9 +87,8 @@ const TradeItem = ({ trade }: { trade: Trade }) => {
     )
 }
 
-export default function TradeTab({ isDbInitialized, setActiveTab }: { 
+export default function TradeTab({ isDbInitialized }: { 
   isDbInitialized: boolean;
-  setActiveTab: (tabId: 'wallet' | 'trade' | 'mind' | 'missions' | 'profile') => void;
 }) {
     const [trades, setTrades] = useState<Trade[]>([]);
     const [stats, setStats] = useState<PerformanceStats | null>(null);
@@ -104,8 +115,7 @@ export default function TradeTab({ isDbInitialized, setActiveTab }: {
 
     useEffect(() => {
         fetchData();
-        // Optional: auto-refresh data periodically
-        const interval = setInterval(fetchData, 30000); // every 30 seconds
+        const interval = setInterval(fetchData, 30000);
         return () => clearInterval(interval);
     }, [fetchData]);
 
@@ -114,7 +124,7 @@ export default function TradeTab({ isDbInitialized, setActiveTab }: {
         try {
             const result = await closeAllPositionsAction();
             toast({ title: "Emergency Protocol Activated", description: result.message });
-            await fetchData(); // Refresh data immediately
+            await fetchData();
         } catch (error) {
             toast({ title: 'Error', description: 'Could not close all positions.', variant: 'destructive' });
         } finally {
@@ -132,31 +142,31 @@ export default function TradeTab({ isDbInitialized, setActiveTab }: {
     return (
         <div className="space-y-4">
             <Card className="bg-card/70">
-                <CardHeader>
+                <CardHeader className="p-4">
                     <div className="flex justify-between items-start">
                         <div>
-                            <CardTitle className="text-2xl text-primary flex items-center"><List className="mr-3"/> Performance Matrix</CardTitle>
-                            <CardDescription>An overview of your closed trade performance.</CardDescription>
+                            <CardTitle className="text-xl sm:text-2xl text-primary flex items-center"><BarChart className="mr-3"/> Performance Matrix</CardTitle>
+                            <CardDescription className="text-sm">An overview of your trade performance.</CardDescription>
                         </div>
                     </div>
                 </CardHeader>
-                <CardContent>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <StatCard icon={Briefcase} label="Invested" value={stats?.invested ?? 0} valuePrefix="$" />
-                        <StatCard icon={BarChart} label="Live PnL" value={stats?.livePnl.toFixed(2) ?? "0.00"} valuePrefix="$" valueClassName={stats && stats.livePnl >= 0 ? 'text-accent' : 'text-destructive'}/>
-                        <StatCard icon={List} label="Trades" value={stats?.totalTrades ?? 0}/>
-                        <StatCard icon={CheckCircle2} label="Winning Trades" value={stats?.winningTrades ?? 0} valueClassName="text-accent"/>
+                <CardContent className="p-4 pt-0">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <StatCard icon={DollarSign} label="Total PnL" value={stats?.totalPnl ?? 0} valuePrefix={stats && stats.totalPnl > 0 ? "+$" : "$"} valueClassName={stats && stats.totalPnl >= 0 ? 'text-accent' : 'text-destructive'}/>
+                        <StatCard icon={TrendingUp} label="Best Trade" value={stats?.bestTrade ?? 0} valuePrefix="+$" valueClassName="text-accent"/>
+                        <StatCard icon={TrendingDown} label="Worst Trade" value={stats?.worstTrade ?? 0} valuePrefix="$" valueClassName="text-destructive"/>
+                        <StatCard icon={Repeat} label="Total Trades" value={stats?.totalTrades ?? 0}/>
                     </div>
                 </CardContent>
             </Card>
 
             <Card className="bg-card/70 border border-destructive/50">
-                <CardContent className="p-3 flex justify-between items-center">
-                    <div>
+                <CardContent className="p-3 flex flex-col sm:flex-row justify-between items-center gap-2">
+                    <div className="text-center sm:text-left">
                         <h3 className="font-semibold text-destructive">Emergency Protocol</h3>
-                        <p className="text-sm text-muted-foreground">Instantly close all active positions at market price.</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">Instantly close all active positions at market price.</p>
                     </div>
-                    <Button variant="destructive" onClick={handleKillSwitch} disabled={isClosing || openTrades.length === 0}>
+                    <Button variant="destructive" onClick={handleKillSwitch} disabled={isClosing || openTrades.length === 0} className="w-full sm:w-auto">
                         {isClosing ? <Loader2 className="mr-2 animate-spin"/> : <AlertTriangle className="mr-2"/>}
                         Kill Switch
                     </Button>
@@ -164,43 +174,43 @@ export default function TradeTab({ isDbInitialized, setActiveTab }: {
             </Card>
             
             <Tabs defaultValue="positions" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 h-12 bg-accent/10">
-                    <TabsTrigger value="positions" className="h-full text-lg data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">Positions ({openTrades.length})</TabsTrigger>
-                    <TabsTrigger value="history" className="h-full text-lg data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">History ({closedTrades.length})</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 h-11 bg-accent/10">
+                    <TabsTrigger value="positions" className="h-full text-sm sm:text-base data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">Positions ({openTrades.length})</TabsTrigger>
+                    <TabsTrigger value="history" className="h-full text-sm sm:text-base data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">History ({closedTrades.length})</TabsTrigger>
                 </TabsList>
-                <TabsContent value="positions" className="mt-4">
-                     <ScrollArea className="h-[400px]">
+                <TabsContent value="positions" className="mt-3">
+                     <ScrollArea className="h-[350px]">
                         {openTrades.length > 0 ? (
-                            <div className="space-y-4 pr-4">
+                            <div className="space-y-2 pr-2">
                                 {openTrades.map(trade => <TradeItem key={trade.id} trade={trade} />)}
                             </div>
                         ) : (
                             <div className="text-center py-16 text-muted-foreground flex flex-col items-center justify-center h-full">
-                                <BarChart className="mx-auto h-12 w-12 mb-4"/>
-                                <h3 className="text-xl font-semibold">No Active Positions</h3>
-                                <p>Generate a signal from the Mind Console to begin.</p>
+                                <Briefcase className="mx-auto h-10 w-10 sm:h-12 sm:w-12 mb-4"/>
+                                <h3 className="text-lg sm:text-xl font-semibold">No Active Positions</h3>
+                                <p className="text-sm">Generate a signal from the Mind Console to begin.</p>
                             </div>
                         )}
                     </ScrollArea>
                 </TabsContent>
-                <TabsContent value="history" className="mt-4">
-                     <ScrollArea className="h-[400px]">
+                <TabsContent value="history" className="mt-3">
+                     <ScrollArea className="h-[350px]">
                         {closedTrades.length > 0 ? (
-                            <div className="space-y-4 pr-4">
+                            <div className="space-y-2 pr-2">
                                 {closedTrades.map(trade => <TradeItem key={trade.id} trade={trade} />)}
                             </div>
                         ) : (
                             <div className="text-center py-16 text-muted-foreground flex flex-col items-center justify-center h-full">
-                                <List className="mx-auto h-12 w-12 mb-4"/>
-                                <h3 className="text-xl font-semibold">No Trade History</h3>
-                                <p>Your closed trades will appear here.</p>
+                                <List className="mx-auto h-10 w-10 sm:h-12 sm:w-12 mb-4"/>
+                                <h3 className="text-lg sm:text-xl font-semibold">No Trade History</h3>
+                                <p className="text-sm">Your closed trades will appear here.</p>
                             </div>
                         )}
                      </ScrollArea>
                 </TabsContent>
             </Tabs>
-             <div className="px-4 py-2 mt-4 text-center text-xs text-muted-foreground">
-                <p>Shadow Signals are AI-generated for gamified purposes and do not constitute financial advice. All trades are simulated. Trade at your own risk.</p>
+             <div className="px-4 py-2 mt-2 text-center text-xs text-muted-foreground">
+                <p>All trades are simulated for gamified purposes and do not constitute financial advice. Trade at your own risk.</p>
             </div>
         </div>
     );

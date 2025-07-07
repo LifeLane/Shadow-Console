@@ -41,9 +41,9 @@ const EligibilityItem = ({ icon, text, status, tip }: { icon: React.ElementType,
     return (
         <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
             <div className="flex items-center space-x-3">
-                {React.createElement(icon, { className: "h-6 w-6 text-primary" })}
+                {React.createElement(icon, { className: "h-5 w-5 sm:h-6 sm:w-6 text-primary" })}
                 <div>
-                    <p className="font-semibold">{text}</p>
+                    <p className="font-semibold text-sm sm:text-base">{text}</p>
                     <p className="text-xs text-muted-foreground">{tip}</p>
                 </div>
             </div>
@@ -138,41 +138,41 @@ export default function MissionsTab({ isDbInitialized }: { isDbInitialized: bool
   }, [isDbInitialized, toast]);
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="space-y-4 sm:space-y-6">
       <Card className="glow-border">
         <CardHeader>
-          <CardTitle className="text-primary flex items-center text-2xl"><Gift className="mr-3" /> Missions Hub</CardTitle>
-          <CardDescription>Complete tasks, claim airdrops, and climb the leaderboard to earn rewards.</CardDescription>
+          <CardTitle className="text-primary flex items-center text-xl sm:text-2xl"><Gift className="mr-3" /> Missions Hub</CardTitle>
+          <CardDescription className="text-sm">Complete tasks, claim airdrops, and climb the leaderboard to earn rewards.</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="tasks" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="tasks">Tasks</TabsTrigger>
-                <TabsTrigger value="airdrop">Airdrop</TabsTrigger>
-                <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
+                <TabsTrigger value="tasks" className="text-xs sm:text-sm">Tasks</TabsTrigger>
+                <TabsTrigger value="airdrop" className="text-xs sm:text-sm">Airdrop</TabsTrigger>
+                <TabsTrigger value="leaderboard" className="text-xs sm:text-sm">Leaderboard</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="tasks" className="mt-6">
-                <div className="space-y-4">
+            <TabsContent value="tasks" className="mt-4 sm:mt-6">
+                <div className="space-y-3">
                     {isLoadingMissions ? (
                         <div className="flex justify-center items-center h-40"><Loader2 className="animate-spin h-8 w-8 text-primary" /></div>
                     ) : (
                         missions.map(({ mission, isCompleted }) => {
                             const isCompleting = completingId === mission.id;
                             return (
-                                <Card key={mission.id} className={cn("p-4 flex items-center justify-between transition-all", isCompleted && "bg-muted/30 opacity-70")}>
+                                <Card key={mission.id} className={cn("p-3 flex items-center justify-between transition-all", isCompleted && "bg-muted/30 opacity-70")}>
                                     <div className="flex-1 mr-4">
-                                        <h3 className={cn("font-semibold text-lg", isCompleted && "line-through")}>{mission.title}</h3>
-                                        <p className="text-sm text-muted-foreground">{mission.description}</p>
+                                        <h3 className={cn("font-semibold text-sm sm:text-lg", isCompleted && "line-through")}>{mission.title}</h3>
+                                        <p className="text-xs sm:text-sm text-muted-foreground">{mission.description}</p>
                                         <div className="text-xs text-accent mt-1 font-bold">Reward: +{mission.reward.amount} {mission.reward.type} / +{mission.xp} XP</div>
                                     </div>
                                     <Button 
                                         onClick={() => handleCompleteMission(mission.id)}
                                         disabled={isCompleted || isCompleting}
                                         variant={isCompleted ? "secondary" : "default"}
-                                        className={cn(!isCompleted && "bg-accent hover:bg-accent/90 text-accent-foreground")}
+                                        className={cn("h-9 w-9 p-0", !isCompleted && "bg-accent hover:bg-accent/90 text-accent-foreground")}
                                     >
-                                        {isCompleting ? <Loader2 className="animate-spin"/> : isCompleted ? <Check/> : <Send/>}
+                                        {isCompleting ? <Loader2 className="animate-spin h-4 w-4"/> : isCompleted ? <Check className="h-4 w-4"/> : <Send className="h-4 w-4"/>}
                                     </Button>
                                 </Card>
                             )
@@ -181,9 +181,9 @@ export default function MissionsTab({ isDbInitialized }: { isDbInitialized: bool
                 </div>
             </TabsContent>
 
-            <TabsContent value="airdrop" className="mt-6">
-                 <div className="space-y-4 mb-6">
-                    <h3 className="text-lg font-semibold text-center mb-4">Airdrop Eligibility Tracker</h3>
+            <TabsContent value="airdrop" className="mt-4 sm:mt-6">
+                 <div className="space-y-3 mb-6">
+                    <h3 className="text-base sm:text-lg font-semibold text-center mb-4">Airdrop Eligibility Tracker</h3>
                     <EligibilityItem 
                         icon={Wallet} 
                         text="Wallet Connected" 
@@ -209,37 +209,37 @@ export default function MissionsTab({ isDbInitialized }: { isDbInitialized: bool
                         tip="On-chain check for BSAI token holdings."
                     />
                 </div>
-                <Button onClick={handleClaimAirdrop} disabled={!isEligible || !isDbInitialized} className="w-full h-12 text-lg bg-accent hover:bg-accent/90 text-accent-foreground">
+                <Button onClick={handleClaimAirdrop} disabled={!isEligible || !isDbInitialized} className="w-full h-11 text-base bg-accent hover:bg-accent/90 text-accent-foreground">
                     {isEligible ? "Claim Airdrop" : "Not Yet Eligible"}
                 </Button>
             </TabsContent>
 
-            <TabsContent value="leaderboard" className="mt-6">
+            <TabsContent value="leaderboard" className="mt-4 sm:mt-6">
                 {isLoadingLeaderboard ? (
                     <div className="flex justify-center items-center h-64"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
                 ) : (
-                    <ul className="space-y-3">
+                    <ul className="space-y-2">
                         {leaderboard.map((user, index) => {
                             const userTitle = getTitle(user);
                             return (
                                 <li key={user.id} className={cn(
-                                    "flex items-center space-x-3 p-3 rounded-lg transition-all border",
+                                    "flex items-center space-x-3 p-2 rounded-lg transition-all border",
                                     currentUser && user.id === currentUser.id ? 'bg-primary/20 border-primary' : 'bg-muted/30 border-transparent'
                                 )}>
-                                    <span className={cn('flex items-center justify-center h-8 w-8 rounded-full text-sm font-bold border-2', getRankStyling(index))}>{index + 1}</span>
-                                    <Avatar className="h-10 w-10">
+                                    <span className={cn('flex items-center justify-center h-7 w-7 sm:h-8 sm:w-8 rounded-full text-sm font-bold border-2', getRankStyling(index))}>{index + 1}</span>
+                                    <Avatar className="h-9 w-9 sm:h-10 sm:w-10">
                                         <AvatarImage src={user.avatarUrl} data-ai-hint="futuristic pilot" />
                                         <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <div className="flex-1">
-                                        <p className="font-semibold">{user.name}</p>
+                                        <p className="font-semibold text-sm sm:text-base">{user.name}</p>
                                         <div className="flex items-center text-xs text-muted-foreground">
                                             <userTitle.icon className="w-3 h-3 mr-1.5 text-primary" />
                                             {userTitle.title}
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-bold text-accent font-code">{user.xp.toLocaleString()} XP</p>
+                                        <p className="font-bold text-accent font-code text-sm sm:text-base">{user.xp.toLocaleString()} XP</p>
                                         <p className="text-xs text-muted-foreground">Acc: {user.signalAccuracy}%</p>
                                     </div>
                                 </li>
