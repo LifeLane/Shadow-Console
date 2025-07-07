@@ -32,67 +32,53 @@ const TradeItem = ({ trade }: { trade: Trade }) => {
     const isWin = trade.pnl !== undefined && trade.pnl > 0;
     return (
         <Card className="p-3 bg-card/50 border-primary/20">
-            <div className="flex items-start justify-between gap-2">
-                <div className="flex-1">
-                    <div className="flex items-baseline gap-2 mb-2">
-                        <Badge className={cn(
-                            "py-0.5 px-2 text-xs font-bold rounded-md",
-                            trade.side === 'LONG' ? 'bg-green-500/80 text-white' : 'bg-red-500/80 text-white'
-                        )}>{trade.side}</Badge>
-                        <span className="font-semibold sm:text-lg">{trade.asset}</span>
-                        <span className="text-xs text-muted-foreground">(Stake: ${trade.stake})</span>
-                    </div>
+            <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="flex items-center gap-2">
+                    <Badge className={cn(
+                        "py-0.5 px-2 text-xs font-bold rounded-md",
+                        trade.side === 'LONG' ? 'bg-green-500/80 text-white' : 'bg-red-500/80 text-white'
+                    )}>{trade.side}</Badge>
+                    <span className="font-semibold sm:text-lg">{trade.asset}</span>
+                </div>
+                 {trade.status === 'OPEN' ?
+                    <Badge variant="outline" className="text-yellow-400 border-yellow-400 text-xs">OPEN</Badge> :
+                    <Badge variant="secondary" className={cn("text-xs", isWin ? "bg-accent/20 text-accent" : "bg-destructive/20 text-destructive")}>CLOSED</Badge>
+                 }
+            </div>
 
-                    <div className="space-y-1 sm:grid sm:grid-cols-3 sm:gap-x-4 sm:space-y-0 font-code text-sm">
-                        <div className="flex items-baseline justify-between sm:flex-col sm:items-start">
-                            <span className="text-muted-foreground text-xs">Entry</span>
-                            <span className="font-semibold">${trade.entryPrice.toLocaleString()}</span>
-                        </div>
+            <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 font-code text-sm">
+                 <div className="text-muted-foreground">Entry</div>
+                 <div className="text-right font-semibold">${trade.entryPrice.toLocaleString()}</div>
                         
-                        {trade.status === 'CLOSED' ? (
-                            <>
-                                {trade.closePrice && (
-                                    <div className="flex items-baseline justify-between sm:flex-col sm:items-start">
-                                        <span className="text-muted-foreground text-xs">Close</span>
-                                        <span className="font-semibold">${trade.closePrice.toLocaleString()}</span>
-                                    </div>
-                                )}
-                                {trade.pnl !== undefined && (
-                                    <div className="flex items-baseline justify-between sm:flex-col sm:items-start">
-                                        <span className="text-muted-foreground text-xs">PNL</span>
-                                        <span className={cn("font-semibold", isWin ? 'text-accent' : 'text-destructive')}>
-                                            {isWin ? '+' : ''}${trade.pnl.toLocaleString()}
-                                        </span>
-                                    </div>
-                                )}
-                            </>
-                        ) : (
-                            <>
-                                <div className="flex items-baseline justify-between sm:flex-col sm:items-start">
-                                    <span className="text-muted-foreground text-xs">TP</span>
-                                    <span className="font-semibold text-accent">${trade.takeProfit.toLocaleString()}</span>
-                                </div>
-                                <div className="flex items-baseline justify-between sm:flex-col sm:items-start">
-                                    <span className="text-muted-foreground text-xs">SL</span>
-                                    <span className="font-semibold text-destructive">${trade.stopLoss.toLocaleString()}</span>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                </div>
-                <div className="flex flex-col items-end justify-between self-stretch">
-                     {trade.status === 'OPEN' ?
-                        <Badge variant="outline" className="text-yellow-400 border-yellow-400 text-xs">OPEN</Badge> :
-                        <Badge variant="secondary" className={cn("text-xs", isWin ? "bg-accent/20 text-accent" : "bg-destructive/20 text-destructive")}>CLOSED</Badge>
-                     }
-                    <p className="text-xs text-muted-foreground whitespace-nowrap mt-auto">
-                        {formatDistanceToNow(new Date(trade.timestamp), { addSuffix: true })}
-                    </p>
-                </div>
+                {trade.status === 'CLOSED' ? (
+                    <>
+                        <div className="text-muted-foreground">Close</div>
+                        <div className="text-right font-semibold">${trade.closePrice?.toLocaleString() ?? 'N/A'}</div>
+                        
+                        <div className="text-muted-foreground">PNL</div>
+                        <div className={cn("text-right font-semibold", isWin ? 'text-accent' : 'text-destructive')}>
+                            {isWin ? '+' : ''}{trade.pnl?.toLocaleString() ?? '0'}
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <div className="text-muted-foreground">TP</div>
+                        <div className="text-right font-semibold text-accent">${trade.takeProfit.toLocaleString()}</div>
+                        
+                        <div className="text-muted-foreground">SL</div>
+                        <div className="text-right font-semibold text-destructive">${trade.stopLoss.toLocaleString()}</div>
+                    </>
+                )}
+            </div>
+
+            <div className="pt-3 mt-3 border-t border-border/20">
+                <p className="text-xs text-muted-foreground text-right">
+                    {formatDistanceToNow(new Date(trade.timestamp), { addSuffix: true })}
+                </p>
             </div>
         </Card>
-    )
-}
+    );
+};
 
 export default function TradeTab({ isDbInitialized }: { 
   isDbInitialized: boolean;

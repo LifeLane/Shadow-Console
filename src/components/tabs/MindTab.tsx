@@ -56,53 +56,47 @@ const MarketStat = ({ label, value, icon: Icon, valueClassName }: { label: strin
 
 const SignalCard = ({ signal, onExecute }: { signal: Signal; onExecute: (signal: Signal) => void; }) => (
     <Card className="p-3 bg-card/50 border-primary/20">
-        <div className="flex items-start justify-between gap-2">
-            <div className="flex-1">
-                <div className="flex items-baseline gap-2 mb-2">
-                    <Badge className={cn(
-                        "py-0.5 px-2 text-xs font-bold rounded-md",
-                        signal.prediction === 'LONG' ? 'bg-green-500/80 text-white' :
-                        signal.prediction === 'SHORT' ? 'bg-red-500/80 text-white' : 'bg-muted text-muted-foreground'
-                    )}>{signal.prediction}</Badge>
-                    <span className="font-semibold sm:text-lg">{signal.asset}</span>
-                    <span className="text-xs text-muted-foreground">(Conf: {signal.confidence}%)</span>
-                </div>
-
-                <div className="space-y-1 sm:grid sm:grid-cols-3 sm:gap-x-4 sm:space-y-0 font-code text-sm">
-                    <div className="flex items-baseline justify-between sm:flex-col sm:items-start">
-                        <span className="text-muted-foreground text-xs">Entry</span>
-                        <span className="font-semibold">${signal.entryPrice.toLocaleString()}</span>
-                    </div>
-                    <div className="flex items-baseline justify-between sm:flex-col sm:items-start">
-                        <span className="text-muted-foreground text-xs">TP</span>
-                        <span className="font-semibold text-accent">${signal.takeProfit.toLocaleString()}</span>
-                    </div>
-                    <div className="flex items-baseline justify-between sm:flex-col sm:items-start">
-                        <span className="text-muted-foreground text-xs">SL</span>
-                        <span className="font-semibold text-destructive">${signal.stopLoss.toLocaleString()}</span>
-                    </div>
-                </div>
+        <div className="flex items-start justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2">
+                <Badge className={cn(
+                    "py-0.5 px-2 text-xs font-bold rounded-md",
+                    signal.prediction === 'LONG' ? 'bg-green-500/80 text-white' :
+                    signal.prediction === 'SHORT' ? 'bg-red-500/80 text-white' : 'bg-muted text-muted-foreground'
+                )}>{signal.prediction}</Badge>
+                <span className="font-semibold sm:text-lg">{signal.asset}</span>
+                <span className="text-xs text-muted-foreground">(Conf: {signal.confidence}%)</span>
             </div>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button size="icon" variant="ghost" className="h-8 w-8 text-accent hover:bg-accent/20" onClick={() => onExecute(signal)} disabled={signal.prediction === 'HOLD'}>
+                            <Send className="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>Execute Trade</p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+        </div>
+
+        <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 font-code text-sm mb-3">
+            <div className="text-muted-foreground">Entry</div>
+            <div className="text-right font-semibold">${signal.entryPrice.toLocaleString()}</div>
+
+            <div className="text-muted-foreground">TP</div>
+            <div className="text-right font-semibold text-accent">${signal.takeProfit.toLocaleString()}</div>
             
-            <div className="flex flex-col items-end justify-between self-stretch">
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button size="icon" variant="ghost" className="h-8 w-8 text-accent hover:bg-accent/20" onClick={() => onExecute(signal)} disabled={signal.prediction === 'HOLD'}>
-                                <Send className="h-4 w-4" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>Execute Trade</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-                <p className="text-xs text-muted-foreground whitespace-nowrap mt-auto">
+            <div className="text-muted-foreground">SL</div>
+            <div className="text-right font-semibold text-destructive flex items-center justify-end gap-2">
+                <span>${signal.stopLoss.toLocaleString()}</span>
+                <span className="text-xs text-muted-foreground font-sans whitespace-nowrap">
                     {formatDistanceToNow(new Date(signal.timestamp), { addSuffix: true })}
-                </p>
+                </span>
             </div>
         </div>
-        <div className="mt-3 pt-3 border-t border-border/20">
+        
+        <div className="pt-3 border-t border-border/20">
             <p className="text-xs text-muted-foreground italic flex items-start gap-1.5">
                 <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                 <span>Shadow Signals are AI-generated for gamified purposes only and do not constitute financial advice. Trade at your own risk.</span>
