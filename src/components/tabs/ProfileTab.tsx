@@ -129,7 +129,7 @@ export default function ProfileTab({ isDbInitialized }: { isDbInitialized: boole
                 <Card className="glow-border-accent">
                     <CardHeader className="items-center text-center">
                         <Avatar className="h-24 w-24 mb-4 border-2 border-accent">
-                            <AvatarImage src={profile.avatarUrl} alt={profile.name} />
+                            <AvatarImage src={profile.avatarUrl} alt={profile.name} data-ai-hint="futuristic pilot" />
                             <AvatarFallback>{profile.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <CardTitle className="text-3xl text-accent">{profile.name}</CardTitle>
@@ -159,10 +159,13 @@ export default function ProfileTab({ isDbInitialized }: { isDbInitialized: boole
                     <CardContent>
                         <ul className="space-y-3">
                             {leaderboard.map((user, index) => (
-                                <li key={user.id} className="flex items-center space-x-3 p-2 rounded-md bg-muted/30">
+                                <li key={user.id} className={cn(
+                                    "flex items-center space-x-3 p-2 rounded-md transition-all",
+                                    profile && user.id === profile.id ? 'bg-primary/20 ring-1 ring-primary' : 'bg-muted/30'
+                                )}>
                                     <span className={cn('flex items-center justify-center h-6 w-6 rounded-full text-xs font-bold', getRankStyling(index))}>{index + 1}</span>
                                     <Avatar className="h-8 w-8">
-                                        <AvatarImage src={user.avatarUrl} />
+                                        <AvatarImage src={user.avatarUrl} data-ai-hint="futuristic pilot" />
                                         <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <span className="flex-1 font-medium">{user.name}</span>

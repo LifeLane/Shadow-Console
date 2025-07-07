@@ -3,7 +3,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getTrades, saveTrade, updateTrade } from '@/services/tradeService';
-import { getUser, updateUser } from '@/services/userService';
+import { getUser, updateUser, updateUserBalance } from '@/services/userService';
 import type { Trade } from '@/lib/types';
 import { fetchLatestPrice } from '@/services/binanceService';
 

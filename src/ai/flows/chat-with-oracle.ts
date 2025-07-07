@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A conversational flow for chatting with the Shadow Oracle.
@@ -61,14 +62,13 @@ export const chatWithOracle = ai.defineFlow(
       input: message,
     });
 
-    const output = response.output;
-    if (typeof output !== 'string') {
-        // Handle cases where output might not be a simple string if tools are used.
-        // For now, we'll stringify, but a more robust solution might be needed
-        // if tool outputs need special formatting.
-        return JSON.stringify(output);
+    const responseText = response.text;
+
+    if (!responseText) {
+      console.error('Oracle AI did not return a text response.', {output: response.output});
+      return "The Oracle's connection is unstable. Please try again.";
     }
-    
-    return output;
+
+    return responseText;
   }
 );

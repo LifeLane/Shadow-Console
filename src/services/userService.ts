@@ -56,8 +56,8 @@ export async function updateUserBalance(userId: string, amount: number): Promise
  */
 export async function getLeaderboardData(): Promise<User[]> {
     const users = await getUsers();
-    // Exclude the default_user from the bots on the leaderboard for display purposes
-    return users.filter(u => u.id !== 'default_user').sort((a, b) => b.xp - a.xp).slice(0, 10);
+    // Sort all users by XP and return the top 10
+    return users.sort((a, b) => b.xp - a.xp).slice(0, 10);
 }
 
 /**
