@@ -1,43 +1,43 @@
 
 [
-  {
-    "id": "trade_5",
-    "title": "Arena Warmup",
-    "description": "Complete 5 trades in the Trade Arena today.",
-    "xp": 100,
-    "reward": {
-      "type": "SHADOW",
-      "amount": 20
+    {
+        "id": "trade_5",
+        "title": "Arena Warmup",
+        "description": "Complete 5 trades in the Trade Arena today.",
+        "xp": 100,
+        "reward": {
+            "type": "SHADOW",
+            "amount": 20
+        }
+    },
+    {
+        "id": "signal_3",
+        "title": "Oracle Challenger",
+        "description": "Generate 3 correct AI signals in the Signal Console.",
+        "xp": 125,
+        "reward": {
+            "type": "SHADOW",
+            "amount": 50
+        }
+    },
+    {
+        "id": "stake_1000",
+        "title": "Vault Commitment",
+        "description": "Stake 1,000 SHADOW in the Wallet Vault.",
+        "xp": 200,
+        "reward": {
+            "type": "NFT_SKIN",
+            "amount": 1
+        }
+    },
+    {
+        "id": "invite_3",
+        "title": "Recruit for the Arena",
+        "description": "Invite 3 friends to join the Shadow Arena.",
+        "xp": 150,
+        "reward": {
+            "type": "SHADOW",
+            "amount": 100
+        }
     }
-  },
-  {
-    "id": "signal_3",
-    "title": "Oracle Challenger",
-    "description": "Generate 3 correct AI signals in the Signal Console.",
-    "xp": 125,
-    "reward": {
-      "type": "SHADOW",
-      "amount": 50
-    }
-  },
-  {
-    "id": "stake_1000",
-    "title": "Vault Commitment",
-    "description": "Stake 1,000 SHADOW in the Wallet Vault.",
-    "xp": 200,
-    "reward": {
-      "type": "NFT_SKIN",
-      "amount": 1
-    }
-  },
-  {
-    "id": "invite_3",
-    "title": "Recruit for the Arena",
-    "description": "Invite 3 friends to join the Shadow Arena.",
-    "xp": 150,
-    "reward": {
-      "type": "SHADOW",
-      "amount": 100
-    }
-  }
 ]

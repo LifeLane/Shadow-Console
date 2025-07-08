@@ -3,14 +3,16 @@
   {
     "id": "default_user",
     "name": "Neon Pilot",
-    "xp": 1630,
-    "winRate": 67,
-    "signalAccuracy": 35,
-    "shadowBalance": 0,
-    "stakedAmount": 6500,
-    "avatarUrl": "https://placehold.co/100x100.png",
+    "xp": 0,
+    "winRate": 0,
+    "signalAccuracy": 0,
+    "shadowBalance": 500,
+    "stakedAmount": 0,
+    "avatarUrl": "",
     "completedMissions": [],
-    "walletAddress": "0x123...abc"
+    "walletAddress": "",
+    "hasRegisteredForAirdrop": false,
+    "nameEditable": false
   },
   {
     "id": "bot_1",
@@ -22,7 +24,9 @@
     "stakedAmount": 0,
     "avatarUrl": "https://placehold.co/100x100.png",
     "completedMissions": [],
-    "walletAddress": "0x456...def"
+    "walletAddress": "0x456...def",
+    "hasRegisteredForAirdrop": true,
+    "nameEditable": false
   },
   {
     "id": "bot_2",
@@ -34,6 +38,22 @@
     "stakedAmount": 0,
     "avatarUrl": "https://placehold.co/100x100.png",
     "completedMissions": [],
-    "walletAddress": "0x789...ghi"
+    "walletAddress": "0x789...ghi",
+    "hasRegisteredForAirdrop": true,
+    "nameEditable": false
+  },
+  {
+    "id": "bot_3",
+    "name": "Oracle Lord",
+    "xp": 9500,
+    "winRate": 88,
+    "signalAccuracy": 92,
+    "shadowBalance": 1000,
+    "stakedAmount": 0,
+    "avatarUrl": "https://placehold.co/100x100.png",
+    "completedMissions": [],
+    "walletAddress": "0xabc...123",
+    "hasRegisteredForAirdrop": true,
+    "nameEditable": false
   }
 ]

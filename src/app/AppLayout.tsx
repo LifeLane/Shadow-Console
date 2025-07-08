@@ -14,7 +14,6 @@ import BackgroundAnimation from '@/components/BackgroundAnimation';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { setupAndSeedLocalData } from '@/services/setupService';
 import { useToast } from '@/hooks/use-toast';
 import { resolveOpenTradesAction } from '@/app/agents/actions';
 import { resolvePendingSignalsAction } from '@/app/mind/actions';
@@ -80,23 +79,11 @@ export default function AppLayout() {
   const CurrentThemeIcon = appThemes[currentThemeIndex].icon;
 
   useEffect(() => {
-    async function initializeDataStore() {
-        try {
-            console.log("Initializing local file-based data store for Shadow Trader...");
-            await setupAndSeedLocalData();
-            console.log("Local data store initialization complete.");
-            setIsDbInitialized(true);
-        } catch (error) {
-            console.error("Failed to initialize local data store:", error);
-            toast({
-                title: "Data Store Error",
-                description: "Could not initialize the application's local data files. Some features may not work correctly.",
-                variant: "destructive",
-            });
-        }
-    }
-    initializeDataStore();
-  }, [toast]);
+    // The local data files are now part of the repository and seeded,
+    // so no dynamic initialization is needed at runtime.
+    // This prevents crashes in serverless environments.
+    setIsDbInitialized(true);
+  }, []);
   
   useEffect(() => {
     if (!isDbInitialized) return;
